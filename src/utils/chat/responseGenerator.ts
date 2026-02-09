@@ -46,6 +46,7 @@ export type ResponseGeneratorParams = {
   }
   reasoningLevel?: ReasoningLevel
   maxContextOverride?: number
+  currentFileContextMode?: 'full' | 'summary'
   geminiTools?: {
     useWebSearch?: boolean
     useUrlContext?: boolean
@@ -71,6 +72,7 @@ export class ResponseGenerator {
   }
   private readonly reasoningLevel?: ReasoningLevel
   private readonly maxContextOverride?: number
+  private readonly currentFileContextMode?: 'full' | 'summary'
   private readonly geminiTools?: {
     useWebSearch?: boolean
     useUrlContext?: boolean
@@ -94,6 +96,7 @@ export class ResponseGenerator {
     this.requestParams = params.requestParams
     this.reasoningLevel = params.reasoningLevel
     this.maxContextOverride = params.maxContextOverride
+    this.currentFileContextMode = params.currentFileContextMode
     this.geminiTools = params.geminiTools
   }
 
@@ -224,6 +227,7 @@ export class ResponseGenerator {
       hasTools,
       maxContextOverride: this.maxContextOverride,
       model: this.model,
+      currentFileContextMode: this.currentFileContextMode,
     })
 
     // Set tools to undefined when no tools are available since some providers
@@ -548,9 +552,7 @@ export class ResponseGenerator {
       ),
     )
     const finalizedAssistantMessage = this.responseMessages.find(
-      (
-        message,
-      ): message is ChatAssistantMessage =>
+      (message): message is ChatAssistantMessage =>
         message.id === responseMessageId && message.role === 'assistant',
     )
     return {

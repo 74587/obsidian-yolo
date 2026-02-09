@@ -155,8 +155,7 @@ export function getLocalFileTools(): McpTool[] {
     },
     {
       name: 'fs_read',
-      description:
-        `Read line ranges from multiple vault files by path. Defaults to the first ${DEFAULT_READ_MAX_LINES} lines.`,
+      description: `Read line ranges from multiple vault files by path. Defaults to the first ${DEFAULT_READ_MAX_LINES} lines.`,
       inputSchema: {
         type: 'object',
         properties: {
@@ -603,7 +602,10 @@ export async function callLocalFileTool({
     const name = toolName as LocalFileToolName
     switch (name) {
       case 'fs_list': {
-        const scopeFolder = resolveFolderByPath(app, getOptionalTextArg(args, 'path'))
+        const scopeFolder = resolveFolderByPath(
+          app,
+          getOptionalTextArg(args, 'path'),
+        )
         const scope = getFsListScope(args)
         const depth = getOptionalIntegerArg({
           args,
@@ -623,7 +625,11 @@ export async function callLocalFileTool({
         const includeFiles = scope === 'files' || scope === 'all'
         const includeDirs = scope === 'dirs' || scope === 'all'
 
-        const entries: Array<{ kind: 'file' | 'dir'; path: string; depth: number }> = []
+        const entries: Array<{
+          kind: 'file' | 'dir'
+          path: string
+          depth: number
+        }> = []
         const queue: Array<{ folder: TFolder; level: number }> = [
           { folder: scopeFolder.folder, level: 1 },
         ]
@@ -711,7 +717,10 @@ export async function callLocalFileTool({
           throw new Error('endLine must be greater than or equal to startLine.')
         }
 
-        if (endLine !== undefined && endLine - startLine + 1 > MAX_READ_MAX_LINES) {
+        if (
+          endLine !== undefined &&
+          endLine - startLine + 1 > MAX_READ_MAX_LINES
+        ) {
           throw new Error(
             `Requested line range is too large. Maximum ${MAX_READ_MAX_LINES} lines per file.`,
           )
@@ -920,8 +929,12 @@ export async function callLocalFileTool({
           min: 1,
           max: 300,
         })
-        const caseSensitive = getOptionalBooleanArg(args, 'caseSensitive') ?? false
-        const scopeFolder = resolveFolderByPath(app, getOptionalTextArg(args, 'path'))
+        const caseSensitive =
+          getOptionalBooleanArg(args, 'caseSensitive') ?? false
+        const scopeFolder = resolveFolderByPath(
+          app,
+          getOptionalTextArg(args, 'path'),
+        )
 
         const queryForMatch = caseSensitive ? query : query.toLowerCase()
         const matchPath = (path: string): boolean => {
@@ -943,14 +956,21 @@ export async function callLocalFileTool({
         const results: Array<
           | { kind: 'file'; path: string }
           | { kind: 'dir'; path: string }
-          | { kind: 'content_match'; path: string; line: number; snippet: string }
+          | {
+              kind: 'content_match'
+              path: string
+              line: number
+              snippet: string
+            }
         > = []
         let skippedLargeFiles = 0
 
         if (includeFiles) {
           const files = app.vault
             .getFiles()
-            .filter((file) => isPathWithinFolder(file.path, scopeFolder.normalizedPath))
+            .filter((file) =>
+              isPathWithinFolder(file.path, scopeFolder.normalizedPath),
+            )
             .map((file) => file.path)
             .filter((path) => matchPath(path))
             .sort((a, b) => a.localeCompare(b))
@@ -982,7 +1002,9 @@ export async function callLocalFileTool({
         if (includeContent && results.length < maxResults) {
           const searchableFiles = app.vault
             .getMarkdownFiles()
-            .filter((file) => isPathWithinFolder(file.path, scopeFolder.normalizedPath))
+            .filter((file) =>
+              isPathWithinFolder(file.path, scopeFolder.normalizedPath),
+            )
             .sort((a, b) => a.path.localeCompare(b.path))
 
           for (const file of searchableFiles) {
@@ -1085,7 +1107,11 @@ export async function callLocalFileTool({
               const content = getTextArg(item, 'content')
               assertContentSize(content)
               const mode = item.mode
-              if (mode !== undefined && mode !== 'overwrite' && mode !== 'append') {
+              if (
+                mode !== undefined &&
+                mode !== 'overwrite' &&
+                mode !== 'append'
+              ) {
                 throw new Error('mode must be overwrite or append.')
               }
 
@@ -1178,7 +1204,8 @@ export async function callLocalFileTool({
 
             if (action === 'delete_dir') {
               const path = validateVaultPath(getTextArg(item, 'path'))
-              const recursive = getOptionalBooleanArg(item, 'recursive') ?? false
+              const recursive =
+                getOptionalBooleanArg(item, 'recursive') ?? false
               const existing = app.vault.getAbstractFileByPath(path)
               if (!existing || !(existing instanceof TFolder)) {
                 throw new Error(`Folder not found: ${path}`)
@@ -1223,7 +1250,8 @@ export async function callLocalFileTool({
 
               if (
                 source instanceof TFolder &&
-                (newPath === source.path || newPath.startsWith(`${source.path}/`))
+                (newPath === source.path ||
+                  newPath.startsWith(`${source.path}/`))
               ) {
                 throw new Error(
                   'Cannot move a folder into itself or its subfolder.',

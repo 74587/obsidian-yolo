@@ -1470,6 +1470,8 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                       ? {
                           ...msg,
                           content,
+                          promptContent: null,
+                          similaritySearchResults: undefined,
                         }
                       : msg,
                   ),

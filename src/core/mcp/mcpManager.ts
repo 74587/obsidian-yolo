@@ -411,7 +411,9 @@ export class McpManager {
 
     // Check if the tool is allowed for the conversation
     if (conversationId) {
-      if (this.allowedToolsByConversation.get(conversationId)?.has(allowanceKey)) {
+      if (
+        this.allowedToolsByConversation.get(conversationId)?.has(allowanceKey)
+      ) {
         return true
       }
     }

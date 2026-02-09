@@ -27,6 +27,8 @@ import { getNestedFiles, readTFileContent } from '../obsidian'
 
 import { YoutubeTranscript, isYoutubeUrl } from './youtube-transcript'
 
+export type CurrentFileContextMode = 'full' | 'summary'
+
 export class PromptGenerator {
   private getRagEngine: () => Promise<RAGEngine>
   private app: App
@@ -48,24 +50,23 @@ export class PromptGenerator {
     hasTools = false,
     maxContextOverride,
     model,
+    currentFileContextMode = 'full',
   }: {
     messages: ChatMessage[]
     hasTools?: boolean
     maxContextOverride?: number
     model: ChatModel
+    currentFileContextMode?: CurrentFileContextMode
   }): Promise<RequestMessage[]> {
     if (messages.length === 0) {
       throw new Error('No messages provided')
     }
 
     // Ensure all user messages have prompt content
-    // Compile if: no promptContent OR has mentionables that need to be processed
+    // Compile only when promptContent is missing (snapshot mode)
     const compiledMessages = await Promise.all(
       messages.map(async (message) => {
-        if (
-          message.role === 'user' &&
-          (!message.promptContent || message.mentionables.length > 0)
-        ) {
+        if (message.role === 'user' && !message.promptContent) {
           const { promptContent, similaritySearchResults } =
             await this.compileUserMessagePrompt({
               message,
@@ -111,7 +112,7 @@ export class PromptGenerator {
     )?.file
     const currentFileMessage =
       currentFile && this.settings.chatOptions.includeCurrentFileContent
-        ? await this.getCurrentFileMessage(currentFile)
+        ? await this.getCurrentFileMessage(currentFile, currentFileContextMode)
         : undefined
 
     const requestMessages: RequestMessage[] = [
@@ -617,7 +618,11 @@ ${customInstruction}
 
   private async getCurrentFileMessage(
     currentFile: TFile,
+    currentFileContextMode: CurrentFileContextMode,
   ): Promise<RequestMessage> {
+    if (currentFileContextMode === 'summary') {
+      return this.getCurrentFileSummaryMessage(currentFile)
+    }
     const fileContent = await readTFileContent(currentFile, this.app.vault)
     return {
       role: 'user',
@@ -627,6 +632,19 @@ Here is the file I'm looking at.
 \`\`\`${currentFile.path}
 ${fileContent}
 \`\`\`\n\n`,
+    }
+  }
+
+  private async getCurrentFileSummaryMessage(
+    currentFile: TFile,
+  ): Promise<RequestMessage> {
+    return {
+      role: 'user',
+      content: `# Inputs
+## Current File (summary)
+Path: ${currentFile.path}
+Title: ${currentFile.name}
+\n\n`,
     }
   }
 

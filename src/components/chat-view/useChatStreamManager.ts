@@ -165,6 +165,7 @@ export function useChatStreamManager({
               },
               maxContextOverride:
                 conversationOverrides?.maxContextMessages ?? undefined,
+              currentFileContextMode: 'summary',
               geminiTools: {
                 useWebSearch: conversationOverrides?.useWebSearch ?? false,
                 useUrlContext: conversationOverrides?.useUrlContext ?? false,
@@ -191,6 +192,7 @@ export function useChatStreamManager({
             },
             maxContextOverride:
               conversationOverrides?.maxContextMessages ?? undefined,
+            currentFileContextMode: 'full',
             geminiTools: {
               useWebSearch: conversationOverrides?.useWebSearch ?? false,
               useUrlContext: conversationOverrides?.useUrlContext ?? false,

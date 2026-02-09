@@ -71,6 +71,7 @@ export class NativeAgentRuntime implements AgentRuntime {
       reasoningLevel: input.reasoningLevel,
       requestParams: input.requestParams,
       maxContextOverride: input.maxContextOverride,
+      currentFileContextMode: input.currentFileContextMode,
       geminiTools: input.geminiTools,
     })
 

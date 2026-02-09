@@ -1,8 +1,9 @@
 import { Infinity as InfinityIcon, MessageCircle, PenLine } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
 
-import RollerSelect from '../common/RollerSelect'
 import { useLanguage } from '../../contexts/language-context'
+import RollerSelect from '../common/RollerSelect'
+
 import { ChatMode } from './chat-input/ChatModeSelect'
 
 type ViewToggleProps = {

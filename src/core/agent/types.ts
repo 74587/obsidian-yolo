@@ -23,6 +23,7 @@ export type AgentRuntimeRunInput = {
     top_p?: number
   }
   maxContextOverride?: number
+  currentFileContextMode?: 'full' | 'summary'
   geminiTools?: {
     useWebSearch?: boolean
     useUrlContext?: boolean
