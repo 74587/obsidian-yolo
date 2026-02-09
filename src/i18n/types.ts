@@ -51,6 +51,7 @@ export type TranslationKeys = {
   sidebar?: {
     tabs: {
       chat: string
+      agent?: string
       composer: string
     }
     chatList?: {

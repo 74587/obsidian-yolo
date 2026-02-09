@@ -2859,15 +2859,14 @@ button.smtcmp-chat-input-model-select {
   overflow: hidden;
   isolation: isolate;
   transition: all 0.2s ease;
-  width: 200px; /* 固定总宽度 */
+  width: 200px;
   box-shadow:
     0 1px 3px
       color-mix(in srgb, var(--background-modifier-box-shadow) 15%, transparent),
     inset 0 1px 0 color-mix(in srgb, white 5%, transparent);
 
-  /* 布局变量 */
   --smtcmp-total-width: 200px;
-  --smtcmp-padding-inline: 8px; /* 左右 4px */
+  --smtcmp-padding-inline: 8px;
   --smtcmp-collapsed-width: 50px;
   --smtcmp-expanded-width: calc(
     var(--smtcmp-total-width) - var(--smtcmp-padding-inline) -
@@ -2892,10 +2891,8 @@ button.smtcmp-chat-input-model-select {
   text-align: center;
   white-space: nowrap;
   line-height: 1.4;
-  /* 重置所有可能的按钮样式 */
   box-shadow: none !important;
   outline: none;
-  /* 默认宽度：收缩状态 */
   width: var(--smtcmp-collapsed-width);
   flex-shrink: 0;
   overflow: hidden;
@@ -2905,7 +2902,6 @@ button.smtcmp-chat-input-model-select {
   gap: 0;
 }
 
-/* 展开状态：悬停或激活的按钮 */
 .smtcmp-view-toggle-button--expanded {
   width: var(--smtcmp-expanded-width);
   justify-content: center;
@@ -2923,7 +2919,6 @@ button.smtcmp-chat-input-model-select {
   white-space: nowrap;
 }
 
-/* 展开状态：显示文字 */
 .smtcmp-view-toggle-button--expanded .smtcmp-view-toggle-button-label {
   opacity: 1;
   max-width: 100px;
@@ -2975,8 +2970,6 @@ button.smtcmp-chat-input-model-select {
   z-index: 1;
 }
 
-/* 默认状态：根据激活的视图设置宽度和位置 */
-/* indicator只跟随activeView，不响应hover */
 .smtcmp-view-toggle-indicator[data-active-view='chat'] {
   width: var(--smtcmp-collapsed-width);
   transform: translateX(0);
@@ -2987,33 +2980,28 @@ button.smtcmp-chat-input-model-select {
   transform: translateX(var(--smtcmp-collapsed-width));
 }
 
-/* 当chat激活且被展开时（hover在激活的chat上） */
 .smtcmp-view-toggle[data-expanded-view='chat'][data-active-expanded='true']
   .smtcmp-view-toggle-indicator[data-active-view='chat'] {
   width: var(--smtcmp-expanded-width);
   transform: translateX(0);
 }
 
-/* 当composer激活且被展开时（hover在激活的composer上） */
 .smtcmp-view-toggle[data-expanded-view='composer'][data-active-expanded='true']
   .smtcmp-view-toggle-indicator[data-active-view='composer'] {
   width: var(--smtcmp-expanded-width);
   transform: translateX(var(--smtcmp-collapsed-width));
 }
 
-/* 当composer激活但chat被展开时（hover在chat上） */
 .smtcmp-view-toggle[data-expanded-view='chat'][data-active-expanded='false']
   .smtcmp-view-toggle-indicator[data-active-view='composer'] {
   width: var(--smtcmp-collapsed-width);
   transform: translateX(var(--smtcmp-expanded-width));
 }
 
-/* 在header中的样式调整 */
 .smtcmp-chat-header .smtcmp-view-toggle {
   margin-right: auto;
 }
 
-/* 增强视觉反馈 */
 .smtcmp-view-toggle:hover {
   box-shadow:
     0 2px 8px
@@ -3021,7 +3009,115 @@ button.smtcmp-chat-input-model-select {
     inset 0 1px 0 color-mix(in srgb, white 8%, transparent);
 }
 
-/* 响应式调整 */
+/* Roller behavior on top of original accordion style */
+.smtcmp-roller-select-window {
+  height: 20px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.smtcmp-roller-select-track {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateY(0);
+}
+
+.smtcmp-roller-select-track.is-rolling {
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transform: translateY(-20px);
+}
+
+.smtcmp-roller-select-item {
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.smtcmp-roller-select-caret {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  width: 0;
+  height: 14px;
+  margin-left: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: rotate(0deg);
+  transition:
+    opacity 0.18s ease,
+    width 0.2s ease,
+    margin-left 0.2s ease,
+    transform 0.2s ease,
+    color 0.18s ease;
+}
+
+.smtcmp-view-toggle-button--roller.smtcmp-view-toggle-button--expanded
+  .smtcmp-roller-select-caret {
+  width: 14px;
+  margin-left: 4px;
+  opacity: 0.92;
+  color: var(--text-normal);
+}
+
+.smtcmp-view-toggle-button--roller.smtcmp-view-toggle-button--active
+  .smtcmp-roller-select-caret {
+  color: var(--h1-color, var(--interactive-accent));
+}
+
+.smtcmp-roller-select-trigger.is-open .smtcmp-roller-select-caret {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+.smtcmp-roller-select-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 10px !important;
+}
+
+.smtcmp-roller-select-list-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  color: var(--text-muted);
+}
+
+.smtcmp-roller-select-list-item-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+}
+
+.smtcmp-roller-select-list-item-label {
+  color: var(--text-normal);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.smtcmp-roller-select-list-item-desc {
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.3;
+}
+
+.smtcmp-roller-select-list-item-check {
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--h1-color, var(--interactive-accent));
+}
+
 @media (max-width: 400px) {
   .smtcmp-view-toggle {
     width: 160px;
@@ -6004,6 +6100,10 @@ button.smtcmp-chat-input-model-select {
   max-height: 400px;
   overflow: hidden;
   margin-left: -64px;
+}
+
+.smtcmp-view-toggle-mode-popover {
+  margin-left: 0;
 }
 
 @keyframes smtcmp-smart-space-popover-fade-in {

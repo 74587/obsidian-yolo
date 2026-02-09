@@ -48,6 +48,7 @@ export const zh: TranslationKeys = {
   sidebar: {
     tabs: {
       chat: 'Chat',
+      agent: 'Agent',
       composer: 'Sparkle',
     },
     chatList: {
@@ -765,7 +766,7 @@ export const zh: TranslationKeys = {
     chat: '对话',
     chatDesc: '普通对话模式',
     agent: 'Agent',
-    agentDesc: '启用工具调用能力',
+    agentDesc: '敏思，捷行',
   },
 
   reasoning: {

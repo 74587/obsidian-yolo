@@ -1,63 +1,188 @@
-import { MessageCircle, PenLine } from 'lucide-react'
-import React, { useState } from 'react'
+import { Infinity as InfinityIcon, MessageCircle, PenLine } from 'lucide-react'
+import React, { useEffect, useRef, useState } from 'react'
 
+import RollerSelect from '../common/RollerSelect'
 import { useLanguage } from '../../contexts/language-context'
+import { ChatMode } from './chat-input/ChatModeSelect'
 
 type ViewToggleProps = {
   activeView: 'chat' | 'composer'
   onChangeView: (view: 'chat' | 'composer') => void
+  chatMode: ChatMode
+  onChangeChatMode: (mode: ChatMode) => void
   disabled?: boolean
 }
 
 const ViewToggle: React.FC<ViewToggleProps> = ({
   activeView,
   onChangeView,
+  chatMode,
+  onChangeChatMode,
   disabled = false,
 }) => {
   const { t } = useLanguage()
   const [hoveredView, setHoveredView] = useState<'chat' | 'composer' | null>(
     null,
   )
+  const [isModeMenuOpen, setIsModeMenuOpen] = useState(false)
+  const [isModeClickOpenBlocked, setIsModeClickOpenBlocked] = useState(false)
+  const [toggleWidth, setToggleWidth] = useState<number | null>(null)
+  const toggleRef = useRef<HTMLDivElement | null>(null)
+  const clickOpenBlockTimeoutRef = useRef<number | null>(null)
 
   const chatLabel = t('sidebar.tabs.chat', 'Chat')
+  const agentLabel = t('chatMode.agent', 'Agent')
   const composerLabel = t('sidebar.tabs.composer', 'Composer')
+  const chatModeDesc = t('chatMode.chatDesc', 'Normal conversation mode')
+  const agentModeDesc = t(
+    'chatMode.agentDesc',
+    'Enable tool calling capabilities',
+  )
 
-  // Determine which view should be expanded based on hover or active state
+  const modeOptions = [
+    {
+      value: 'chat',
+      label: chatLabel,
+      description: chatModeDesc,
+      icon: <MessageCircle size={14} strokeWidth={2} />,
+    },
+    {
+      value: 'agent',
+      label: agentLabel,
+      description: agentModeDesc,
+      icon: <InfinityIcon size={14} strokeWidth={2} />,
+    },
+  ]
+
   const expandedView = hoveredView || activeView
   const isActiveExpanded = expandedView === activeView
 
+  useEffect(() => {
+    if (activeView !== 'chat') {
+      setIsModeMenuOpen(false)
+    }
+  }, [activeView])
+
+  useEffect(() => {
+    if (!isModeClickOpenBlocked) {
+      if (clickOpenBlockTimeoutRef.current !== null) {
+        window.clearTimeout(clickOpenBlockTimeoutRef.current)
+        clickOpenBlockTimeoutRef.current = null
+      }
+      return
+    }
+
+    clickOpenBlockTimeoutRef.current = window.setTimeout(() => {
+      setIsModeClickOpenBlocked(false)
+      clickOpenBlockTimeoutRef.current = null
+    }, 220)
+
+    return () => {
+      if (clickOpenBlockTimeoutRef.current !== null) {
+        window.clearTimeout(clickOpenBlockTimeoutRef.current)
+        clickOpenBlockTimeoutRef.current = null
+      }
+    }
+  }, [isModeClickOpenBlocked])
+
+  useEffect(() => {
+    const element = toggleRef.current
+    if (!element) return
+
+    const updateWidth = () => {
+      setToggleWidth(Math.round(element.getBoundingClientRect().width))
+    }
+
+    updateWidth()
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateWidth()
+    })
+    resizeObserver.observe(element)
+
+    return () => {
+      resizeObserver.disconnect()
+    }
+  }, [])
+
   return (
     <div
+      ref={toggleRef}
       className="smtcmp-view-toggle"
       data-expanded-view={expandedView}
       data-active-expanded={isActiveExpanded ? 'true' : 'false'}
     >
-      <button
-        className={`smtcmp-view-toggle-button ${
-          activeView === 'chat' ? 'smtcmp-view-toggle-button--active' : ''
-        } ${expandedView === 'chat' ? 'smtcmp-view-toggle-button--expanded' : ''}`}
-        onClick={() => onChangeView('chat')}
-        onMouseEnter={() => !disabled && setHoveredView('chat')}
-        onMouseLeave={() => setHoveredView(null)}
+      <RollerSelect
+        value={chatMode}
+        options={modeOptions}
+        onActivate={() => {
+          if (activeView !== 'chat') {
+            setIsModeClickOpenBlocked(true)
+          }
+          onChangeView('chat')
+        }}
+        open={isModeMenuOpen}
+        onOpenChange={(open) => {
+          if (disabled || activeView !== 'chat') {
+            setIsModeMenuOpen(false)
+            return
+          }
+
+          if (open && isModeClickOpenBlocked) {
+            setIsModeMenuOpen(false)
+            return
+          }
+
+          setIsModeMenuOpen(open)
+          if (open) {
+            setHoveredView('chat')
+          }
+        }}
+        onChange={(value) => {
+          if (value !== 'chat' && value !== 'agent') return
+          onChangeChatMode(value)
+          onChangeView('chat')
+          setIsModeMenuOpen(false)
+        }}
         disabled={disabled}
-        aria-pressed={activeView === 'chat'}
-        aria-label={chatLabel}
-      >
-        <span className="smtcmp-view-toggle-button-icon" aria-hidden="true">
-          <MessageCircle size={16} strokeWidth={2} />
-        </span>
-        <span className="smtcmp-view-toggle-button-label">{chatLabel}</span>
-      </button>
+        triggerClassName={`smtcmp-view-toggle-button smtcmp-view-toggle-button--roller ${
+          activeView === 'chat' ? 'smtcmp-view-toggle-button--active' : ''
+        } ${
+          expandedView === 'chat' ? 'smtcmp-view-toggle-button--expanded' : ''
+        }`}
+        contentStyle={
+          toggleWidth
+            ? {
+                width: `${toggleWidth}px`,
+                minWidth: `${toggleWidth}px`,
+                maxWidth: `${toggleWidth}px`,
+                marginLeft: '-4px',
+              }
+            : undefined
+        }
+        sideOffset={2}
+        onTriggerMouseEnter={() => {
+          if (disabled) return
+          setHoveredView('chat')
+        }}
+        onTriggerMouseLeave={() => {
+          setHoveredView(null)
+        }}
+        contentClassName="smtcmp-smart-space-popover smtcmp-chat-sidebar-popover smtcmp-view-toggle-mode-popover"
+      />
       <button
         className={`smtcmp-view-toggle-button ${
           activeView === 'composer' ? 'smtcmp-view-toggle-button--active' : ''
-        } ${expandedView === 'composer' ? 'smtcmp-view-toggle-button--expanded' : ''}`}
+        } ${
+          expandedView === 'composer'
+            ? 'smtcmp-view-toggle-button--expanded'
+            : ''
+        }`}
         onClick={() => onChangeView('composer')}
         onMouseEnter={() => !disabled && setHoveredView('composer')}
         onMouseLeave={() => setHoveredView(null)}
         disabled={disabled}
         aria-pressed={activeView === 'composer'}
-        aria-label={composerLabel}
       >
         <span className="smtcmp-view-toggle-button-icon" aria-hidden="true">
           <PenLine size={16} strokeWidth={2} />

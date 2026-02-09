@@ -1324,12 +1324,31 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     },
   }))
 
+  const handleChatModeChange = useCallback(
+    (nextMode: ChatMode) => {
+      const resolvedMode =
+        !Platform.isDesktop && nextMode === 'agent' ? 'chat' : nextMode
+      setChatMode(resolvedMode)
+      setConversationOverrides((prev) => ({
+        ...(prev ?? {}),
+        chatMode: resolvedMode,
+      }))
+      conversationOverridesRef.current.set(currentConversationId, {
+        ...(conversationOverridesRef.current.get(currentConversationId) ?? {}),
+        chatMode: resolvedMode,
+      })
+    },
+    [currentConversationId],
+  )
+
   const header = (
     <div className="smtcmp-chat-header">
       {onChangeView ? (
         <ViewToggle
           activeView={activeView}
           onChangeView={onChangeView}
+          chatMode={chatMode}
+          onChangeChatMode={handleChatModeChange}
           disabled={false}
         />
       ) : (
@@ -1669,21 +1688,6 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           />
         </div>
         <ChatUserInput
-          chatMode={chatMode}
-          onModeChange={(nextMode) => {
-            const resolvedMode =
-              !Platform.isDesktop && nextMode === 'agent' ? 'chat' : nextMode
-            setChatMode(resolvedMode)
-            setConversationOverrides((prev) => ({
-              ...(prev ?? {}),
-              chatMode: resolvedMode,
-            }))
-            conversationOverridesRef.current.set(currentConversationId, {
-              ...(conversationOverridesRef.current.get(currentConversationId) ??
-                {}),
-              chatMode: resolvedMode,
-            })
-          }}
           key={inputMessage.id} // this is needed to clear the editor when the user submits a new message
           ref={(ref) => registerChatUserInputRef(inputMessage.id, ref)}
           initialSerializedEditorState={inputMessage.content}

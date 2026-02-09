@@ -132,7 +132,10 @@ export default function ApplyViewRoot({
         await app.vault.modify(state.file, contentToWrite)
         persistOnUnmountRef.current = false
       } catch (error) {
-        console.error('[ApplyView] Failed to persist changes before close', error)
+        console.error(
+          '[ApplyView] Failed to persist changes before close',
+          error,
+        )
       } finally {
         close()
       }
@@ -200,11 +203,9 @@ export default function ApplyViewRoot({
       if (!persistOnUnmountRef.current) return
       const fallbackContent =
         preferredFinalContentRef.current ?? generateFinalContent('current')
-      void app.vault
-        .modify(state.file, fallbackContent)
-        .catch((error) => {
-          console.error('[ApplyView] Failed to persist changes on unmount', error)
-        })
+      void app.vault.modify(state.file, fallbackContent).catch((error) => {
+        console.error('[ApplyView] Failed to persist changes on unmount', error)
+      })
     }
   }, [app.vault, generateFinalContent, state.file])
 

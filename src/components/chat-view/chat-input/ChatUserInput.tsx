@@ -41,7 +41,6 @@ import {
   serializeMentionable,
 } from '../../../utils/chat/mentionable'
 
-import { ChatMode, ChatModeSelect } from './ChatModeSelect'
 import LexicalContentEditable from './LexicalContentEditable'
 import { ModelSelect } from './ModelSelect'
 import {
@@ -84,9 +83,6 @@ export type ChatUserInputProps = {
   displayMentionables?: Mentionable[]
   // 删除时从所有消息中删除的回调
   onDeleteFromAll?: (mentionable: Mentionable) => void
-  // Chat mode (chat/agent)
-  chatMode?: ChatMode
-  onModeChange?: (mode: ChatMode) => void
   // Reasoning level
   reasoningLevel?: ReasoningLevel
   onReasoningChange?: (level: ReasoningLevel) => void
@@ -117,8 +113,6 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
       onModelChange,
       displayMentionables,
       onDeleteFromAll,
-      chatMode = 'chat',
-      onModeChange,
       reasoningLevel,
       onReasoningChange,
       compact = false,
@@ -563,13 +557,6 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
           {!compact && (
             <div className="smtcmp-chat-user-input-controls">
               <div className="smtcmp-chat-user-input-controls__left">
-                <ChatModeSelect
-                  mode={chatMode}
-                  onChange={(mode) => onModeChange?.(mode)}
-                  side="top"
-                  sideOffset={8}
-                  contentClassName="smtcmp-smart-space-popover smtcmp-chat-sidebar-popover"
-                />
                 <ModelSelect
                   modelId={modelId}
                   onChange={onModelChange}

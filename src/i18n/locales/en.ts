@@ -48,6 +48,7 @@ export const en: TranslationKeys = {
   sidebar: {
     tabs: {
       chat: 'Chat',
+      agent: 'Agent',
       composer: 'Sparkle',
     },
     chatList: {
@@ -814,7 +815,7 @@ export const en: TranslationKeys = {
     chat: 'Chat',
     chatDesc: 'Normal conversation mode',
     agent: 'Agent',
-    agentDesc: 'Enable tool calling capabilities',
+    agentDesc: 'Think sharp, move fast',
   },
 
   reasoning: {
