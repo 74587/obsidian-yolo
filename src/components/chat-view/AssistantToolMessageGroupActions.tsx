@@ -11,6 +11,7 @@ import { useLLMResponseInfo } from './useLLMResponseInfo'
 
 function CopyButton({ messages }: { messages: AssistantToolMessageGroup }) {
   const [copied, setCopied] = useState(false)
+  const { t } = useLanguage()
 
   const content = useMemo(() => {
     return messages
@@ -19,12 +20,12 @@ function CopyButton({ messages }: { messages: AssistantToolMessageGroup }) {
           case 'assistant':
             return message.content === '' ? null : message.content
           case 'tool':
-            return getToolMessageContent(message)
+            return getToolMessageContent(message, t)
         }
       })
       .filter(Boolean)
       .join('\n\n')
-  }, [messages])
+  }, [messages, t])
 
   const handleCopy = () => {
     void navigator.clipboard
@@ -59,7 +60,7 @@ function CopyButton({ messages }: { messages: AssistantToolMessageGroup }) {
         </Tooltip.Trigger>
         <Tooltip.Portal>
           <Tooltip.Content className="smtcmp-tooltip-content">
-            Copy message
+            {t('chat.copyMessage', 'Copy message')}
           </Tooltip.Content>
         </Tooltip.Portal>
       </Tooltip.Root>

@@ -131,12 +131,11 @@ export class AgentService {
     } finally {
       unsubscribe()
       const currentEntry = this.runsByConversation.get(conversationId)
-      if (!currentEntry || currentEntry.runToken !== runToken) {
-        return
-      }
-      currentEntry.runToken = null
-      if (currentEntry.runtime === runtime) {
-        currentEntry.runtime = null
+      if (currentEntry && currentEntry.runToken === runToken) {
+        currentEntry.runToken = null
+        if (currentEntry.runtime === runtime) {
+          currentEntry.runtime = null
+        }
       }
     }
   }

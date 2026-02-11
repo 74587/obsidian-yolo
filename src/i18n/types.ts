@@ -613,6 +613,47 @@ export type TranslationKeys = {
     }
     showMore?: string
     showLess?: string
+    toolCall?: {
+      status?: {
+        call?: string
+        rejected?: string
+        running?: string
+        failed?: string
+        aborted?: string
+        unknown?: string
+      }
+      displayName?: {
+        fs_list?: string
+        fs_search?: string
+        fs_read?: string
+        fs_edit?: string
+        fs_write?: string
+      }
+      writeAction?: {
+        create_file?: string
+        write_file?: string
+        delete_file?: string
+        create_dir?: string
+        delete_dir?: string
+        move?: string
+      }
+      detail?: {
+        target?: string
+        scope?: string
+        query?: string
+        path?: string
+        paths?: string
+      }
+      parameters?: string
+      noParameters?: string
+      result?: string
+      error?: string
+      allow?: string
+      reject?: string
+      abort?: string
+      alwaysAllowThisTool?: string
+      allowForThisChat?: string
+    }
     // conversation settings popover
     conversationSettings?: {
       openAria?: string

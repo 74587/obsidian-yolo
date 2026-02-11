@@ -2,10 +2,14 @@ import cx from 'clsx'
 import { Check, ChevronDown, ChevronRight, Loader2, X } from 'lucide-react'
 import { memo, useCallback, useMemo, useState } from 'react'
 
+import { useLanguage } from '../../contexts/language-context'
 import { useMcp } from '../../contexts/mcp-context'
 import { useSettings } from '../../contexts/settings-context'
 import { InvalidToolNameException } from '../../core/mcp/exception'
-import { getLocalFileToolServerName } from '../../core/mcp/localFileTools'
+import {
+  getLocalFileToolServerName,
+  parseLocalFsWriteActionFromArgs,
+} from '../../core/mcp/localFileTools'
 import { parseToolName } from '../../core/mcp/tool-name-utils'
 import { ChatToolMessage } from '../../types/chat'
 import {
@@ -17,32 +21,341 @@ import { SplitButton } from '../common/SplitButton'
 
 import { ObsidianCodeBlock } from './ObsidianMarkdown'
 
-const STATUS_LABELS: Record<ToolCallResponseStatus, string> = {
+type TranslateFn = (keyPath: string, fallback?: string) => string
+
+type ToolLabels = {
+  statusLabels: Record<ToolCallResponseStatus, string>
+  unknownStatus: string
+  displayNames: Record<string, string>
+  writeActionLabels: Record<string, string>
+  target: string
+  scope: string
+  query: string
+  path: string
+  paths: string
+  parameters: string
+  noParameters: string
+  result: string
+  error: string
+  allow: string
+  reject: string
+  abort: string
+  alwaysAllowThisTool: string
+  allowForThisChat: string
+}
+
+const DEFAULT_STATUS_LABELS: Record<ToolCallResponseStatus, string> = {
   [ToolCallResponseStatus.PendingApproval]: 'Call',
   [ToolCallResponseStatus.Rejected]: 'Rejected',
   [ToolCallResponseStatus.Running]: 'Running',
-  [ToolCallResponseStatus.Success]: 'Called',
+  [ToolCallResponseStatus.Success]: '',
   [ToolCallResponseStatus.Error]: 'Failed',
   [ToolCallResponseStatus.Aborted]: 'Aborted',
 }
 
-export const getToolMessageContent = (message: ChatToolMessage): string => {
+type ToolDisplayInfo = {
+  displayName: string
+  summaryText?: string
+}
+
+const DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES: Record<string, string> = {
+  fs_list: 'List files',
+  fs_search: 'Search files',
+  fs_read: 'Read files',
+  fs_edit: 'Edit file',
+  fs_write: 'File operation',
+}
+
+const DEFAULT_WRITE_ACTION_LABELS: Record<string, string> = {
+  create_file: 'Create file',
+  write_file: 'Write file',
+  delete_file: 'Delete file',
+  create_dir: 'Create folder',
+  delete_dir: 'Delete folder',
+  move: 'Move path',
+}
+
+const getToolLabels = (t?: TranslateFn): ToolLabels => {
+  const translate: TranslateFn = t ?? ((_, fallback) => fallback ?? '')
+  return {
+    statusLabels: {
+      [ToolCallResponseStatus.PendingApproval]: translate(
+        'chat.toolCall.status.call',
+        DEFAULT_STATUS_LABELS[ToolCallResponseStatus.PendingApproval],
+      ),
+      [ToolCallResponseStatus.Rejected]: translate(
+        'chat.toolCall.status.rejected',
+        DEFAULT_STATUS_LABELS[ToolCallResponseStatus.Rejected],
+      ),
+      [ToolCallResponseStatus.Running]: translate(
+        'chat.toolCall.status.running',
+        DEFAULT_STATUS_LABELS[ToolCallResponseStatus.Running],
+      ),
+      [ToolCallResponseStatus.Success]: '',
+      [ToolCallResponseStatus.Error]: translate(
+        'chat.toolCall.status.failed',
+        DEFAULT_STATUS_LABELS[ToolCallResponseStatus.Error],
+      ),
+      [ToolCallResponseStatus.Aborted]: translate(
+        'chat.toolCall.status.aborted',
+        DEFAULT_STATUS_LABELS[ToolCallResponseStatus.Aborted],
+      ),
+    },
+    unknownStatus: translate('chat.toolCall.status.unknown', 'Unknown'),
+    displayNames: {
+      fs_list: translate(
+        'chat.toolCall.displayName.fs_list',
+        DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_list,
+      ),
+      fs_search: translate(
+        'chat.toolCall.displayName.fs_search',
+        DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_search,
+      ),
+      fs_read: translate(
+        'chat.toolCall.displayName.fs_read',
+        DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_read,
+      ),
+      fs_edit: translate(
+        'chat.toolCall.displayName.fs_edit',
+        DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_edit,
+      ),
+      fs_write: translate(
+        'chat.toolCall.displayName.fs_write',
+        DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_write,
+      ),
+    },
+    writeActionLabels: {
+      create_file: translate(
+        'chat.toolCall.writeAction.create_file',
+        DEFAULT_WRITE_ACTION_LABELS.create_file,
+      ),
+      write_file: translate(
+        'chat.toolCall.writeAction.write_file',
+        DEFAULT_WRITE_ACTION_LABELS.write_file,
+      ),
+      delete_file: translate(
+        'chat.toolCall.writeAction.delete_file',
+        DEFAULT_WRITE_ACTION_LABELS.delete_file,
+      ),
+      create_dir: translate(
+        'chat.toolCall.writeAction.create_dir',
+        DEFAULT_WRITE_ACTION_LABELS.create_dir,
+      ),
+      delete_dir: translate(
+        'chat.toolCall.writeAction.delete_dir',
+        DEFAULT_WRITE_ACTION_LABELS.delete_dir,
+      ),
+      move: translate(
+        'chat.toolCall.writeAction.move',
+        DEFAULT_WRITE_ACTION_LABELS.move,
+      ),
+    },
+    target: translate('chat.toolCall.detail.target', 'Target'),
+    scope: translate('chat.toolCall.detail.scope', 'Scope'),
+    query: translate('chat.toolCall.detail.query', 'Query'),
+    path: translate('chat.toolCall.detail.path', 'Path'),
+    paths: translate('chat.toolCall.detail.paths', 'paths'),
+    parameters: translate('chat.toolCall.parameters', 'Parameters'),
+    noParameters: translate('chat.toolCall.noParameters', 'No parameters'),
+    result: translate('chat.toolCall.result', 'Result'),
+    error: translate('chat.toolCall.error', 'Error'),
+    allow: translate('chat.toolCall.allow', 'Allow'),
+    reject: translate('chat.toolCall.reject', 'Reject'),
+    abort: translate('chat.toolCall.abort', 'Abort'),
+    alwaysAllowThisTool: translate(
+      'chat.toolCall.alwaysAllowThisTool',
+      'Always allow this tool',
+    ),
+    allowForThisChat: translate(
+      'chat.toolCall.allowForThisChat',
+      'Allow for this chat',
+    ),
+  }
+}
+
+const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) {
+    return text
+  }
+  return `${text.slice(0, maxLength - 1)}...`
+}
+
+const parseToolArguments = (
+  rawArguments?: string,
+): Record<string, unknown> | null => {
+  if (!rawArguments) {
+    return null
+  }
+  try {
+    const parsed = JSON.parse(rawArguments) as unknown
+    if (
+      typeof parsed !== 'object' ||
+      parsed === null ||
+      Array.isArray(parsed)
+    ) {
+      return null
+    }
+    return parsed as Record<string, unknown>
+  } catch {
+    return null
+  }
+}
+
+const asStringArray = (value: unknown): string[] | null => {
+  if (!Array.isArray(value)) {
+    return null
+  }
+  if (value.some((item) => typeof item !== 'string')) {
+    return null
+  }
+  return value
+}
+
+const getLocalToolSummaryText = ({
+  toolName,
+  argumentsObject,
+  rawArguments,
+  labels,
+}: {
+  toolName: string
+  argumentsObject: Record<string, unknown> | null
+  rawArguments?: string
+  labels: ToolLabels
+}): string | undefined => {
+  if (toolName === 'fs_list') {
+    const targetPath =
+      typeof argumentsObject?.path === 'string' &&
+      argumentsObject.path.trim().length > 0
+        ? argumentsObject.path
+        : '/'
+    return `${labels.target}: ${targetPath}`
+  }
+
+  if (toolName === 'fs_search') {
+    const scope =
+      typeof argumentsObject?.scope === 'string' ? argumentsObject.scope : 'all'
+    const query =
+      typeof argumentsObject?.query === 'string' ? argumentsObject.query : ''
+    if (query.trim().length === 0) {
+      return `${labels.scope}: ${scope}`
+    }
+    return `${labels.scope}: ${scope} | ${labels.query}: ${truncateText(query, 60)}`
+  }
+
+  if (toolName === 'fs_read') {
+    const paths = asStringArray(argumentsObject?.paths)
+    if (!paths || paths.length === 0) {
+      return undefined
+    }
+    if (paths.length === 1) {
+      return `${labels.path}: ${paths[0]}`
+    }
+    return `${paths.length} ${labels.paths}`
+  }
+
+  if (toolName === 'fs_edit') {
+    const path =
+      typeof argumentsObject?.path === 'string' ? argumentsObject.path : ''
+    return path ? `${labels.path}: ${path}` : undefined
+  }
+
+  if (toolName === 'fs_write') {
+    const action = parseLocalFsWriteActionFromArgs(rawArguments)
+    if (!action) {
+      return undefined
+    }
+    const itemCount = Array.isArray(argumentsObject?.items)
+      ? argumentsObject.items.length
+      : 0
+    const actionLabel = labels.writeActionLabels[action] ?? action
+    if (itemCount <= 0) {
+      return actionLabel
+    }
+    return `${actionLabel} x${itemCount}`
+  }
+
+  return undefined
+}
+
+const getToolDisplayInfo = (
+  request: ToolCallRequest,
+  labels: ToolLabels = getToolLabels(),
+): ToolDisplayInfo => {
+  const localServerName = getLocalFileToolServerName()
+  const argumentsObject = parseToolArguments(request.arguments)
+  try {
+    const { serverName, toolName } = parseToolName(request.name)
+
+    if (serverName === localServerName) {
+      const isFsWrite = toolName === 'fs_write'
+      const action = isFsWrite
+        ? parseLocalFsWriteActionFromArgs(request.arguments)
+        : null
+      const displayName =
+        isFsWrite && action
+          ? (labels.writeActionLabels[action] ?? labels.displayNames[toolName])
+          : (labels.displayNames[toolName] ?? toolName)
+
+      return {
+        displayName,
+        summaryText: getLocalToolSummaryText({
+          toolName,
+          argumentsObject,
+          rawArguments: request.arguments,
+          labels,
+        }),
+      }
+    }
+
+    return {
+      displayName: `${serverName}:${toolName}`,
+    }
+  } catch (error) {
+    if (!(error instanceof InvalidToolNameException)) {
+      throw error
+    }
+    return {
+      displayName: request.name,
+    }
+  }
+}
+
+const getToolHeadlineText = ({
+  status,
+  displayInfo,
+  labels,
+}: {
+  status: ToolCallResponseStatus
+  displayInfo: ToolDisplayInfo
+  labels: ToolLabels
+}): string => {
+  const detailSuffix = displayInfo.summaryText
+    ? `: ${displayInfo.summaryText}`
+    : ''
+  if (status === ToolCallResponseStatus.Success) {
+    return `${displayInfo.displayName}${detailSuffix}`
+  }
+  const statusLabels = labels.statusLabels
+  const statusLabel = statusLabels[status] || labels.unknownStatus
+  return `${statusLabel} ${displayInfo.displayName}${detailSuffix}`
+}
+
+export const getToolMessageContent = (
+  message: ChatToolMessage,
+  t?: TranslateFn,
+): string => {
+  const labels = getToolLabels(t)
   return message.toolCalls
     ?.map((toolCall) => {
-      const { serverName, toolName } = (() => {
-        try {
-          return parseToolName(toolCall.request.name)
-        } catch (error) {
-          if (error instanceof InvalidToolNameException) {
-            return { serverName: null, toolName: toolCall.request.name }
-          }
-          throw error
-        }
-      })()
+      const displayInfo = getToolDisplayInfo(toolCall.request, labels)
       return [
-        `${STATUS_LABELS[toolCall.response.status]} ${serverName ? `${serverName}:${toolName}` : toolName}`,
+        getToolHeadlineText({
+          status: toolCall.response.status,
+          displayInfo,
+          labels,
+        }),
         ...(toolCall.request.arguments
-          ? [`Parameters: ${toolCall.request.arguments}`]
+          ? [`${labels.parameters}: ${toolCall.request.arguments}`]
           : []),
       ].join('\n')
     })
@@ -108,29 +421,35 @@ function ToolCallItem({
     response.status === ToolCallResponseStatus.PendingApproval,
   )
 
-  const { serverName, toolName } = useMemo(() => {
+  const { serverName } = useMemo(() => {
     try {
-      return parseToolName(request.name)
+      const parsed = parseToolName(request.name)
+      return { serverName: parsed.serverName }
     } catch (error) {
       if (error instanceof InvalidToolNameException) {
         return {
           serverName: null,
-          toolName: request.name,
         }
       }
       throw error
     }
   }, [request.name])
+  const { t } = useLanguage()
+  const toolLabels = useMemo(() => getToolLabels(t), [t])
+  const displayInfo = useMemo(
+    () => getToolDisplayInfo(request, toolLabels),
+    [request, toolLabels],
+  )
   const parameters = useMemo(() => {
     if (!request.arguments) {
-      return 'No parameters'
+      return toolLabels.noParameters
     }
     try {
       return JSON.stringify(JSON.parse(request.arguments), null, 2)
     } catch {
       return request.arguments
     }
-  }, [request.arguments])
+  }, [request.arguments, toolLabels.noParameters])
   const supportsAutoAllow = useMemo(
     () => Boolean(serverName) && serverName !== getLocalFileToolServerName(),
     [serverName],
@@ -142,35 +461,37 @@ function ToolCallItem({
         onClick={() => setIsOpen(!isOpen)}
         className="smtcmp-toolcall-header"
       >
-        <div className="smtcmp-toolcall-header-icon">
-          {isOpen ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+        <div className="smtcmp-toolcall-header-icon smtcmp-toolcall-header-icon--status-inline">
+          <StatusIcon status={response.status} />
         </div>
         <div className="smtcmp-toolcall-header-content">
-          <span>{STATUS_LABELS[response.status] || 'Unknown'}</span>
-          <span>&nbsp;&nbsp;</span>
           <span className="smtcmp-toolcall-header-tool-name">
-            {serverName ? `${serverName}:${toolName}` : toolName}
+            {getToolHeadlineText({
+              status: response.status,
+              displayInfo,
+              labels: toolLabels,
+            })}
           </span>
         </div>
-        <div className="smtcmp-toolcall-header-icon smtcmp-toolcall-header-icon--status">
-          <StatusIcon status={response.status} />
+        <div className="smtcmp-toolcall-header-icon smtcmp-toolcall-header-icon--expand">
+          {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </div>
       </div>
       {isOpen && (
         <div className="smtcmp-toolcall-content">
           <div className="smtcmp-toolcall-content-section">
-            <div>Parameters:</div>
+            <div>{toolLabels.parameters}:</div>
             <ObsidianCodeBlock language="json" content={parameters} />
           </div>
           {response.status === ToolCallResponseStatus.Success && (
             <div className="smtcmp-toolcall-content-section">
-              <div>Result:</div>
+              <div>{toolLabels.result}:</div>
               <ObsidianCodeBlock content={response.data.text} />
             </div>
           )}
           {response.status === ToolCallResponseStatus.Error && (
             <div className="smtcmp-toolcall-content-section">
-              <div>Error:</div>
+              <div>{toolLabels.error}:</div>
               <ObsidianCodeBlock content={response.error} />
             </div>
           )}
@@ -182,7 +503,7 @@ function ToolCallItem({
           {response.status === ToolCallResponseStatus.PendingApproval && (
             <div className="smtcmp-toolcall-footer-actions">
               <SplitButton
-                primaryText="Allow"
+                primaryText={toolLabels.allow}
                 onPrimaryClick={() => {
                   void handleToolCall()
                   setIsOpen(false)
@@ -191,7 +512,7 @@ function ToolCallItem({
                   supportsAutoAllow
                     ? [
                         {
-                          label: 'Always allow this tool',
+                          label: toolLabels.alwaysAllowThisTool,
                           onClick: () => {
                             void handleToolCall()
                             handleAllowAutoExecution()
@@ -199,7 +520,7 @@ function ToolCallItem({
                           },
                         },
                         {
-                          label: 'Allow for this chat',
+                          label: toolLabels.allowForThisChat,
                           onClick: () => {
                             void handleToolCall()
                             void handleAllowForConversation()
@@ -209,7 +530,7 @@ function ToolCallItem({
                       ]
                     : [
                         {
-                          label: 'Allow for this chat',
+                          label: toolLabels.allowForThisChat,
                           onClick: () => {
                             void handleToolCall()
                             void handleAllowForConversation()
@@ -225,7 +546,7 @@ function ToolCallItem({
                   setIsOpen(false)
                 }}
               >
-                Reject
+                {toolLabels.reject}
               </button>
             </div>
           )}
@@ -236,7 +557,7 @@ function ToolCallItem({
                   void handleAbort()
                 }}
               >
-                Abort
+                {toolLabels.abort}
               </button>
             </div>
           )}
@@ -344,7 +665,7 @@ function useToolCall(
 function StatusIcon({ status }: { status: ToolCallResponseStatus }) {
   switch (status) {
     case ToolCallResponseStatus.PendingApproval:
-      return null
+      return <span className="smtcmp-toolcall-status-dot" />
     case ToolCallResponseStatus.Rejected:
     case ToolCallResponseStatus.Aborted:
     case ToolCallResponseStatus.Error:
@@ -352,7 +673,11 @@ function StatusIcon({ status }: { status: ToolCallResponseStatus }) {
     case ToolCallResponseStatus.Running:
       return <Loader2 size={16} className="smtcmp-spinner" />
     case ToolCallResponseStatus.Success:
-      return <Check size={16} className="smtcmp-icon-success" />
+      return (
+        <span className="smtcmp-toolcall-status-success-ring">
+          <Check size={11} className="smtcmp-toolcall-status-success-check" />
+        </span>
+      )
     default:
       return null
   }
