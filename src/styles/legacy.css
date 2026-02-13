@@ -16,7 +16,6 @@
 }
 
 /* Chat input: outer wrapper to anchor settings button at top-right */
-
 .smtcmp-chat-input-wrapper {
   position: relative;
   width: 100%;
@@ -315,17 +314,14 @@
   --smtcmp-tab-index: 0;
   --smtcmp-tab-padding: var(--size-2-2);
 }
-
 .smtcmp-composer-tabs--glider .smtcmp-composer-tab {
   position: relative;
   z-index: 2;
 }
-
 .smtcmp-composer-tabs--glider .smtcmp-composer-tab.is-active {
   border-color: transparent;
   box-shadow: none;
 }
-
 .smtcmp-composer-tabs-glider {
   position: absolute;
   top: var(--smtcmp-tab-padding);
@@ -515,7 +511,6 @@
 }
 
 /* Simple select (custom dropdown for Sparkle sidebar) */
-
 .smtcmp-simple-select__trigger {
   width: 100%;
   min-height: 30px;
@@ -739,7 +734,6 @@
 }
 
 /* 特殊样式：模型选择区域 */
-
 .smtcmp-composer-section--primary {
   background: transparent !important;
   border: 2px solid var(--interactive-accent);
@@ -757,7 +751,6 @@
 }
 
 /* 功能开关区域 */
-
 .smtcmp-composer-section--toggles .smtcmp-composer-option {
   background: var(--background-primary);
   border: 1px solid var(--background-modifier-border-hover);
@@ -771,7 +764,6 @@
 }
 
 /* 高级设置区域 */
-
 .smtcmp-composer-section--advanced {
   background: transparent !important;
   border-style: dashed;
@@ -779,7 +771,6 @@
 }
 
 /* 让高级设置标题样式与默认卡片标题完全一致 */
-
 .smtcmp-composer-section--advanced .smtcmp-composer-heading-title::before {
   background: var(--h1-color, var(--text-accent));
   width: 4px;
@@ -787,7 +778,6 @@
 }
 
 /* 改进开关控件样式 */
-
 .smtcmp-checkbox-container {
   position: relative;
   display: inline-flex;
@@ -830,7 +820,6 @@
 }
 
 /* 优先参考目录样式优化 */
-
 .smtcmp-composer-hint {
   margin-top: var(--size-4-3);
   padding: var(--size-4-3);
@@ -911,7 +900,6 @@
       border 0.15s ease-in-out;
   }
 }
-
 .smtcmp-obsidian-textarea:active {
   border-color: var(--background-modifier-border-focus);
   transition:
@@ -922,7 +910,6 @@
 /* .smtcmp-obsidian-textarea::placeholder {
   color: var(--text-faint);
 } */
-
 .smtcmp-obsidian-textarea {
   line-height: var(--line-height-tight);
 }
@@ -1004,7 +991,6 @@
 }
 
 /* Disable focus effects in compact mode */
-
 .smtcmp-chat-user-input-wrapper--compact
   .smtcmp-chat-user-input-container:focus-within,
 .smtcmp-chat-user-input-wrapper--compact
@@ -1022,7 +1008,6 @@
 }
 
 /* Only add bottom margin if there are mentionables */
-
 .smtcmp-chat-user-input-wrapper--compact
   .smtcmp-chat-user-input-files:not(:empty) {
   margin-bottom: var(--size-2-2);
@@ -1059,14 +1044,12 @@
 }
 
 /* Hide delete button in badges within compact mode */
-
 .smtcmp-chat-user-input-wrapper--compact
   .smtcmp-chat-user-input-file-badge-delete {
   display: none;
 }
 
 /* Make badges non-interactive in compact mode */
-
 .smtcmp-chat-user-input-wrapper--compact .smtcmp-chat-user-input-file-badge {
   cursor: default;
   pointer-events: none;
@@ -1172,7 +1155,6 @@
 }
 
 /* Circle submit button (ChatGPT style) */
-
 .smtcmp-chat-user-input-submit-button-circle {
   width: 28px;
   height: 28px;
@@ -1195,7 +1177,6 @@
 }
 
 /* Chat Mode Select */
-
 .smtcmp-chat-mode-select {
   flex-shrink: 0;
   gap: var(--size-4-1);
@@ -1260,7 +1241,6 @@
 }
 
 /* Reasoning Select */
-
 .smtcmp-reasoning-select {
   flex-shrink: 0;
   gap: var(--size-4-1);
@@ -1485,7 +1465,6 @@
 }
 
 /* Final override: Make model items indent to align with group label text */
-
 .smtcmp-popover .smtcmp-model-select-list > .smtcmp-popover-item {
   padding-left: calc(var(--size-4-2) + 8px);
 }
@@ -1531,7 +1510,6 @@
 }
 
 /* Must come after the generic li padding shorthand above */
-
 .smtcmp-popover .smtcmp-model-select-list > .smtcmp-popover-item {
   padding-left: calc(var(--size-4-2) + 8px);
 }
@@ -1565,15 +1543,12 @@
   background-color: var(--background-modifier-hover);
   cursor: pointer;
 }
-
 .smtcmp-popover li .smtcmp-chat-list-dropdown-item-icon {
   visibility: hidden;
 }
-
 .smtcmp-popover li:hover .smtcmp-chat-list-dropdown-item-icon {
   visibility: visible;
 }
-
 .smtcmp-popover li .smtcmp-chat-list-dropdown-item-icon:hover {
   background-color: var(--background-modifier-hover);
   border-radius: var(--radius-s);
@@ -2343,7 +2318,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* OpenAI-Style Thinking Loader - OpenAI 风格思考动画 */
-
 .smtcmp-thinking-loader {
   display: inline-flex;
   align-items: center;
@@ -2351,7 +2325,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 内联思考指示器 - 在编辑器中显示 */
-
 .smtcmp-thinking-indicator-inline {
   display: inline-flex;
   align-items: center;
@@ -2361,7 +2334,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 旋转的 Sparkles 图标 */
-
 .smtcmp-thinking-icon {
   position: relative;
   width: 18px;
@@ -2391,7 +2363,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 高光流动的文字 */
-
 .smtcmp-thinking-text {
   font-size: var(--font-ui-medium);
   font-weight: var(--font-normal);
@@ -2474,7 +2445,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 保留旧的 dot-loader 作为后备 */
-
 .smtcmp-dot-loader {
   display: inline-block;
   text-align: left;
@@ -2542,7 +2512,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* prevent setting-item:first-child overwriting padding-top and border-top */
-
 .smtcmp-settings-textarea-header {
   padding-top: 0.75em !important;
   border-top: 1px solid var(--background-modifier-border) !important;
@@ -2795,7 +2764,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Conversation settings popover */
-
 .smtcmp-chat-settings-content {
   /* width is set dynamically by inline style to 50% of input wrapper */
   min-width: 200px;
@@ -2822,7 +2790,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Grid row: label + number pill (right), slider across entire row */
-
 .smtcmp-chat-settings-row2 {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -2856,7 +2823,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Segmented control for Streaming */
-
 .smtcmp-segmented {
   display: inline-flex;
   border: 1px solid var(--background-modifier-border);
@@ -2864,7 +2830,6 @@ button.smtcmp-chat-input-model-select {
   overflow: hidden;
   position: relative;
 }
-
 .smtcmp-segmented > button {
   background: var(--background-secondary);
   color: var(--text-muted);
@@ -2879,13 +2844,11 @@ button.smtcmp-chat-input-model-select {
     box-shadow 0.18s ease,
     transform 0.18s ease;
 }
-
 .smtcmp-segmented > button:hover {
   background: var(--background-modifier-hover);
 }
 
 /* 视图切换标签页样式 - 手风琴展开效果 */
-
 .smtcmp-view-toggle {
   display: inline-flex;
   position: relative;
@@ -3047,7 +3010,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Roller behavior on top of original accordion style */
-
 .smtcmp-roller-select-window {
   height: 20px;
   overflow: hidden;
@@ -3177,7 +3139,6 @@ button.smtcmp-chat-input-model-select {
     transform: translateX(var(--smtcmp-collapsed-width));
   }
 }
-
 .smtcmp-segmented > button.active {
   background: var(--interactive-accent);
   color: var(--text-on-accent);
@@ -3194,7 +3155,6 @@ button.smtcmp-chat-input-model-select {
   --smtcmp-segment-index: 0;
   overflow: visible;
 }
-
 .smtcmp-segmented--glider > button {
   flex: 1 1 0;
   background: transparent;
@@ -3203,11 +3163,9 @@ button.smtcmp-chat-input-model-select {
   border: none;
   box-shadow: none;
 }
-
 .smtcmp-segmented--glider > button:hover {
   background: transparent;
 }
-
 .smtcmp-segmented--glider > button.active {
   background: transparent;
   color: var(--h1-color, var(--interactive-accent));
@@ -3215,7 +3173,6 @@ button.smtcmp-chat-input-model-select {
   box-shadow: none;
   transform: none;
 }
-
 .smtcmp-segmented-glider {
   position: absolute;
   top: 2px;
@@ -3614,7 +3571,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Drag handle for reorderable rows */
-
 .smtcmp-drag-handle {
   display: inline-flex;
   align-items: center;
@@ -3643,7 +3599,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 紧凑化：手柄列（第一列）不占额外空间，仅按内容宽度布局 */
-
 .smtcmp-settings-table th:first-child,
 .smtcmp-settings-table td:first-child,
 .smtcmp-models-table th:first-child,
@@ -3654,13 +3609,11 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 覆盖 ChatModelsSubSection 中 colgroup 的第一列固定宽度 */
-
 .smtcmp-settings-table col:first-child {
   width: 0 !important;
 }
 
 /* Plan A: 拖拽行与插入位置的视觉反馈（无布局抖动） */
-
 .smtcmp-row-dragging {
   background-color: var(--background-modifier-hover);
   transform: translateX(2px) scale(0.995);
@@ -3675,7 +3628,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 使用 inset box-shadow 绘制顶部/底部插入线，避免改变 row 高度导致抖动 */
-
 .smtcmp-row-drag-over-before {
   box-shadow: inset 0 2px 0 0 var(--interactive-accent);
   transition: box-shadow 120ms ease;
@@ -3687,14 +3639,12 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 手柄抓取时的轻微强调 */
-
 .smtcmp-drag-handle--active {
   color: var(--text-normal);
   transform: scale(1.05);
 }
 
 /* 放下成功后的瞬时反馈：高亮并轻微回弹（不改变布局尺寸） */
-
 .smtcmp-row-drop-success {
   animation: smtcmp-drop-flash 650ms ease-out;
 }
@@ -3806,7 +3756,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Overrides default .markdown-rendered class styles from Obsidian */
-
 .smtcmp-markdown-rendered {
   &.markdown-rendered {
     --render-scale: 1;
@@ -3933,7 +3882,6 @@ button.smtcmp-chat-input-model-select {
 /* ============== Shared utility & overrides (audit fixes) ============== */
 
 /* Typeahead menu container positioned via CSS variables */
-
 .smtcmp-typeahead-menu {
   position: absolute;
   top: var(--smtcmp-top, 0);
@@ -3944,42 +3892,35 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Code block header button container spacing variant */
-
 .smtcmp-code-block-header-button-container--spaced {
   gap: 8px;
 }
 
 /* Status icons */
-
 .smtcmp-icon-error {
   color: var(--text-error);
 }
-
 .smtcmp-icon-success {
   color: var(--text-success);
 }
 
 /* Muted small text/note */
-
 .smtcmp-muted-note {
   margin: 4px 0 8px 0;
   color: var(--text-muted);
   font-size: 12px;
   line-height: 1.4;
 }
-
 .smtcmp-text-faint-small {
   color: var(--text-faint);
   font-size: 12px;
 }
 
 /* Simple flex helpers */
-
 .smtcmp-flex-row-gap-8 {
   display: flex;
   gap: 8px;
 }
-
 .smtcmp-actions-right-gap-8 {
   display: flex;
   justify-content: flex-end;
@@ -3991,63 +3932,51 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* List reset & scroll panel */
-
 .smtcmp-list-reset {
   list-style: none;
   padding: 0;
   margin: 0;
 }
-
 .smtcmp-scroll-panel {
   max-height: 300px;
   overflow: auto;
 }
 
 /* Folder picker */
-
 .smtcmp-folder-picker {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
-
 .smtcmp-folder-empty {
   padding: 8px;
   opacity: 0.7;
 }
-
 .smtcmp-folder-row {
   cursor: pointer;
   border-radius: 0;
   box-shadow: none;
   border: 0;
 }
-
 .smtcmp-folder-row.is-file {
   cursor: default;
 }
-
 .smtcmp-folder-row.is-file:hover {
   background-color: transparent;
 }
-
 .smtcmp-folder-row.is-disabled {
   cursor: not-allowed;
 }
-
 .smtcmp-folder-row:not(.is-disabled):hover {
   background-color: var(--background-modifier-hover);
 }
-
 .smtcmp-icon-placeholder {
   display: inline-block;
   width: 16px;
 }
-
 .smtcmp-provider-expand-btn.no-children {
   visibility: hidden;
 }
-
 .smtcmp-folder-name {
   outline: none;
   box-shadow: none;
@@ -4059,7 +3988,6 @@ button.smtcmp-chat-input-model-select {
   border-radius: 0;
   pointer-events: none;
 }
-
 .smtcmp-folder-row.is-disabled .smtcmp-folder-name {
   color: var(--text-faint);
 }
@@ -4140,63 +4068,49 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Indent helpers using CSS variables for depth */
-
 .smtcmp-depth {
   --smtcmp-depth: 0;
 }
-
 .smtcmp-depth-0 {
   --smtcmp-depth: 0;
 }
-
 .smtcmp-depth-1 {
   --smtcmp-depth: 1;
 }
-
 .smtcmp-depth-2 {
   --smtcmp-depth: 2;
 }
-
 .smtcmp-depth-3 {
   --smtcmp-depth: 3;
 }
-
 .smtcmp-depth-4 {
   --smtcmp-depth: 4;
 }
-
 .smtcmp-depth-5 {
   --smtcmp-depth: 5;
 }
-
 .smtcmp-depth-6 {
   --smtcmp-depth: 6;
 }
-
 .smtcmp-depth-7 {
   --smtcmp-depth: 7;
 }
-
 .smtcmp-depth-8 {
   --smtcmp-depth: 8;
 }
-
 .smtcmp-depth-9 {
   --smtcmp-depth: 9;
 }
-
 .smtcmp-depth-10 {
   --smtcmp-depth: 10;
 }
 
 /* Folder picker row indent (base 8px + depth*12px) */
-
 .smtcmp-indent-folder {
   padding-left: calc(8px + var(--smtcmp-depth) * 12px);
 }
 
 /* RAG index list indent (base 16px + depth*12px) */
-
 .smtcmp-indent-list {
   margin-left: calc(16px + var(--smtcmp-depth) * 12px);
 }
@@ -4361,7 +4275,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Providers and Models Section Styles */
-
 .smtcmp-providers-models-container {
   display: flex;
   flex-direction: column;
@@ -4380,7 +4293,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Provider drag visual feedback */
-
 .smtcmp-provider-dragging {
   background-color: var(--background-modifier-hover);
   transform: translateX(2px) scale(0.995);
@@ -4426,7 +4338,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Provider drop success animation - reuse existing drop-flash animation */
-
 .smtcmp-provider-drop-success {
   animation: smtcmp-drop-flash 650ms ease-out;
 }
@@ -4552,7 +4463,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Embedding models table column sizing */
-
 /* Note: Embedding table uses <colgroup> with last two 60px columns to align with chat models */
 
 .smtcmp-add-provider-btn {
@@ -4571,7 +4481,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* MCP Section Styles */
-
 .smtcmp-mcp-servers-container {
   display: flex;
   flex-direction: column;
@@ -4748,7 +4657,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* MCP Server Modal Styles */
-
 .smtcmp-mcp-server-modal-textarea {
   width: 100%;
   font-family: var(--font-monospace);
@@ -4772,7 +4680,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Template Section Styles */
-
 .smtcmp-templates-container {
   display: flex;
   flex-direction: column;
@@ -4854,7 +4761,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Assistant selector styles - matched with model selector */
-
 .smtcmp-chat-header-right button.smtcmp-assistant-selector-button {
   all: unset;
   display: flex !important;
@@ -5072,7 +4978,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Folder Picker: flatten rows and remove container visuals */
-
 .smtcmp-folder-picker .smtcmp-provider-header {
   background-color: transparent !important;
   border: 0 !important;
@@ -5111,26 +5016,22 @@ button.smtcmp-chat-input-model-select {
 /* ===== Added for review fixes: move inline styles to CSS ===== */
 
 /* Wide modal (instead of setting width via JS) */
-
 .smtcmp-modal--wide {
   width: 720px;
 }
 
 /* Typeahead menu container (avoid inline display/position) */
-
 .smtcmp-typeahead-menu {
   position: absolute;
   display: block;
 }
 
 /* ApplyView: diff content width */
-
 .smtcmp-diff-block-content {
   width: 100%;
 }
 
 /* Assistants Section */
-
 .smtcmp-settings-header-row {
   display: flex;
   justify-content: space-between;
@@ -5172,7 +5073,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Assistant Editor */
-
 .smtcmp-assistant-editor {
   background: var(--background-secondary);
   border-radius: var(--radius-m);
@@ -5228,7 +5128,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Assistants List */
-
 .smtcmp-assistants-list {
   display: flex;
   flex-direction: column;
@@ -5237,7 +5136,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Assistant Item */
-
 .smtcmp-assistant-item {
   display: flex;
   align-items: center;
@@ -5299,7 +5197,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Drag Handle */
-
 .smtcmp-assistant-drag-handle {
   display: flex;
   align-items: center;
@@ -5324,7 +5221,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Assistant Content */
-
 .smtcmp-assistant-content {
   flex: 1;
   min-width: 0;
@@ -5393,7 +5289,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Assistant Controls */
-
 .smtcmp-assistant-controls {
   display: flex;
   align-items: center;
@@ -5423,7 +5318,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Editor specific styles */
-
 .smtcmp-assistant-editor .setting-item {
   margin-bottom: 12px;
 }
@@ -5437,7 +5331,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Custom continue inline panel */
-
 .smtcmp-smart-space-overlay-host {
   position: relative;
 }
@@ -5465,7 +5358,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Smart Space 弹出动画 */
-
 @keyframes smtcmp-smart-space-fade-in {
   0% {
     opacity: 0;
@@ -5478,7 +5370,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Smart Space 关闭动画 */
-
 @keyframes smtcmp-smart-space-fade-out {
   0% {
     opacity: 1;
@@ -5491,7 +5382,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Smart Space 内部元素淡入动画 */
-
 @keyframes smtcmp-smart-space-item-fade-in {
   0% {
     opacity: 0;
@@ -5897,35 +5787,27 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 为不同的选项添加渐进式延迟 */
-
 .smtcmp-smart-space-item:nth-child(1) {
   animation-delay: 0.15s;
 }
-
 .smtcmp-smart-space-item:nth-child(2) {
   animation-delay: 0.18s;
 }
-
 .smtcmp-smart-space-item:nth-child(3) {
   animation-delay: 0.21s;
 }
-
 .smtcmp-smart-space-item:nth-child(4) {
   animation-delay: 0.24s;
 }
-
 .smtcmp-smart-space-item:nth-child(5) {
   animation-delay: 0.27s;
 }
-
 .smtcmp-smart-space-item:nth-child(6) {
   animation-delay: 0.3s;
 }
-
 .smtcmp-smart-space-item:nth-child(7) {
   animation-delay: 0.33s;
 }
-
 .smtcmp-smart-space-item:nth-child(8) {
   animation-delay: 0.36s;
 }
@@ -5947,7 +5829,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 键盘导航时禁用鼠标 hover 的视觉反馈，避免与焦点状态冲突 */
-
 .smtcmp-smart-space-section-card.is-keyboard-nav
   .smtcmp-smart-space-item:hover:not(:focus-visible):not(:focus) {
   background: transparent !important;
@@ -6016,7 +5897,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Smart Space Controls Container */
-
 .smtcmp-smart-space-controls {
   display: flex;
   align-items: center;
@@ -6030,7 +5910,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Smart Space Model Select - 精致的按钮设计 */
-
 .smtcmp-smart-space-model-select {
   display: flex;
   align-items: center;
@@ -6056,7 +5935,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 多行输入时，将模型选择等控件移到底部一行，右对齐 */
-
 .smtcmp-smart-space-header:not(.is-empty) {
   padding-bottom: 22px;
 }
@@ -6231,7 +6109,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Smart Space Model Popover - 精致美观的设计 */
-
 .smtcmp-smart-space-popover {
   z-index: 10000;
   background: var(--background-primary);
@@ -6286,7 +6163,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* 模型选择列表滚动样式 - 应用到 RadioGroup */
-
 .smtcmp-smart-space-popover .smtcmp-model-select-list,
 .smtcmp-chat-sidebar-popover .smtcmp-model-select-list {
   max-height: 380px;
@@ -6423,7 +6299,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Smart Space Gemini Tools */
-
 .smtcmp-smart-space-tools {
   display: flex;
   align-items: center;
@@ -6484,7 +6359,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Floating Panel */
-
 .smtcmp-floating-panel-container {
   position: fixed;
   z-index: 9999;
@@ -6515,18 +6389,15 @@ button.smtcmp-chat-input-model-select {
   border-bottom: 1px solid var(--background-modifier-border);
   background: var(--background-secondary);
 }
-
 .smtcmp-floating-panel-title {
   font-weight: 600;
 }
-
 .smtcmp-floating-panel-close {
   border: none;
   background: transparent;
   color: var(--text-muted);
   cursor: pointer;
 }
-
 .smtcmp-floating-panel-body {
   padding: 12px;
   flex: 1;
@@ -6534,7 +6405,6 @@ button.smtcmp-chat-input-model-select {
   display: flex;
   flex-direction: column;
 }
-
 .smtcmp-floating-panel-drag-handle {
   position: absolute;
   top: 0;
@@ -6543,7 +6413,6 @@ button.smtcmp-chat-input-model-select {
   height: 8px;
   cursor: move;
 }
-
 .smtcmp-floating-panel-resize-handle {
   position: absolute;
   width: 14px;
@@ -6556,62 +6425,51 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Textarea container and inputs */
-
 .smtcmp-textarea-container {
   width: 100%;
   height: 100%;
 }
-
 .smtcmp-instruction-editor-container {
   width: 100%;
   flex: 1;
   min-height: 0;
   display: flex;
 }
-
 .smtcmp-instruction-textarea {
   width: 100%;
   height: 100%;
   min-height: 160px;
   resize: none;
 }
-
 .smtcmp-modal-input-container {
   width: 100%;
   margin-bottom: 12px;
 }
-
 .smtcmp-prewrap {
   white-space: pre-wrap;
 }
-
 .smtcmp-display-contents {
   display: contents;
 }
 
 /* Folder selection list */
-
 .smtcmp-folder-selection {
   width: 100%;
 }
-
 .smtcmp-folder-selection-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
 }
-
 .smtcmp-folder-selection-title {
   font-weight: 600;
   opacity: 0.8;
 }
-
 .smtcmp-folder-selection-actions {
   display: flex;
   gap: 6px;
 }
-
 .smtcmp-folder-selection-btn {
   border: 1px solid var(--background-modifier-border);
   border-radius: 0;
@@ -6623,7 +6481,6 @@ button.smtcmp-chat-input-model-select {
   font-size: 12px;
   cursor: pointer;
 }
-
 .smtcmp-folder-selection-picker {
   border: 1px solid var(--background-modifier-border);
   border-radius: 0;
@@ -6631,17 +6488,14 @@ button.smtcmp-chat-input-model-select {
   min-height: 32px;
   position: relative;
 }
-
 .smtcmp-folder-selection-empty {
   opacity: 0.7;
 }
-
 .smtcmp-folder-selection-list {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
-
 .smtcmp-folder-selection-chip {
   display: inline-flex;
   align-items: center;
@@ -6653,17 +6507,14 @@ button.smtcmp-chat-input-model-select {
   cursor: grab;
   user-select: none;
 }
-
 .smtcmp-folder-selection-chip-handle {
   opacity: 0.5;
   font-size: 12px;
 }
-
 .smtcmp-folder-selection-chip-path {
   font-family: var(--font-monospace);
   font-size: 12px;
 }
-
 .smtcmp-folder-selection-chip-remove {
   cursor: pointer;
   color: var(--text-muted);
@@ -6673,7 +6524,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Floating panel positioning using CSS custom properties */
-
 .smtcmp-floating-panel {
   position: fixed;
   top: var(--smtcmp-panel-top, 0px);
@@ -6685,7 +6535,6 @@ button.smtcmp-chat-input-model-select {
 /* Removed attr() function usage due to browser compatibility issues */
 
 /* LexicalMenu positioning - removed attr() usage for compatibility */
-
 .smtcmp-typeahead-menu {
   position: fixed;
 }
@@ -6699,7 +6548,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Other component styles */
-
 .smtcmp-similarity-results-container {
   display: flex;
   flex-direction: column;
@@ -6718,7 +6566,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Smart Space Quick Actions Settings */
-
 .smtcmp-smart-space-settings {
   margin-top: var(--size-4-3);
 }
@@ -6794,7 +6641,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Group Header */
-
 .smtcmp-quick-actions-group-header {
   font-size: var(--font-ui-small);
   font-weight: var(--font-semibold);
@@ -6811,7 +6657,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Group Divider */
-
 .smtcmp-quick-actions-group-divider {
   height: 1px;
   background: transparent;
@@ -7024,7 +6869,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Override button styles for consistency with Obsidian */
-
 .smtcmp-smart-space-settings .setting-item-control button {
   margin-left: 0;
 }
@@ -7050,7 +6894,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Modal styles for quick action editor */
-
 .smtcmp-quick-action-editor .setting-item {
   border-top: none;
   padding-top: var(--size-4-2);
@@ -7066,7 +6909,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* SearchableDropdown Component */
-
 .smtcmp-searchable-dropdown {
   position: relative;
   width: 100%;
@@ -7156,7 +6998,6 @@ button.smtcmp-chat-input-model-select {
    ============================================ */
 
 /* Overlay root container */
-
 .smtcmp-selection-chat-overlay-host {
   position: relative;
 }
@@ -7178,7 +7019,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Selection Indicator - small floating capsule */
-
 .smtcmp-selection-indicator {
   position: absolute;
   display: flex;
@@ -7219,7 +7059,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Selection Actions Menu */
-
 .smtcmp-selection-menu {
   position: absolute;
   min-width: 200px;
@@ -7320,7 +7159,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* RAG index progress */
-
 .smtcmp-rag-progress {
   margin-top: 1em;
   padding: 12px;
@@ -7785,26 +7623,22 @@ button.smtcmp-chat-input-model-select {
 /* ==================== Emoji Icon Styles (No Background) ==================== */
 
 /* 助手选择器当前图标 - emoji 无背景 */
-
 .smtcmp-assistant-selector-current-icon:has(.smtcmp-icon-emoji) {
   background: none;
   box-shadow: none;
 }
 
 /* 助手选择器列表项图标 - emoji 无背景 */
-
 .smtcmp-assistant-selector-item-icon:has(.smtcmp-icon-emoji) {
   background: none;
 }
 
 /* 设置面板助手列表图标 - emoji 无背景 */
-
 .smtcmp-assistant-icon:has(.smtcmp-icon-emoji) {
   background: none;
 }
 
 /* Emoji 图标字体大小调整 */
-
 .smtcmp-icon-emoji {
   display: flex;
   align-items: center;
@@ -7894,7 +7728,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Panel - compact by default, expands when has messages */
-
 .smtcmp-quick-ask-panel {
   position: relative;
   min-width: min(420px, 83vw);
@@ -7927,7 +7760,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Input Row - Top: [Input...] [×] */
-
 .smtcmp-quick-ask-input-row {
   display: flex;
   align-items: center;
@@ -8081,7 +7913,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Mode Select */
-
 .smtcmp-quick-ask-mode-select {
   display: flex;
   align-items: center;
@@ -8201,7 +8032,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Assistant Dropdown */
-
 .smtcmp-quick-ask-assistant-dropdown {
   position: absolute;
   top: calc(100% + 16px);
@@ -8221,7 +8051,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Assistant Menu */
-
 .smtcmp-quick-ask-assistant-menu {
   display: flex;
   flex-direction: column;
@@ -8321,7 +8150,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Input field */
-
 .smtcmp-quick-ask-input {
   flex: 1;
   position: relative;
@@ -8380,7 +8208,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Close button in input row */
-
 .smtcmp-quick-ask-close-button {
   display: flex;
   align-items: center;
@@ -8414,7 +8241,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Bottom Toolbar - Cursor style: [Assistant ▼] ... [Copy] [Insert] [Send] */
-
 .smtcmp-quick-ask-toolbar {
   display: flex;
   align-items: center;
@@ -8443,7 +8269,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Toolbar action buttons */
-
 .smtcmp-quick-ask-toolbar-button {
   display: flex;
   align-items: center;
@@ -8468,7 +8293,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Divider between action buttons and send */
-
 .smtcmp-quick-ask-toolbar-divider {
   width: 1px;
   height: 12px;
@@ -8481,7 +8305,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Send button */
-
 .smtcmp-quick-ask-send-button {
   display: flex;
   align-items: center;
@@ -8533,7 +8356,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Chat Area - only shown when there are messages */
-
 .smtcmp-quick-ask-chat-area {
   flex: 1;
   overflow-y: auto;
@@ -8618,7 +8440,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Drag handle */
-
 .smtcmp-quick-ask-drag-handle {
   position: absolute;
   top: 0;
@@ -8659,7 +8480,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Resize handles */
-
 .smtcmp-quick-ask-resize-handle {
   position: absolute;
   z-index: 10; /* Lower than drag handle */
@@ -8699,7 +8519,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Visual indicator for bottom-right corner */
-
 .smtcmp-quick-ask-resize-handle-bottom-right::after {
   content: '';
   position: absolute;
@@ -8739,7 +8558,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Panel states */
-
 .smtcmp-quick-ask-panel.is-dragging {
   cursor: grabbing;
   user-select: none;
@@ -8750,7 +8568,6 @@ button.smtcmp-chat-input-model-select {
 }
 
 /* Global interaction state (drag/resize) */
-
 body.smtcmp-quick-ask-global-interaction,
 body.smtcmp-quick-ask-global-interaction * {
   cursor: var(--smtcmp-quick-ask-global-cursor, auto) !important;
@@ -8760,7 +8577,6 @@ body.smtcmp-quick-ask-global-interaction * {
   ) !important;
   user-select: var(--smtcmp-quick-ask-global-user-select, auto) !important;
 }
-
 .smtcmp-simple-select-wrapper {
   width: 100%;
   max-width: 100%;
@@ -8817,7 +8633,6 @@ body.smtcmp-quick-ask-global-interaction * {
 }
 
 /* Glider variant for smooth animated indicator */
-
 .smtcmp-settings-tabs-nav--glider {
   position: relative;
   overflow: visible;
@@ -8930,7 +8745,6 @@ body.smtcmp-quick-ask-global-interaction * {
 }
 
 /* Mobile responsive adjustments */
-
 @media (max-width: 768px) {
   .smtcmp-settings-tabs-nav {
     padding: var(--size-2-2);
