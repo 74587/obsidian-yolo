@@ -98,8 +98,16 @@ export function AgentSection({ app }: AgentSectionProps) {
     }
   }, [mcpManager])
 
-  const handleOpenAssistantsModal = () => {
-    const modal = new AssistantsModal(app, plugin)
+  const handleOpenAssistantsModal = (
+    initialAssistantId?: string,
+    initialCreate?: boolean,
+  ) => {
+    const modal = new AssistantsModal(
+      app,
+      plugin,
+      initialAssistantId,
+      initialCreate,
+    )
     modal.open()
   }
 
@@ -302,8 +310,8 @@ export function AgentSection({ app }: AgentSectionProps) {
             </div>
           </div>
           <ObsidianButton
-            text={t('settings.agent.configureAgents', 'Configure')}
-            onClick={handleOpenAssistantsModal}
+            text={t('settings.agent.newAgent', 'New agent')}
+            onClick={() => handleOpenAssistantsModal(undefined, true)}
             cta
           />
         </div>
@@ -317,13 +325,25 @@ export function AgentSection({ app }: AgentSectionProps) {
             <ObsidianButton
               text={t('settings.agent.newAgent', 'New agent')}
               icon="plus"
-              onClick={handleOpenAssistantsModal}
+              onClick={() => handleOpenAssistantsModal(undefined, true)}
             />
           </div>
         ) : (
           <div className="smtcmp-agent-grid">
             {assistants.map((assistant) => (
-              <article key={assistant.id} className="smtcmp-agent-card">
+              <article
+                key={assistant.id}
+                className="smtcmp-agent-card smtcmp-agent-card--clickable"
+                role="button"
+                tabIndex={0}
+                onClick={() => handleOpenAssistantsModal(assistant.id)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault()
+                    handleOpenAssistantsModal(assistant.id)
+                  }
+                }}
+              >
                 <div className="smtcmp-agent-card-top">
                   <div className="smtcmp-agent-card-top-main">
                     <div className="smtcmp-agent-avatar">
@@ -339,9 +359,6 @@ export function AgentSection({ app }: AgentSectionProps) {
                             {t('settings.agent.current', 'Current')}
                           </span>
                         )}
-                      </div>
-                      <div className="smtcmp-agent-persona-chip">
-                        {getPersonaLabel(assistant.persona)}
                       </div>
                       {assistant.description && (
                         <div className="smtcmp-agent-desc">
@@ -420,11 +437,4 @@ export function AgentSection({ app }: AgentSectionProps) {
       </section>
     </div>
   )
-}
-const getPersonaLabel = (persona?: string): string => {
-  const value = (persona || 'balanced').trim()
-  if (!value) {
-    return 'Balanced'
-  }
-  return value.charAt(0).toUpperCase() + value.slice(1)
 }
