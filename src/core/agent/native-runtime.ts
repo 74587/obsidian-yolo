@@ -70,6 +70,7 @@ export class NativeAgentRuntime implements AgentRuntime {
       abortSignal,
       reasoningLevel: input.reasoningLevel,
       requestParams: input.requestParams,
+      allowedToolNames: input.allowedToolNames,
       maxContextOverride: input.maxContextOverride,
       currentFileContextMode: input.currentFileContextMode,
       currentFileOverride: input.currentFileOverride,

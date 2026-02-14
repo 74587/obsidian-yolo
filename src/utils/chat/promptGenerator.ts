@@ -2,6 +2,7 @@ import { App, TFile, TFolder, htmlToMarkdown, requestUrl } from 'obsidian'
 
 import { editorStateToPlainText } from '../../components/chat-view/chat-input/utils/editor-state-to-plain-text'
 import { QueryProgressState } from '../../components/chat-view/QueryProgress'
+import { AGENT_SKILL_INSTRUCTION_MAP } from '../../constants/agent-profile'
 import { RAGEngine } from '../../core/rag/ragEngine'
 import { SelectEmbedding } from '../../database/schema'
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
@@ -532,6 +533,15 @@ ${await this.getWebsiteContent(url)}
       parts.push(`<assistant_instructions name="${currentAssistant.name}">
 ${currentAssistant.systemPrompt}
 </assistant_instructions>`)
+    }
+
+    const skillInstructions = (currentAssistant?.enabledSkills || [])
+      .map((skillId) => AGENT_SKILL_INSTRUCTION_MAP.get(skillId))
+      .filter((instruction): instruction is string => Boolean(instruction))
+    if (skillInstructions.length > 0) {
+      parts.push(`<assistant_skills>
+${skillInstructions.map((instruction) => `- ${instruction}`).join('\n')}
+</assistant_skills>`)
     }
 
     // Add global custom instructions (if available)

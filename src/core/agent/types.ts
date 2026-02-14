@@ -23,7 +23,9 @@ export type AgentRuntimeRunInput = {
     stream?: boolean
     temperature?: number
     top_p?: number
+    max_tokens?: number
   }
+  allowedToolNames?: string[]
   maxContextOverride?: number
   currentFileContextMode?: 'full' | 'summary'
   currentFileOverride?: TFile | null

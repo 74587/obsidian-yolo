@@ -2,6 +2,7 @@ import { BookOpen, Bot, Cpu, Wrench } from 'lucide-react'
 import { App } from 'obsidian'
 import { useEffect, useMemo, useState } from 'react'
 
+import { AGENT_SKILLS } from '../../../constants/agent-profile'
 import { useLanguage } from '../../../contexts/language-context'
 import { usePlugin } from '../../../contexts/plugin-context'
 import { useSettings } from '../../../contexts/settings-context'
@@ -18,13 +19,6 @@ import { AssistantsModal } from '../modals/AssistantsModal'
 type AgentSectionProps = {
   app: App
 }
-
-const DEMO_SKILLS = [
-  'Obsidian Markdown Rules',
-  'Link-First Knowledge Mapping',
-  'Safe File Operations',
-  'Architectural Thinking',
-]
 
 const BUILTIN_TOOL_LABEL_KEYS: Record<
   string,
@@ -198,7 +192,7 @@ export function AgentSection({ app }: AgentSectionProps) {
   const skillsCountLabel = t(
     'settings.agent.skillsCount',
     '{count} skills',
-  ).replace('{count}', String(DEMO_SKILLS.length))
+  ).replace('{count}', String(AGENT_SKILLS.length))
 
   const enabledToolsCount =
     builtinTools.filter((tool) => tool.enabled).length +
@@ -275,9 +269,9 @@ export function AgentSection({ app }: AgentSectionProps) {
             </div>
             <div className="smtcmp-agent-cap-count">{skillsCountLabel}</div>
             <div className="smtcmp-agent-cap-tags">
-              {DEMO_SKILLS.map((name) => (
-                <span key={name} className="smtcmp-agent-chip">
-                  {name}
+              {AGENT_SKILLS.map((skill) => (
+                <span key={skill.id} className="smtcmp-agent-chip">
+                  {skill.name}
                 </span>
               ))}
             </div>
@@ -345,11 +339,13 @@ export function AgentSection({ app }: AgentSectionProps) {
                 <div className="smtcmp-agent-meta-row">
                   <span className="smtcmp-agent-meta-item">
                     <Cpu size={12} />
-                    {settings.chatModelId}
+                    {assistant.modelId || settings.chatModelId}
                   </span>
                   <span className="smtcmp-agent-meta-item">
                     <Wrench size={12} />
-                    {toolsCountLabel}
+                    {assistant.enableTools
+                      ? `${assistant.enabledToolNames?.length ?? 0} tools`
+                      : '0 tools'}
                   </span>
                 </div>
 

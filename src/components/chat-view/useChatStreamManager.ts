@@ -1,6 +1,6 @@
 import { UseMutationResult, useMutation } from '@tanstack/react-query'
 import { Notice, TFile } from 'obsidian'
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 
 import { useApp } from '../../contexts/app-context'
 import { useMcp } from '../../contexts/mcp-context'
@@ -68,26 +68,6 @@ export function useChatStreamManager({
     activeStreamAbortControllersRef.current = []
   }, [])
 
-  const { providerClient, model } = useMemo(() => {
-    try {
-      return getChatModelClient({
-        settings,
-        modelId: modelId,
-      })
-    } catch (error) {
-      if (error instanceof LLMModelNotFoundException) {
-        if (settings.chatModels.length === 0) {
-          throw error
-        }
-        // Fallback to the first chat model if the selected chat model is not found
-        const firstChatModel = settings.chatModels[0]
-        // Do NOT write back to global settings here; just use fallback locally
-        return getChatModelClient({ settings, modelId: firstChatModel.id })
-      }
-      throw error
-    }
-  }, [settings, modelId])
-
   const submitChatMutation = useMutation({
     mutationFn: async ({
       chatMessages,
@@ -111,6 +91,44 @@ export function useChatStreamManager({
       let unsubscribeRunner: (() => void) | undefined
 
       try {
+        const selectedAssistant = settings.currentAssistantId
+          ? (settings.assistants || []).find(
+              (assistant) => assistant.id === settings.currentAssistantId,
+            ) || null
+          : null
+
+        const requestedModelId =
+          chatMode === 'agent' && selectedAssistant?.modelId
+            ? selectedAssistant.modelId
+            : modelId
+
+        let resolvedClient: ReturnType<typeof getChatModelClient>
+        try {
+          resolvedClient = getChatModelClient({
+            settings,
+            modelId: requestedModelId,
+          })
+        } catch (error) {
+          if (
+            error instanceof LLMModelNotFoundException &&
+            settings.chatModels.length > 0
+          ) {
+            resolvedClient = getChatModelClient({
+              settings,
+              modelId: settings.chatModels[0].id,
+            })
+          } else {
+            throw error
+          }
+        }
+
+        const assistantTemperature =
+          chatMode === 'agent' ? selectedAssistant?.temperature : undefined
+        const assistantTopP =
+          chatMode === 'agent' ? selectedAssistant?.topP : undefined
+        const assistantMaxTokens =
+          chatMode === 'agent' ? selectedAssistant?.maxOutputTokens : undefined
+
         const mcpManager = await getMcpManager()
         const onRunnerMessages = (responseMessages: ChatMessage[]) => {
           setChatMessages((prevChatMessages) => {
@@ -144,26 +162,30 @@ export function useChatStreamManager({
           await agentService.run({
             conversationId,
             loopConfig: {
-              enableTools: true,
+              enableTools: selectedAssistant?.enableTools ?? true,
               maxAutoIterations: Math.max(
                 8,
                 settings.chatOptions.maxAutoIterations,
               ),
-              includeBuiltinTools: true,
+              includeBuiltinTools:
+                selectedAssistant?.includeBuiltinTools ?? true,
             },
             input: {
-              providerClient,
-              model,
+              providerClient: resolvedClient.providerClient,
+              model: resolvedClient.model,
               messages: chatMessages,
               conversationId,
               promptGenerator,
               mcpManager,
               abortSignal: abortController.signal,
               reasoningLevel,
+              allowedToolNames: selectedAssistant?.enabledToolNames,
               requestParams: {
                 stream: conversationOverrides?.stream ?? true,
-                temperature: conversationOverrides?.temperature ?? undefined,
-                top_p: conversationOverrides?.top_p ?? undefined,
+                temperature:
+                  conversationOverrides?.temperature ?? assistantTemperature,
+                top_p: conversationOverrides?.top_p ?? assistantTopP,
+                max_tokens: assistantMaxTokens,
               },
               maxContextOverride:
                 conversationOverrides?.maxContextMessages ?? undefined,
@@ -177,8 +199,8 @@ export function useChatStreamManager({
           })
         } else {
           const responseGenerator = new ResponseGenerator({
-            providerClient,
-            model,
+            providerClient: resolvedClient.providerClient,
+            model: resolvedClient.model,
             messages: chatMessages,
             conversationId,
             enableTools: settings.chatOptions.enableTools,

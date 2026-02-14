@@ -4,7 +4,7 @@ import React from 'react'
 import { SettingsProvider } from '../../../contexts/settings-context'
 import SmartComposerPlugin from '../../../main'
 import { ReactModal } from '../../common/ReactModal'
-import { AssistantsSectionContent } from '../sections/AssistantsSection'
+import { AgentsSectionContent } from '../sections/AgentsSectionContent'
 
 type AssistantsModalComponentProps = {
   app: App
@@ -18,7 +18,7 @@ export class AssistantsModal extends ReactModal<AssistantsModalComponentProps> {
       Component: AssistantsModalComponentWrapper,
       props: { app, plugin },
       options: {
-        title: 'Assistants',
+        title: plugin.t('settings.agent.agents', 'Agents'),
       },
       plugin: plugin,
     })
@@ -29,7 +29,7 @@ export class AssistantsModal extends ReactModal<AssistantsModalComponentProps> {
 function AssistantsModalComponentWrapper({
   app,
   plugin,
-  onClose: _onClose,
+  onClose,
 }: AssistantsModalComponentProps & { onClose: () => void }) {
   return (
     <SettingsProvider
@@ -39,7 +39,7 @@ function AssistantsModalComponentWrapper({
         plugin.addSettingsChangeListener(listener)
       }
     >
-      <AssistantsSectionContent app={app} />
+      <AgentsSectionContent app={app} onClose={onClose} />
     </SettingsProvider>
   )
 }

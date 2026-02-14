@@ -220,6 +220,37 @@ export type TranslationKeys = {
       builtinFsEditDesc?: string
       builtinFsWriteLabel?: string
       builtinFsWriteDesc?: string
+      editorDefaultName?: string
+      editorIntro?: string
+      editorTabProfile?: string
+      editorTabTools?: string
+      editorTabSkills?: string
+      editorTabModel?: string
+      editorName?: string
+      editorNameDesc?: string
+      editorDescription?: string
+      editorDescriptionDesc?: string
+      editorIcon?: string
+      editorIconDesc?: string
+      editorChooseIcon?: string
+      editorSystemPrompt?: string
+      editorSystemPromptDesc?: string
+      editorEnableTools?: string
+      editorEnableToolsDesc?: string
+      editorIncludeBuiltinTools?: string
+      editorIncludeBuiltinToolsDesc?: string
+      editorEnabled?: string
+      editorDisabled?: string
+      editorModel?: string
+      editorModelCurrent?: string
+      editorTemperature?: string
+      editorTemperatureDesc?: string
+      editorTopP?: string
+      editorTopPDesc?: string
+      editorMaxOutputTokens?: string
+      editorMaxOutputTokensDesc?: string
+      editorToolsCount?: string
+      editorSkillsCount?: string
     }
     providers: {
       title: string

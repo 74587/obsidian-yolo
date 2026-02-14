@@ -44,7 +44,9 @@ export type ResponseGeneratorParams = {
     stream?: boolean
     temperature?: number
     top_p?: number
+    max_tokens?: number
   }
+  allowedToolNames?: string[]
   reasoningLevel?: ReasoningLevel
   maxContextOverride?: number
   currentFileContextMode?: 'full' | 'summary'
@@ -71,7 +73,9 @@ export class ResponseGenerator {
     stream?: boolean
     temperature?: number
     top_p?: number
+    max_tokens?: number
   }
+  private readonly allowedToolNames?: Set<string>
   private readonly reasoningLevel?: ReasoningLevel
   private readonly maxContextOverride?: number
   private readonly currentFileContextMode?: 'full' | 'summary'
@@ -97,6 +101,9 @@ export class ResponseGenerator {
     this.abortSignal = params.abortSignal
     this.firstTokenTimeoutMs = params.firstTokenTimeoutMs
     this.requestParams = params.requestParams
+    this.allowedToolNames = params.allowedToolNames
+      ? new Set(params.allowedToolNames)
+      : undefined
     this.reasoningLevel = params.reasoningLevel
     this.maxContextOverride = params.maxContextOverride
     this.currentFileContextMode = params.currentFileContextMode
@@ -149,13 +156,14 @@ export class ResponseGenerator {
         toolCalls: toolCallRequests.map((toolCall) => ({
           request: toolCall,
           response: {
-            status: this.mcpManager.isToolExecutionAllowed({
-              requestToolName: toolCall.name,
-              conversationId: this.conversationId,
-              requestArgs: toolCall.arguments,
-            })
-              ? ToolCallResponseStatus.Running
-              : ToolCallResponseStatus.PendingApproval,
+            status:
+              this.mcpManager.isToolExecutionAllowed({
+                requestToolName: toolCall.name,
+                conversationId: this.conversationId,
+                requestArgs: toolCall.arguments,
+              }) && this.isToolAllowed(toolCall.name)
+                ? ToolCallResponseStatus.Running
+                : ToolCallResponseStatus.PendingApproval,
           },
         })),
       }
@@ -224,7 +232,10 @@ export class ResponseGenerator {
           includeBuiltinTools: this.includeBuiltinTools,
         })
       : []
-    const hasTools = availableTools.length > 0
+    const filteredTools = availableTools.filter((tool) =>
+      this.isToolAllowed(tool.name),
+    )
+    const hasTools = filteredTools.length > 0
 
     const requestMessages = await this.promptGenerator.generateRequestMessages({
       messages: [...this.receivedMessages, ...this.responseMessages],
@@ -238,8 +249,8 @@ export class ResponseGenerator {
     // Set tools to undefined when no tools are available since some providers
     // reject empty tools arrays.
     const tools: RequestTool[] | undefined =
-      availableTools.length > 0
-        ? availableTools.map((tool) => ({
+      filteredTools.length > 0
+        ? filteredTools.map((tool) => ({
             type: 'function',
             function: {
               name: tool.name,
@@ -276,6 +287,7 @@ export class ResponseGenerator {
           stream: false,
           temperature: this.requestParams?.temperature,
           top_p: this.requestParams?.top_p,
+          max_tokens: this.requestParams?.max_tokens,
         },
         {
           signal: this.abortSignal,
@@ -391,6 +403,7 @@ export class ResponseGenerator {
           stream: true,
           temperature: this.requestParams?.temperature,
           top_p: this.requestParams?.top_p,
+          max_tokens: this.requestParams?.max_tokens,
         },
         {
           signal,
@@ -724,5 +737,12 @@ export class ResponseGenerator {
       typeof reasoning === 'string' && reasoning.trim().length > 0
     const hasAnnotations = Boolean(annotations && annotations.length > 0)
     return hasContent || hasReasoning || hasAnnotations
+  }
+
+  private isToolAllowed(toolName: string): boolean {
+    if (!this.allowedToolNames) {
+      return true
+    }
+    return this.allowedToolNames.has(toolName)
   }
 }
