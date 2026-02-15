@@ -27,7 +27,7 @@ export class AddMcpServerModal extends ReactModal<McpServerFormComponentProps> {
       Component: McpServerFormComponent,
       props: { plugin },
       options: {
-        title: 'Add server',
+        title: plugin.t('settings.mcp.addServerTitle', 'Add server'),
       },
       plugin: plugin,
     })
@@ -41,7 +41,7 @@ export class EditMcpServerModal extends ReactModal<McpServerFormComponentProps> 
       Component: McpServerFormComponent,
       props: { plugin, serverId: editServerId },
       options: {
-        title: 'Edit server',
+        title: plugin.t('settings.mcp.editServerTitle', 'Edit server'),
       },
       plugin: plugin,
     })
@@ -80,7 +80,9 @@ function McpServerFormComponent({
     try {
       const serverName = name.trim()
       if (serverName.length === 0) {
-        throw new Error('Name is required')
+        throw new Error(
+          t('settings.mcp.serverNameRequired', 'Name is required'),
+        )
       }
       validateServerName(serverName)
 
@@ -90,17 +92,29 @@ function McpServerFormComponent({
             server.id === serverName && server.id !== existingServer?.id,
         )
       ) {
-        throw new Error('Server with same name already exists')
+        throw new Error(
+          t(
+            'settings.mcp.serverAlreadyExists',
+            'Server with same name already exists',
+          ),
+        )
       }
 
       if (parameters.trim().length === 0) {
-        throw new Error('Parameters are required')
+        throw new Error(
+          t('settings.mcp.parametersRequired', 'Parameters are required'),
+        )
       }
       let parsedParameters: unknown
       try {
         parsedParameters = JSON.parse(parameters)
       } catch {
-        throw new Error('Parameters must be valid JSON')
+        throw new Error(
+          t(
+            'settings.mcp.parametersMustBeValidJson',
+            'Parameters must be valid JSON',
+          ),
+        )
       }
       const validatedParameters: McpServerParameters = mcpServerParametersSchema
         .strict()
@@ -147,35 +161,44 @@ function McpServerFormComponent({
     }
   }
 
-  const validateParameters = useCallback((parameters: string) => {
-    try {
-      if (parameters.length === 0) {
-        setValidationError('Parameters are required')
-        return
+  const validateParameters = useCallback(
+    (parameters: string) => {
+      try {
+        if (parameters.length === 0) {
+          setValidationError(
+            t('settings.mcp.parametersRequired', 'Parameters are required'),
+          )
+          return
+        }
+        const parsedParameters = JSON.parse(parameters)
+        mcpServerParametersSchema.strict().parse(parsedParameters)
+        setValidationError(null)
+      } catch (error) {
+        if (error instanceof SyntaxError) {
+          // JSON parse error
+          setValidationError(
+            t('settings.mcp.invalidJsonFormat', 'Invalid JSON format'),
+          )
+        } else if (error instanceof z.ZodError) {
+          // Zod error
+          const formattedErrors = error.errors
+            .map((err) => {
+              const path = err.path.length > 0 ? `${err.path.join('.')}: ` : ''
+              return `${path}${err.message}`
+            })
+            .join('\n')
+          setValidationError(formattedErrors)
+        } else {
+          setValidationError(
+            error instanceof Error
+              ? error.message
+              : t('settings.mcp.invalidParameters', 'Invalid parameters'),
+          )
+        }
       }
-      const parsedParameters = JSON.parse(parameters)
-      mcpServerParametersSchema.strict().parse(parsedParameters)
-      setValidationError(null)
-    } catch (error) {
-      if (error instanceof SyntaxError) {
-        // JSON parse error
-        setValidationError('Invalid JSON format')
-      } else if (error instanceof z.ZodError) {
-        // Zod error
-        const formattedErrors = error.errors
-          .map((err) => {
-            const path = err.path.length > 0 ? `${err.path.join('.')}: ` : ''
-            return `${path}${err.message}`
-          })
-          .join('\n')
-        setValidationError(formattedErrors)
-      } else {
-        setValidationError(
-          error instanceof Error ? error.message : 'Invalid parameters',
-        )
-      }
-    }
-  }, [])
+    },
+    [t],
+  )
 
   useEffect(() => {
     validateParameters(parameters)
@@ -183,20 +206,27 @@ function McpServerFormComponent({
 
   return (
     <>
-      <ObsidianSetting name="Name" desc="The name of the MCP server" required>
+      <ObsidianSetting
+        name={t('settings.mcp.serverNameField', 'Name')}
+        desc={t(
+          'settings.mcp.serverNameFieldDesc',
+          'The name of the MCP server',
+        )}
+        required
+      >
         <ObsidianTextInput
           value={name}
           onChange={(value: string) => setName(value)}
-          placeholder="e.g. 'github'"
+          placeholder={t('settings.mcp.serverNamePlaceholder', "e.g. 'github'")}
         />
       </ObsidianSetting>
 
       <ObsidianSetting
-        name="Parameters"
-        desc={`JSON configuration that defines how to run the MCP server. Format must include:
-- "command": The executable name (e.g., "npx", "node")
-- "args": (Optional) Array of command-line arguments
-- "env": (Optional) Key-value pairs of environment variables`}
+        name={t('settings.mcp.parametersField', 'Parameters')}
+        desc={t(
+          'settings.mcp.parametersFieldDesc',
+          'JSON configuration that defines how to run the MCP server. Format must include:\n- "command": The executable name (e.g., "npx", "node")\n- "args": (Optional) Array of command-line arguments\n- "env": (Optional) Key-value pairs of environment variables',
+        )}
         className="smtcmp-settings-textarea-header smtcmp-settings-description-preserve-whitespace"
         required
       />

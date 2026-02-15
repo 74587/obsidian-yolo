@@ -403,6 +403,19 @@ export type TranslationKeys = {
       delete: string
       expand: string
       collapse: string
+      addServerTitle?: string
+      editServerTitle?: string
+      serverNameField?: string
+      serverNameFieldDesc?: string
+      serverNamePlaceholder?: string
+      parametersField?: string
+      parametersFieldDesc?: string
+      serverNameRequired?: string
+      serverAlreadyExists?: string
+      parametersRequired?: string
+      parametersMustBeValidJson?: string
+      invalidJsonFormat?: string
+      invalidParameters?: string
       validParameters?: string
       failedToAddServer?: string
       failedToDeleteServer?: string
