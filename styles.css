@@ -2760,11 +2760,16 @@
   margin-bottom: var(--size-4-3);
 }
 
-.smtcmp-agent-block-head--row {
+.smtcmp-agent-block-head-title-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: var(--size-4-3);
+  margin-bottom: var(--size-4-1);
+}
+
+.smtcmp-agent-block-head-title-row > div:last-child {
+  margin-top: 4px;
 }
 
 .smtcmp-agent-cap-grid {
@@ -2911,7 +2916,7 @@
 
 .smtcmp-agent-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--size-4-3);
 }
 
@@ -2925,10 +2930,58 @@
     color-mix(in srgb, var(--background-secondary) 88%, transparent) 100%
   );
   padding: var(--size-4-3);
+  min-height: 136px;
   transition:
     border-color 160ms ease,
     background-color 160ms ease,
     box-shadow 180ms ease;
+}
+
+.smtcmp-agent-create-card {
+  border: 1px dashed
+    color-mix(in srgb, var(--background-modifier-border) 88%, transparent);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--background-secondary) 92%, transparent);
+  min-height: 136px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--size-4-2);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.smtcmp-agent-create-card:hover,
+.smtcmp-agent-create-card:focus-visible {
+  border-color: color-mix(in srgb, var(--interactive-accent) 55%, transparent);
+  color: var(--interactive-accent);
+  background: color-mix(
+    in srgb,
+    var(--interactive-accent) 7%,
+    var(--background-secondary)
+  );
+}
+
+.smtcmp-agent-create-card:focus-visible {
+  outline: 2px solid
+    color-mix(in srgb, var(--interactive-accent) 60%, transparent);
+  outline-offset: 2px;
+}
+
+.smtcmp-agent-create-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smtcmp-agent-create-card-text {
+  font-size: var(--font-ui-medium);
+  font-weight: var(--font-medium);
 }
 
 .smtcmp-agent-card:hover,

@@ -1,5 +1,5 @@
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu'
-import { BookOpen, Bot, Copy, Cpu, Trash2, Wrench } from 'lucide-react'
+import { BookOpen, Copy, Cpu, Plus, Trash2, Wrench } from 'lucide-react'
 import { App } from 'obsidian'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -289,142 +289,145 @@ export function AgentSection({ app }: AgentSectionProps) {
       </section>
 
       <section className="smtcmp-agent-block">
-        <div className="smtcmp-agent-block-head smtcmp-agent-block-head--row">
-          <div>
+        <div className="smtcmp-agent-block-head">
+          <div className="smtcmp-agent-block-head-title-row">
             <div className="smtcmp-settings-sub-header">
               {t('settings.agent.agents', 'Agents')}
             </div>
-            <div className="smtcmp-settings-desc">
-              {t(
-                'settings.agent.agentsDesc',
-                'Click Configure to edit each agent profile and prompt.',
-              )}
-            </div>
-          </div>
-          <ObsidianButton
-            text={t('settings.agent.newAgent', 'New agent')}
-            onClick={() => handleOpenAssistantsModal(undefined, true)}
-            cta
-          />
-        </div>
-
-        {assistants.length === 0 ? (
-          <div className="smtcmp-agent-empty">
-            <Bot size={16} />
-            <span>
-              {t('settings.agent.noAgents', 'No agents configured yet')}
-            </span>
             <ObsidianButton
               text={t('settings.agent.newAgent', 'New agent')}
-              icon="plus"
               onClick={() => handleOpenAssistantsModal(undefined, true)}
+              cta
             />
           </div>
-        ) : (
-          <div className="smtcmp-agent-grid">
-            {assistants.map((assistant) => (
-              <article
-                key={assistant.id}
-                className="smtcmp-agent-card smtcmp-agent-card--clickable"
-                role="button"
-                tabIndex={0}
-                onClick={() => handleOpenAssistantsModal(assistant.id)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault()
-                    handleOpenAssistantsModal(assistant.id)
-                  }
-                }}
-              >
-                <div className="smtcmp-agent-card-top">
-                  <div className="smtcmp-agent-card-top-main">
-                    <div className="smtcmp-agent-avatar">
-                      {renderAssistantIcon(assistant.icon, 16)}
-                    </div>
-                    <div className="smtcmp-agent-main">
-                      <div className="smtcmp-agent-name-row">
-                        <div className="smtcmp-agent-name">
-                          {assistant.name}
-                        </div>
-                      </div>
-                      {assistant.description && (
-                        <div className="smtcmp-agent-desc">
-                          {assistant.description}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+          <div className="smtcmp-settings-desc">
+            {t(
+              'settings.agent.agentsDesc',
+              'Click Configure to edit each agent profile and prompt.',
+            )}
+          </div>
+        </div>
 
-                  <DropdownMenu.Root>
-                    <DropdownMenu.Trigger
-                      className="smtcmp-agent-card-menu-trigger"
+        <div className="smtcmp-agent-grid">
+          {assistants.map((assistant) => (
+            <article
+              key={assistant.id}
+              className="smtcmp-agent-card smtcmp-agent-card--clickable"
+              role="button"
+              tabIndex={0}
+              onClick={() => handleOpenAssistantsModal(assistant.id)}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  handleOpenAssistantsModal(assistant.id)
+                }
+              }}
+            >
+              <div className="smtcmp-agent-card-top">
+                <div className="smtcmp-agent-card-top-main">
+                  <div className="smtcmp-agent-avatar">
+                    {renderAssistantIcon(assistant.icon, 16)}
+                  </div>
+                  <div className="smtcmp-agent-main">
+                    <div className="smtcmp-agent-name-row">
+                      <div className="smtcmp-agent-name">{assistant.name}</div>
+                    </div>
+                    {assistant.description && (
+                      <div className="smtcmp-agent-desc">
+                        {assistant.description}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <DropdownMenu.Root>
+                  <DropdownMenu.Trigger
+                    className="smtcmp-agent-card-menu-trigger"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <span
+                      className="smtcmp-agent-card-menu-trigger-dots"
+                      aria-hidden="true"
+                    >
+                      ...
+                    </span>
+                  </DropdownMenu.Trigger>
+                  <DropdownMenu.Portal>
+                    <DropdownMenu.Content
+                      className="smtcmp-agent-card-menu-popover"
+                      align="end"
+                      sideOffset={8}
                       onClick={(event) => event.stopPropagation()}
                     >
-                      <span
-                        className="smtcmp-agent-card-menu-trigger-dots"
-                        aria-hidden="true"
-                      >
-                        ...
-                      </span>
-                    </DropdownMenu.Trigger>
-                    <DropdownMenu.Portal>
-                      <DropdownMenu.Content
-                        className="smtcmp-agent-card-menu-popover"
-                        align="end"
-                        sideOffset={8}
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        <ul className="smtcmp-agent-card-menu-list">
-                          <DropdownMenu.Item
-                            asChild
-                            onSelect={() => {
-                              void handleDuplicateAssistant(assistant)
-                            }}
-                          >
-                            <li className="smtcmp-agent-card-menu-item">
-                              <span className="smtcmp-agent-card-menu-icon">
-                                <Copy size={16} />
-                              </span>
-                              {t('settings.agent.duplicate', 'Duplicate')}
-                            </li>
-                          </DropdownMenu.Item>
-                          <DropdownMenu.Item
-                            asChild
-                            onSelect={() => handleDeleteAssistant(assistant)}
-                          >
-                            <li className="smtcmp-agent-card-menu-item smtcmp-agent-card-menu-danger">
-                              <span className="smtcmp-agent-card-menu-icon">
-                                <Trash2 size={16} />
-                              </span>
-                              {t('common.delete')}
-                            </li>
-                          </DropdownMenu.Item>
-                        </ul>
-                      </DropdownMenu.Content>
-                    </DropdownMenu.Portal>
-                  </DropdownMenu.Root>
-                </div>
+                      <ul className="smtcmp-agent-card-menu-list">
+                        <DropdownMenu.Item
+                          asChild
+                          onSelect={() => {
+                            void handleDuplicateAssistant(assistant)
+                          }}
+                        >
+                          <li className="smtcmp-agent-card-menu-item">
+                            <span className="smtcmp-agent-card-menu-icon">
+                              <Copy size={16} />
+                            </span>
+                            {t('settings.agent.duplicate', 'Duplicate')}
+                          </li>
+                        </DropdownMenu.Item>
+                        <DropdownMenu.Item
+                          asChild
+                          onSelect={() => handleDeleteAssistant(assistant)}
+                        >
+                          <li className="smtcmp-agent-card-menu-item smtcmp-agent-card-menu-danger">
+                            <span className="smtcmp-agent-card-menu-icon">
+                              <Trash2 size={16} />
+                            </span>
+                            {t('common.delete')}
+                          </li>
+                        </DropdownMenu.Item>
+                      </ul>
+                    </DropdownMenu.Content>
+                  </DropdownMenu.Portal>
+                </DropdownMenu.Root>
+              </div>
 
-                <div className="smtcmp-agent-meta-row">
-                  <span className="smtcmp-agent-meta-item">
-                    <Cpu size={12} />
-                    {assistant.modelId || settings.chatModelId}
-                  </span>
-                  <span className="smtcmp-agent-meta-item">
-                    <Wrench size={12} />
-                    {assistant.enableTools
-                      ? `${assistant.enabledToolNames?.length ?? 0} tools`
-                      : '0 tools'}
-                  </span>
-                  <span className="smtcmp-agent-meta-item">
-                    <BookOpen size={12} />
-                    {`${assistant.enabledSkills?.length ?? 0} skills`}
-                  </span>
-                </div>
-              </article>
-            ))}
-          </div>
-        )}
+              <div className="smtcmp-agent-meta-row">
+                <span className="smtcmp-agent-meta-item">
+                  <Cpu size={12} />
+                  {assistant.modelId || settings.chatModelId}
+                </span>
+                <span className="smtcmp-agent-meta-item">
+                  <Wrench size={12} />
+                  {assistant.enableTools
+                    ? `${assistant.enabledToolNames?.length ?? 0} tools`
+                    : '0 tools'}
+                </span>
+                <span className="smtcmp-agent-meta-item">
+                  <BookOpen size={12} />
+                  {`${assistant.enabledSkills?.length ?? 0} skills`}
+                </span>
+              </div>
+            </article>
+          ))}
+          <article
+            className="smtcmp-agent-create-card"
+            role="button"
+            tabIndex={0}
+            onClick={() => handleOpenAssistantsModal(undefined, true)}
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault()
+                handleOpenAssistantsModal(undefined, true)
+              }
+            }}
+          >
+            <div className="smtcmp-agent-create-card-icon">
+              <Plus size={28} />
+            </div>
+            <div className="smtcmp-agent-create-card-text">
+              {t('settings.agent.newAgent', 'New agent')}
+            </div>
+          </article>
+        </div>
       </section>
     </div>
   )
