@@ -1,5 +1,13 @@
 import { App } from 'obsidian'
-import { useEffect, useMemo, useState } from 'react'
+import { BookOpen, Cpu, User, Wrench } from 'lucide-react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 
 import { AGENT_SKILLS } from '../../../constants/agent-profile'
 import { useLanguage } from '../../../contexts/language-context'
@@ -22,6 +30,20 @@ type AgentsSectionContentProps = {
 }
 
 type AgentEditorTab = 'profile' | 'tools' | 'skills' | 'model'
+
+const AGENT_EDITOR_TABS: AgentEditorTab[] = [
+  'profile',
+  'tools',
+  'skills',
+  'model',
+]
+
+const AGENT_EDITOR_TAB_ICONS = {
+  profile: User,
+  tools: Wrench,
+  skills: BookOpen,
+  model: Cpu,
+} as const
 
 const DEFAULT_PERSONA: AgentPersona = 'balanced'
 
@@ -107,6 +129,56 @@ export function AgentsSectionContent({
   })
   const [activeTab, setActiveTab] = useState<AgentEditorTab>('profile')
   const [availableTools, setAvailableTools] = useState<McpTool[]>([])
+  const activeTabIndex = AGENT_EDITOR_TABS.findIndex((tab) => tab === activeTab)
+  const activeTabIndexRef = useRef(activeTabIndex)
+  const tabsNavRef = useRef<HTMLDivElement | null>(null)
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
+
+  const updateTabsGlider = useCallback(() => {
+    const nav = tabsNavRef.current
+    const index = activeTabIndexRef.current
+    const activeButton = tabRefs.current[index]
+
+    if (!nav || !activeButton || index < 0) {
+      return
+    }
+
+    nav.style.setProperty(
+      '--smtcmp-agent-tab-glider-left',
+      `${activeButton.offsetLeft}px`,
+    )
+    nav.style.setProperty(
+      '--smtcmp-agent-tab-glider-width',
+      `${activeButton.offsetWidth}px`,
+    )
+  }, [])
+
+  useLayoutEffect(() => {
+    activeTabIndexRef.current = activeTabIndex
+    updateTabsGlider()
+  }, [activeTabIndex, updateTabsGlider])
+
+  useEffect(() => {
+    const nav = tabsNavRef.current
+    if (!nav) {
+      return
+    }
+
+    if (typeof ResizeObserver === 'undefined') {
+      updateTabsGlider()
+      return
+    }
+
+    const observer = new ResizeObserver(() => updateTabsGlider())
+    observer.observe(nav)
+    tabRefs.current.forEach((button) => {
+      if (button) {
+        observer.observe(button)
+      }
+    })
+
+    return () => observer.disconnect()
+  }, [updateTabsGlider])
 
   useEffect(() => {
     let mounted = true
@@ -265,25 +337,57 @@ export function AgentsSectionContent({
             )}
           </div>
 
-          <div className="smtcmp-agent-editor-tabs">
-            {(['profile', 'tools', 'skills', 'model'] as AgentEditorTab[]).map(
-              (tab) => (
+          <div
+            className="smtcmp-agent-editor-tabs smtcmp-agent-editor-tabs--glider"
+            role="tablist"
+            ref={tabsNavRef}
+            style={
+              {
+                '--smtcmp-agent-tab-count': AGENT_EDITOR_TABS.length,
+                '--smtcmp-agent-tab-index': activeTabIndex,
+              } as React.CSSProperties
+            }
+          >
+            <div
+              className="smtcmp-agent-editor-tabs-glider"
+              aria-hidden="true"
+            />
+            {AGENT_EDITOR_TABS.map((tab, index) => {
+              const TabIcon = AGENT_EDITOR_TAB_ICONS[tab]
+              return (
                 <button
                   key={tab}
+                  type="button"
                   className={`smtcmp-agent-editor-tab ${activeTab === tab ? 'is-active' : ''}`}
                   onClick={() => setActiveTab(tab)}
+                  role="tab"
+                  aria-selected={activeTab === tab}
+                  ref={(element) => {
+                    tabRefs.current[index] = element
+                  }}
                 >
-                  {
+                  <span
+                    className="smtcmp-agent-editor-tab-icon"
+                    aria-hidden="true"
+                  >
+                    <TabIcon size={14} />
+                  </span>
+                  <span className="smtcmp-agent-editor-tab-label">
                     {
-                      profile: t('settings.agent.editorTabProfile', 'Profile'),
-                      tools: t('settings.agent.editorTabTools', 'Tools'),
-                      skills: t('settings.agent.editorTabSkills', 'Skills'),
-                      model: t('settings.agent.editorTabModel', 'Model'),
-                    }[tab]
-                  }
+                      {
+                        profile: t(
+                          'settings.agent.editorTabProfile',
+                          'Profile',
+                        ),
+                        tools: t('settings.agent.editorTabTools', 'Tools'),
+                        skills: t('settings.agent.editorTabSkills', 'Skills'),
+                        model: t('settings.agent.editorTabModel', 'Model'),
+                      }[tab]
+                    }
+                  </span>
                 </button>
-              ),
-            )}
+              )
+            })}
           </div>
 
           {activeTab === 'profile' && (
