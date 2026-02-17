@@ -14,12 +14,14 @@ import { useLanguage } from '../../../contexts/language-context'
 import { usePlugin } from '../../../contexts/plugin-context'
 import { useSettings } from '../../../contexts/settings-context'
 import { getLocalFileToolServerName } from '../../../core/mcp/localFileTools'
+import { parseToolName } from '../../../core/mcp/tool-name-utils'
 import { AgentPersona, Assistant } from '../../../types/assistant.types'
 import { McpTool } from '../../../types/mcp.types'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextArea } from '../../common/ObsidianTextArea'
 import { ObsidianTextInput } from '../../common/ObsidianTextInput'
+import { ObsidianToggle } from '../../common/ObsidianToggle'
 import { openIconPicker } from '../assistants/AssistantIconPicker'
 
 type AgentsSectionContentProps = {
@@ -30,6 +32,12 @@ type AgentsSectionContentProps = {
 }
 
 type AgentEditorTab = 'profile' | 'tools' | 'skills' | 'model'
+
+type AgentToolView = {
+  fullName: string
+  displayName: string
+  description: string
+}
 
 const AGENT_EDITOR_TABS: AgentEditorTab[] = [
   'profile',
@@ -301,6 +309,63 @@ export function AgentsSectionContent({
 
   const localFsServerName = getLocalFileToolServerName()
 
+  const visibleToolGroups = useMemo(() => {
+    const groups = new Map<string, { title: string; tools: AgentToolView[] }>()
+
+    availableTools.forEach((tool) => {
+      let serverName = localFsServerName
+      let toolName = tool.name
+
+      try {
+        const parsed = parseToolName(tool.name)
+        serverName = parsed.serverName
+        toolName = parsed.toolName
+      } catch {
+        serverName = localFsServerName
+        toolName = tool.name
+      }
+
+      const isBuiltin = serverName === localFsServerName
+      if (isBuiltin && draftAgent?.includeBuiltinTools === false) {
+        return
+      }
+
+      const key = serverName
+      const title = isBuiltin
+        ? t('settings.agent.toolsGroupBuiltin', 'Built-in tools')
+        : serverName
+      const group = groups.get(key) ?? { title, tools: [] }
+      group.tools.push({
+        fullName: tool.name,
+        displayName: toolName,
+        description: tool.description || t('common.none', 'None'),
+      })
+      groups.set(key, group)
+    })
+
+    return [...groups.entries()]
+      .sort(([a], [b]) => {
+        if (a === localFsServerName) return -1
+        if (b === localFsServerName) return 1
+        return a.localeCompare(b)
+      })
+      .map(([key, value]) => ({ key, ...value }))
+  }, [availableTools, draftAgent?.includeBuiltinTools, localFsServerName, t])
+
+  const visibleToolsCount = useMemo(
+    () => visibleToolGroups.reduce((sum, group) => sum + group.tools.length, 0),
+    [visibleToolGroups],
+  )
+
+  const enabledVisibleToolsCount = useMemo(() => {
+    const enabled = new Set(draftAgent?.enabledToolNames ?? [])
+    return visibleToolGroups.reduce(
+      (sum, group) =>
+        sum + group.tools.filter((tool) => enabled.has(tool.fullName)).length,
+      0,
+    )
+  }, [draftAgent?.enabledToolNames, visibleToolGroups])
+
   return (
     <div
       className={`smtcmp-settings-section smtcmp-agent-editor-panel${
@@ -461,16 +526,12 @@ export function AgentsSectionContent({
                   'Allow this agent to call tools',
                 )}
               >
-                <ObsidianButton
-                  text={
-                    draftAgent.enableTools
-                      ? t('settings.agent.editorEnabled', 'Enabled')
-                      : t('settings.agent.editorDisabled', 'Disabled')
-                  }
-                  onClick={() =>
+                <ObsidianToggle
+                  value={Boolean(draftAgent.enableTools)}
+                  onChange={(value) =>
                     setDraftAgent({
                       ...draftAgent,
-                      enableTools: !draftAgent.enableTools,
+                      enableTools: value,
                     })
                   }
                 />
@@ -485,52 +546,75 @@ export function AgentsSectionContent({
                   'Allow local vault file tools for this agent',
                 )}
               >
-                <ObsidianButton
-                  text={
-                    draftAgent.includeBuiltinTools
-                      ? t('settings.agent.editorEnabled', 'Enabled')
-                      : t('settings.agent.editorDisabled', 'Disabled')
-                  }
-                  onClick={() =>
+                <ObsidianToggle
+                  value={Boolean(draftAgent.includeBuiltinTools)}
+                  onChange={(value) =>
                     setDraftAgent({
                       ...draftAgent,
-                      includeBuiltinTools: !draftAgent.includeBuiltinTools,
+                      includeBuiltinTools: value,
                     })
                   }
                 />
               </ObsidianSetting>
-              <div className="smtcmp-agent-tool-list">
-                {availableTools.map((tool) => {
-                  const isBuiltin = tool.name.startsWith(
-                    `${localFsServerName}__`,
-                  )
-                  if (isBuiltin && draftAgent.includeBuiltinTools === false) {
-                    return null
-                  }
-                  const selected = draftAgent.enabledToolNames?.includes(
-                    tool.name,
-                  )
-                  return (
-                    <div key={tool.name} className="smtcmp-agent-tool-row">
-                      <div className="smtcmp-agent-tool-main">
-                        <div className="smtcmp-agent-tool-name smtcmp-agent-tool-name--mono">
-                          {tool.name}
-                        </div>
-                        <div className="smtcmp-agent-tool-source">
-                          {tool.description}
-                        </div>
-                      </div>
-                      <ObsidianButton
-                        text={
-                          selected
-                            ? t('settings.agent.editorEnabled', 'Enabled')
-                            : t('settings.agent.editorDisabled', 'Disabled')
-                        }
-                        onClick={() => toggleTool(tool.name)}
-                      />
+              <div
+                className={`smtcmp-agent-tools-panel${
+                  draftAgent.enableTools ? '' : ' is-disabled'
+                }`}
+              >
+                <div className="smtcmp-agent-tools-panel-head">
+                  <div className="smtcmp-agent-tools-panel-title">
+                    {t('settings.agent.tools', 'Tools')}
+                  </div>
+                  <div className="smtcmp-agent-tools-panel-count">
+                    {`${enabledVisibleToolsCount} / ${visibleToolsCount} ${t(
+                      'settings.agent.toolsActive',
+                      'active',
+                    )}`}
+                  </div>
+                </div>
+
+                {visibleToolGroups.map((group) => (
+                  <div key={group.key} className="smtcmp-agent-tool-group">
+                    <div className="smtcmp-agent-tool-group-title">
+                      {group.title}
                     </div>
-                  )
-                })}
+                    <div className="smtcmp-agent-tool-list">
+                      {group.tools.map((tool) => {
+                        const selected = draftAgent.enabledToolNames?.includes(
+                          tool.fullName,
+                        )
+
+                        return (
+                          <div
+                            key={tool.fullName}
+                            className="smtcmp-agent-tool-row"
+                          >
+                            <div className="smtcmp-agent-tool-main">
+                              <div className="smtcmp-agent-tool-name smtcmp-agent-tool-name--mono">
+                                {tool.displayName}
+                              </div>
+                              <div className="smtcmp-agent-tool-source smtcmp-agent-tool-source--preview">
+                                {tool.description}
+                              </div>
+                            </div>
+                            <div className="smtcmp-agent-tool-toggle">
+                              <ObsidianToggle
+                                value={Boolean(selected)}
+                                onChange={() => toggleTool(tool.fullName)}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                ))}
+
+                {visibleToolsCount === 0 && (
+                  <div className="smtcmp-agent-tools-empty">
+                    {t('settings.agent.noTools', 'No tools available')}
+                  </div>
+                )}
               </div>
             </div>
           )}

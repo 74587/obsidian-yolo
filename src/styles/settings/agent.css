@@ -133,6 +133,96 @@
   font-size: var(--font-ui-smaller);
 }
 
+.smtcmp-agent-tools-panel {
+  margin-top: var(--size-4-3);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: color-mix(in srgb, var(--background-secondary) 86%, transparent);
+  padding: var(--size-4-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-4-3);
+}
+
+.smtcmp-agent-tools-panel.is-disabled {
+  opacity: 0.64;
+}
+
+.smtcmp-agent-tools-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+}
+
+.smtcmp-agent-tools-panel-title {
+  color: var(--text-normal);
+  font-size: var(--font-ui-small);
+  font-weight: var(--font-medium);
+}
+
+.smtcmp-agent-tools-panel-count {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 999px;
+  padding: 2px 10px;
+  white-space: nowrap;
+}
+
+.smtcmp-agent-tool-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--size-2-2);
+}
+
+.smtcmp-agent-tool-group-title {
+  color: var(--text-muted);
+  font-size: var(--font-ui-smaller);
+  letter-spacing: 0.01em;
+}
+
+.smtcmp-agent-tools-panel .smtcmp-agent-tool-list {
+  gap: 0;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: var(--radius-m);
+  background: var(--background-primary);
+  overflow: hidden;
+}
+
+.smtcmp-agent-tools-panel .smtcmp-agent-tool-row {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: var(--size-4-2);
+}
+
+.smtcmp-agent-tools-panel .smtcmp-agent-tool-row + .smtcmp-agent-tool-row {
+  border-top: 1px solid var(--background-modifier-border);
+}
+
+.smtcmp-agent-tool-source--preview {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+@media (max-width: 720px) {
+  .smtcmp-agent-tools-panel-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .smtcmp-agent-tools-panel .smtcmp-agent-tool-row {
+    align-items: flex-start;
+  }
+
+  .smtcmp-agent-tools-panel .smtcmp-agent-tool-toggle {
+    margin-top: 2px;
+  }
+}
+
 .smtcmp-agent-chip {
   border: 1px solid var(--background-modifier-border);
   border-radius: var(--radius-s);
