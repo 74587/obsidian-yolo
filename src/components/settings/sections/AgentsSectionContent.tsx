@@ -39,6 +39,48 @@ type AgentToolView = {
   description: string
 }
 
+const BUILTIN_TOOL_LABEL_KEYS: Record<
+  string,
+  {
+    key: string
+    descKey: string
+    fallback: string
+    descFallback: string
+  }
+> = {
+  fs_list: {
+    key: 'settings.agent.builtinFsListLabel',
+    descKey: 'settings.agent.builtinFsListDesc',
+    fallback: 'Read Vault',
+    descFallback:
+      'List directory structure under a vault path. Useful for workspace orientation.',
+  },
+  fs_search: {
+    key: 'settings.agent.builtinFsSearchLabel',
+    descKey: 'settings.agent.builtinFsSearchDesc',
+    fallback: 'Search Vault',
+    descFallback: 'Search files, folders, or markdown content in vault.',
+  },
+  fs_read: {
+    key: 'settings.agent.builtinFsReadLabel',
+    descKey: 'settings.agent.builtinFsReadDesc',
+    fallback: 'Read File',
+    descFallback: 'Read line ranges from multiple vault files by path.',
+  },
+  fs_edit: {
+    key: 'settings.agent.builtinFsEditLabel',
+    descKey: 'settings.agent.builtinFsEditDesc',
+    fallback: 'Edit File',
+    descFallback: 'Apply exact text replacement within a single file.',
+  },
+  fs_write: {
+    key: 'settings.agent.builtinFsWriteLabel',
+    descKey: 'settings.agent.builtinFsWriteDesc',
+    fallback: 'Write Vault',
+    descFallback: 'Execute vault write operations for files and folders.',
+  },
+}
+
 const AGENT_EDITOR_TABS: AgentEditorTab[] = [
   'profile',
   'tools',
@@ -334,11 +376,18 @@ export function AgentsSectionContent({
       const title = isBuiltin
         ? t('settings.agent.toolsGroupBuiltin', 'Built-in tools')
         : serverName
+      const builtinMeta = isBuiltin ? BUILTIN_TOOL_LABEL_KEYS[toolName] : null
+      const displayName = builtinMeta
+        ? t(builtinMeta.key, builtinMeta.fallback)
+        : toolName
+      const description = builtinMeta
+        ? t(builtinMeta.descKey, builtinMeta.descFallback)
+        : tool.description || t('common.none', 'None')
       const group = groups.get(key) ?? { title, tools: [] }
       group.tools.push({
         fullName: tool.name,
-        displayName: toolName,
-        description: tool.description || t('common.none', 'None'),
+        displayName,
+        description,
       })
       groups.set(key, group)
     })

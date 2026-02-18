@@ -59,11 +59,11 @@ type ToolDisplayInfo = {
 }
 
 const DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES: Record<string, string> = {
-  fs_list: 'List files',
-  fs_search: 'Search files',
-  fs_read: 'Read files',
+  fs_list: 'Read Vault',
+  fs_search: 'Search Vault',
+  fs_read: 'Read File',
   fs_edit: 'Edit file',
-  fs_write: 'File operation',
+  fs_write: 'Write Vault',
 }
 
 const DEFAULT_WRITE_ACTION_LABELS: Record<string, string> = {
@@ -104,23 +104,23 @@ const getToolLabels = (t?: TranslateFn): ToolLabels => {
     unknownStatus: translate('chat.toolCall.status.unknown', 'Unknown'),
     displayNames: {
       fs_list: translate(
-        'chat.toolCall.displayName.fs_list',
+        'settings.agent.builtinFsListLabel',
         DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_list,
       ),
       fs_search: translate(
-        'chat.toolCall.displayName.fs_search',
+        'settings.agent.builtinFsSearchLabel',
         DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_search,
       ),
       fs_read: translate(
-        'chat.toolCall.displayName.fs_read',
+        'settings.agent.builtinFsReadLabel',
         DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_read,
       ),
       fs_edit: translate(
-        'chat.toolCall.displayName.fs_edit',
+        'settings.agent.builtinFsEditLabel',
         DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_edit,
       ),
       fs_write: translate(
-        'chat.toolCall.displayName.fs_write',
+        'settings.agent.builtinFsWriteLabel',
         DEFAULT_LOCAL_FILE_TOOL_DISPLAY_NAMES.fs_write,
       ),
     },
@@ -228,7 +228,7 @@ const getLocalToolSummaryText = ({
       argumentsObject.path.trim().length > 0
         ? argumentsObject.path
         : '/'
-    return `${labels.target}: ${targetPath}`
+    return targetPath
   }
 
   if (toolName === 'fs_search') {
@@ -237,9 +237,9 @@ const getLocalToolSummaryText = ({
     const query =
       typeof argumentsObject?.query === 'string' ? argumentsObject.query : ''
     if (query.trim().length === 0) {
-      return `${labels.scope}: ${scope}`
+      return scope
     }
-    return `${labels.scope}: ${scope} | ${labels.query}: ${truncateText(query, 60)}`
+    return `${scope} | ${truncateText(query, 60)}`
   }
 
   if (toolName === 'fs_read') {
@@ -248,7 +248,7 @@ const getLocalToolSummaryText = ({
       return undefined
     }
     if (paths.length === 1) {
-      return `${labels.path}: ${paths[0]}`
+      return paths[0]
     }
     return `${paths.length} ${labels.paths}`
   }
@@ -256,7 +256,7 @@ const getLocalToolSummaryText = ({
   if (toolName === 'fs_edit') {
     const path =
       typeof argumentsObject?.path === 'string' ? argumentsObject.path : ''
-    return path ? `${labels.path}: ${path}` : undefined
+    return path || undefined
   }
 
   if (toolName === 'fs_write') {
