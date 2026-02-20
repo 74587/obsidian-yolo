@@ -3,17 +3,19 @@ import { BookOpen, Copy, Cpu, Plus, Trash2, Wrench } from 'lucide-react'
 import { App } from 'obsidian'
 import { useEffect, useMemo, useState } from 'react'
 
-import { AGENT_SKILLS } from '../../../constants/agent-profile'
 import { useLanguage } from '../../../contexts/language-context'
 import { usePlugin } from '../../../contexts/plugin-context'
 import { useSettings } from '../../../contexts/settings-context'
 import { getLocalFileTools } from '../../../core/mcp/localFileTools'
 import { McpManager } from '../../../core/mcp/mcpManager'
+import { listLiteSkillEntries } from '../../../core/skills/liteSkills'
+import { isSkillEnabledForAssistant } from '../../../core/skills/skillPolicy'
 import { Assistant } from '../../../types/assistant.types'
 import { McpServerState, McpServerStatus } from '../../../types/mcp.types'
 import { renderAssistantIcon } from '../../../utils/assistant-icon'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ConfirmModal } from '../../modals/ConfirmModal'
+import { AgentSkillsModal } from '../modals/AgentSkillsModal'
 import { AgentToolsModal } from '../modals/AgentToolsModal'
 import { AssistantsModal } from '../modals/AssistantsModal'
 
@@ -44,6 +46,10 @@ const BUILTIN_TOOL_LABEL_KEYS: Record<
   fs_write: {
     key: 'settings.agent.builtinFsWriteLabel',
     fallback: 'Write Vault',
+  },
+  open_skill: {
+    key: 'settings.agent.builtinOpenSkillLabel',
+    fallback: 'Open Skill',
   },
 }
 
@@ -164,6 +170,11 @@ export function AgentSection({ app }: AgentSectionProps) {
     modal.open()
   }
 
+  const handleOpenSkillsModal = () => {
+    const modal = new AgentSkillsModal(app, plugin)
+    modal.open()
+  }
+
   const mcpTools = useMemo(
     () =>
       mcpServers
@@ -198,10 +209,23 @@ export function AgentSection({ app }: AgentSectionProps) {
     [settings.mcp.builtinToolOptions, t],
   )
 
+  const allSkillEntries = useMemo(() => listLiteSkillEntries(app), [app])
+  const disabledSkillIds = settings.skills?.disabledSkillIds ?? []
+  const disabledSkillSet = useMemo(
+    () => new Set(disabledSkillIds),
+    [disabledSkillIds],
+  )
+  const globallyEnabledSkillEntries = useMemo(
+    () => allSkillEntries.filter((skill) => !disabledSkillSet.has(skill.id)),
+    [allSkillEntries, disabledSkillSet],
+  )
+
   const skillsCountLabel = t(
-    'settings.agent.skillsCount',
-    '{count} skills',
-  ).replace('{count}', String(AGENT_SKILLS.length))
+    'settings.agent.skillsCountWithEnabled',
+    '{count} skills (enabled {enabled})',
+  )
+    .replace('{count}', String(allSkillEntries.length))
+    .replace('{enabled}', String(globallyEnabledSkillEntries.length))
 
   const enabledToolsCount =
     builtinTools.filter((tool) => tool.enabled).length +
@@ -255,6 +279,7 @@ export function AgentSection({ app }: AgentSectionProps) {
                 <span>{t('settings.agent.tools', 'Tools')}</span>
               </div>
               <button
+                type="button"
                 className="mod-cta smtcmp-agent-tools-trigger"
                 onClick={handleOpenToolsModal}
               >
@@ -272,13 +297,22 @@ export function AgentSection({ app }: AgentSectionProps) {
           </article>
 
           <article className="smtcmp-agent-cap-card">
-            <div className="smtcmp-agent-cap-title">
-              <BookOpen size={14} />
-              <span>{t('settings.agent.skills', 'Skills')}</span>
+            <div className="smtcmp-agent-cap-title-row">
+              <div className="smtcmp-agent-cap-title">
+                <BookOpen size={14} />
+                <span>{t('settings.agent.skills', 'Skills')}</span>
+              </div>
+              <button
+                type="button"
+                className="mod-cta smtcmp-agent-tools-trigger"
+                onClick={handleOpenSkillsModal}
+              >
+                {t('settings.agent.manageSkills', 'Manage skills')}
+              </button>
             </div>
             <div className="smtcmp-agent-cap-count">{skillsCountLabel}</div>
             <div className="smtcmp-agent-cap-tags">
-              {AGENT_SKILLS.map((skill) => (
+              {globallyEnabledSkillEntries.map((skill) => (
                 <span key={skill.id} className="smtcmp-agent-chip">
                   {skill.name}
                 </span>
@@ -403,7 +437,15 @@ export function AgentSection({ app }: AgentSectionProps) {
                 </span>
                 <span className="smtcmp-agent-meta-item">
                   <BookOpen size={12} />
-                  {`${assistant.enabledSkills?.length ?? 0} skills`}
+                  {`${
+                    allSkillEntries.filter((skill) =>
+                      isSkillEnabledForAssistant({
+                        assistant,
+                        skillId: skill.id,
+                        disabledSkillIds,
+                      }),
+                    ).length
+                  } skills`}
                 </span>
               </div>
             </article>

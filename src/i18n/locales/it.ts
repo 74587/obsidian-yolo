@@ -300,6 +300,13 @@ export const it: TranslationKeys = {
       toolsCountWithEnabled: '{count} strumenti (abilitati {enabled})',
       skills: 'Competenze',
       skillsCount: '{count} competenze',
+      skillsCountWithEnabled: '{count} competenze (abilitate {enabled})',
+      skillsGlobalDesc:
+        'Le skill vengono rilevate da YOLO/skills/**/*.skill.md. Disabilitale qui per bloccarle su tutti gli agent.',
+      skillsSourcePath: 'Percorso: YOLO/skills/**/*.skill.md',
+      refreshSkills: 'Aggiorna',
+      skillsEmptyHint:
+        'Nessuna skill trovata. Crea file markdown skill sotto YOLO/skills.',
       agents: 'Agent',
       agentsDesc:
         'Clicca Configura per modificare il profilo e il prompt di ciascun agent.',
@@ -317,6 +324,7 @@ export const it: TranslationKeys = {
       noMcpTools: 'Nessuno strumento personalizzato (MCP) rilevato',
       toolsEnabledCount: '{count} abilitati',
       manageTools: 'Gestisci strumenti',
+      manageSkills: 'Gestisci competenze',
       descriptionColumn: 'Descrizione',
       builtinFsListLabel: 'Leggi vault',
       builtinFsListDesc:
@@ -333,6 +341,8 @@ export const it: TranslationKeys = {
       builtinFsWriteLabel: 'Scrivi nel vault',
       builtinFsWriteDesc:
         'Esegue operazioni di scrittura su file e cartelle nel vault.',
+      builtinOpenSkillLabel: 'Apri skill',
+      builtinOpenSkillDesc: 'Carica un file markdown skill tramite id o nome.',
       editorDefaultName: 'Nuovo agent',
       editorIntro:
         'Configura le capacità, il modello e il comportamento di questo agent.',
@@ -367,6 +377,10 @@ export const it: TranslationKeys = {
       editorMaxOutputTokensDesc: 'Numero massimo di token generati',
       editorToolsCount: '{count} strumenti',
       editorSkillsCount: '{count} competenze',
+      editorSkillsCountWithEnabled: '{count} competenze (abilitate {enabled})',
+      skillLoadAlways: 'Sempre',
+      skillLoadLazy: 'Su richiesta',
+      skillDisabledGlobally: 'Disabilitata globalmente',
     },
     providers: {
       title: 'Provider',

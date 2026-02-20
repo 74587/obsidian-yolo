@@ -7,6 +7,10 @@ import {
   getLiteSkillDocument,
   listLiteSkillEntries,
 } from '../../core/skills/liteSkills'
+import {
+  isSkillEnabledForAssistant,
+  resolveAssistantSkillPolicy,
+} from '../../core/skills/skillPolicy'
 import { SelectEmbedding } from '../../database/schema'
 import { SmartComposerSettings } from '../../settings/schema/setting.types'
 import {
@@ -535,13 +539,21 @@ ${currentAssistant.systemPrompt}
 </assistant_instructions>`)
     }
 
-    const skillEntries = listLiteSkillEntries(this.app)
-    if (skillEntries.length > 0) {
+    const disabledSkillIds = this.settings.skills?.disabledSkillIds ?? []
+    const enabledSkillEntries = listLiteSkillEntries(this.app).filter((skill) =>
+      isSkillEnabledForAssistant({
+        assistant: currentAssistant,
+        skillId: skill.id,
+        disabledSkillIds,
+      }),
+    )
+
+    if (enabledSkillEntries.length > 0) {
       parts.push(`<available_skills>
-${skillEntries
+${enabledSkillEntries
   .map(
     (skill) =>
-      `- id: ${skill.id} | name: ${skill.name} | mode: ${skill.mode} | description: ${skill.description}`,
+      `- id: ${skill.id} | name: ${skill.name} | description: ${skill.description}`,
   )
   .join('\n')}
 </available_skills>`)
@@ -554,7 +566,14 @@ ${skillEntries
 </skills_usage_rules>`)
     }
 
-    const alwaysSkills = skillEntries.filter((skill) => skill.mode === 'always')
+    const alwaysSkills = enabledSkillEntries.filter((skill) => {
+      return (
+        resolveAssistantSkillPolicy({
+          assistant: currentAssistant,
+          skillId: skill.id,
+        }).loadMode === 'always'
+      )
+    })
     if (alwaysSkills.length > 0) {
       const loadedAlwaysSkills = await Promise.all(
         alwaysSkills.map((skill) =>

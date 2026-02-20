@@ -1,11 +1,11 @@
 import { App, TFile, TFolder, normalizePath } from 'obsidian'
 
+import { McpTool } from '../../types/mcp.types'
+import { ToolCallResponseStatus } from '../../types/tool-call.types'
 import {
   getLiteSkillDocument,
   listLiteSkillEntries,
 } from '../skills/liteSkills'
-import { McpTool } from '../../types/mcp.types'
-import { ToolCallResponseStatus } from '../../types/tool-call.types'
 
 const LOCAL_FILE_TOOL_SERVER = 'yolo_local'
 const MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024

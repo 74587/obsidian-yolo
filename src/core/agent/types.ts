@@ -26,6 +26,8 @@ export type AgentRuntimeRunInput = {
     max_tokens?: number
   }
   allowedToolNames?: string[]
+  allowedSkillIds?: string[]
+  allowedSkillNames?: string[]
   maxContextOverride?: number
   currentFileContextMode?: 'full' | 'summary'
   currentFileOverride?: TFile | null

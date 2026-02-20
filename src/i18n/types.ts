@@ -193,6 +193,11 @@ export type TranslationKeys = {
       toolsCountWithEnabled?: string
       skills?: string
       skillsCount?: string
+      skillsCountWithEnabled?: string
+      skillsGlobalDesc?: string
+      skillsSourcePath?: string
+      refreshSkills?: string
+      skillsEmptyHint?: string
       agents?: string
       agentsDesc?: string
       configureAgents?: string
@@ -209,6 +214,7 @@ export type TranslationKeys = {
       noMcpTools?: string
       toolsEnabledCount?: string
       manageTools?: string
+      manageSkills?: string
       descriptionColumn?: string
       builtinFsListLabel?: string
       builtinFsListDesc?: string
@@ -220,6 +226,8 @@ export type TranslationKeys = {
       builtinFsEditDesc?: string
       builtinFsWriteLabel?: string
       builtinFsWriteDesc?: string
+      builtinOpenSkillLabel?: string
+      builtinOpenSkillDesc?: string
       editorDefaultName?: string
       editorIntro?: string
       editorTabProfile?: string
@@ -251,6 +259,10 @@ export type TranslationKeys = {
       editorMaxOutputTokensDesc?: string
       editorToolsCount?: string
       editorSkillsCount?: string
+      editorSkillsCountWithEnabled?: string
+      skillLoadAlways?: string
+      skillLoadLazy?: string
+      skillDisabledGlobally?: string
     }
     providers: {
       title: string

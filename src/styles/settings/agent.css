@@ -128,6 +128,42 @@
   flex-shrink: 0;
 }
 
+.smtcmp-agent-skill-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--size-2-2);
+  flex-shrink: 0;
+}
+
+.smtcmp-agent-skill-controls select {
+  min-width: 108px;
+}
+
+.smtcmp-agent-skill-meta {
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.smtcmp-agent-skill-summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--size-2-2);
+}
+
+.smtcmp-agent-skills-toolbar {
+  margin: var(--size-4-2) 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--size-4-2);
+}
+
+.smtcmp-agent-skills-modal-panel {
+  margin-top: 0;
+}
+
 .smtcmp-agent-tools-empty {
   color: var(--text-muted);
   font-size: var(--font-ui-smaller);

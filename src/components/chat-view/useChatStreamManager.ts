@@ -13,6 +13,8 @@ import {
   LLMModelNotFoundException,
 } from '../../core/llm/exception'
 import { getChatModelClient } from '../../core/llm/manager'
+import { listLiteSkillEntries } from '../../core/skills/liteSkills'
+import { isSkillEnabledForAssistant } from '../../core/skills/skillPolicy'
 import { ChatMessage } from '../../types/chat'
 import { ConversationOverrideSettings } from '../../types/conversation-settings.types'
 import { PromptGenerator } from '../../utils/chat/promptGenerator'
@@ -128,6 +130,19 @@ export function useChatStreamManager({
           chatMode === 'agent' ? selectedAssistant?.topP : undefined
         const assistantMaxTokens =
           chatMode === 'agent' ? selectedAssistant?.maxOutputTokens : undefined
+        const disabledSkillIds = settings.skills?.disabledSkillIds ?? []
+        const enabledSkillEntries =
+          chatMode === 'agent' && selectedAssistant
+            ? listLiteSkillEntries(app).filter((skill) =>
+                isSkillEnabledForAssistant({
+                  assistant: selectedAssistant,
+                  skillId: skill.id,
+                  disabledSkillIds,
+                }),
+              )
+            : []
+        const allowedSkillIds = enabledSkillEntries.map((skill) => skill.id)
+        const allowedSkillNames = enabledSkillEntries.map((skill) => skill.name)
 
         const mcpManager = await getMcpManager()
         const onRunnerMessages = (responseMessages: ChatMessage[]) => {
@@ -180,6 +195,8 @@ export function useChatStreamManager({
               abortSignal: abortController.signal,
               reasoningLevel,
               allowedToolNames: selectedAssistant?.enabledToolNames,
+              allowedSkillIds,
+              allowedSkillNames,
               requestParams: {
                 stream: conversationOverrides?.stream ?? true,
                 temperature:

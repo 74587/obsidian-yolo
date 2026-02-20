@@ -57,6 +57,12 @@ const BUILTIN_TOOL_I18N_KEYS: Record<
     labelFallback: 'Write Vault',
     descFallback: 'Execute vault write operations for files and folders.',
   },
+  open_skill: {
+    labelKey: 'settings.agent.builtinOpenSkillLabel',
+    descKey: 'settings.agent.builtinOpenSkillDesc',
+    labelFallback: 'Open Skill',
+    descFallback: 'Load a skill markdown file by id or name.',
+  },
 }
 
 export class AgentToolsModal extends ReactModal<AgentToolsModalProps> {

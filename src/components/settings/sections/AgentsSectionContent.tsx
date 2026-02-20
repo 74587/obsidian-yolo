@@ -1,5 +1,5 @@
-import { App } from 'obsidian'
 import { BookOpen, Cpu, User, Wrench } from 'lucide-react'
+import { App } from 'obsidian'
 import {
   useCallback,
   useEffect,
@@ -9,13 +9,24 @@ import {
   useState,
 } from 'react'
 
-import { AGENT_SKILLS } from '../../../constants/agent-profile'
 import { useLanguage } from '../../../contexts/language-context'
 import { usePlugin } from '../../../contexts/plugin-context'
 import { useSettings } from '../../../contexts/settings-context'
 import { getLocalFileToolServerName } from '../../../core/mcp/localFileTools'
 import { parseToolName } from '../../../core/mcp/tool-name-utils'
-import { AgentPersona, Assistant } from '../../../types/assistant.types'
+import {
+  LiteSkillEntry,
+  listLiteSkillEntries,
+} from '../../../core/skills/liteSkills'
+import {
+  getDisabledSkillIdSet,
+  resolveAssistantSkillPolicy,
+} from '../../../core/skills/skillPolicy'
+import {
+  AgentPersona,
+  Assistant,
+  AssistantSkillLoadMode,
+} from '../../../types/assistant.types'
 import { McpTool } from '../../../types/mcp.types'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
@@ -79,6 +90,12 @@ const BUILTIN_TOOL_LABEL_KEYS: Record<
     fallback: 'Write Vault',
     descFallback: 'Execute vault write operations for files and folders.',
   },
+  open_skill: {
+    key: 'settings.agent.builtinOpenSkillLabel',
+    descKey: 'settings.agent.builtinOpenSkillDesc',
+    fallback: 'Open Skill',
+    descFallback: 'Load a skill markdown file by id or name.',
+  },
 }
 
 const AGENT_EDITOR_TABS: AgentEditorTab[] = [
@@ -109,6 +126,7 @@ function createNewAgent(defaultModelId: string): Assistant {
     includeBuiltinTools: true,
     enabledToolNames: [],
     enabledSkills: [],
+    skillPreferences: {},
     temperature: 0.7,
     topP: 0.9,
     maxOutputTokens: 4096,
@@ -127,6 +145,7 @@ function toDraftAgent(
     modelId: assistant.modelId ?? fallbackModelId,
     enabledToolNames: assistant.enabledToolNames ?? [],
     enabledSkills: assistant.enabledSkills ?? [],
+    skillPreferences: assistant.skillPreferences ?? {},
     enableTools: assistant.enableTools ?? true,
     includeBuiltinTools: assistant.includeBuiltinTools ?? true,
     temperature: assistant.temperature ?? 0.7,
@@ -333,19 +352,56 @@ export function AgentsSectionContent({
     })
   }
 
-  const toggleSkill = (skillId: string) => {
+  const setSkillEnabled = (skillId: string, enabled: boolean) => {
     if (!draftAgent) {
       return
     }
     const current = new Set(draftAgent.enabledSkills ?? [])
-    if (current.has(skillId)) {
-      current.delete(skillId)
-    } else {
-      current.add(skillId)
+    const nextPreferences = {
+      ...(draftAgent.skillPreferences ?? {}),
     }
+
+    if (enabled) {
+      current.add(skillId)
+    } else {
+      current.delete(skillId)
+    }
+
+    nextPreferences[skillId] = {
+      ...(nextPreferences[skillId] ?? {}),
+      enabled,
+    }
+
     setDraftAgent({
       ...draftAgent,
       enabledSkills: [...current],
+      skillPreferences: nextPreferences,
+    })
+  }
+
+  const setSkillLoadMode = (
+    skillId: string,
+    loadMode: AssistantSkillLoadMode,
+  ) => {
+    if (!draftAgent) {
+      return
+    }
+
+    const nextPreferences = {
+      ...(draftAgent.skillPreferences ?? {}),
+      [skillId]: {
+        ...(draftAgent.skillPreferences?.[skillId] ?? {}),
+        enabled:
+          draftAgent.skillPreferences?.[skillId]?.enabled ??
+          draftAgent.enabledSkills?.includes(skillId) ??
+          false,
+        loadMode,
+      },
+    }
+
+    setDraftAgent({
+      ...draftAgent,
+      skillPreferences: nextPreferences,
     })
   }
 
@@ -414,6 +470,45 @@ export function AgentsSectionContent({
       0,
     )
   }, [draftAgent?.enabledToolNames, visibleToolGroups])
+
+  const skillEntries = useMemo<LiteSkillEntry[]>(
+    () => listLiteSkillEntries(app),
+    [app],
+  )
+
+  const disabledSkillIds = settings.skills?.disabledSkillIds ?? []
+  const disabledSkillIdSet = useMemo(
+    () => getDisabledSkillIdSet(disabledSkillIds),
+    [disabledSkillIds],
+  )
+
+  const skillRows = useMemo(() => {
+    return skillEntries.map((skill) => {
+      const globallyDisabled = disabledSkillIdSet.has(skill.id)
+      const policy = resolveAssistantSkillPolicy({
+        assistant: draftAgent,
+        skillId: skill.id,
+      })
+      const enabled = policy.enabled && !globallyDisabled
+      return {
+        ...skill,
+        globallyDisabled,
+        enabled,
+        loadMode: policy.loadMode,
+      }
+    })
+  }, [disabledSkillIdSet, draftAgent, skillEntries])
+
+  const alwaysSkillRows = useMemo(
+    () =>
+      skillRows.filter((skill) => skill.enabled && skill.loadMode === 'always'),
+    [skillRows],
+  )
+  const lazySkillRows = useMemo(
+    () =>
+      skillRows.filter((skill) => skill.enabled && skill.loadMode === 'lazy'),
+    [skillRows],
+  )
 
   return (
     <div
@@ -670,27 +765,108 @@ export function AgentsSectionContent({
 
           {activeTab === 'skills' && (
             <div className="smtcmp-agent-editor-body">
-              {AGENT_SKILLS.map((skill) => {
-                const enabled = draftAgent.enabledSkills?.includes(skill.id)
-                return (
-                  <div key={skill.id} className="smtcmp-agent-tool-row">
-                    <div className="smtcmp-agent-tool-main">
-                      <div className="smtcmp-agent-tool-name">{skill.name}</div>
-                      <div className="smtcmp-agent-tool-source">
-                        {skill.description}
-                      </div>
-                    </div>
-                    <ObsidianButton
-                      text={
-                        enabled
-                          ? t('settings.agent.editorEnabled', 'Enabled')
-                          : t('settings.agent.editorDisabled', 'Disabled')
-                      }
-                      onClick={() => toggleSkill(skill.id)}
-                    />
+              <div className="smtcmp-agent-tools-panel">
+                <div className="smtcmp-agent-tools-panel-head">
+                  <div className="smtcmp-agent-tools-panel-title">
+                    {t('settings.agent.skills', 'Skills')}
                   </div>
-                )
-              })}
+                  <div className="smtcmp-agent-tools-panel-count">
+                    {t(
+                      'settings.agent.editorSkillsCountWithEnabled',
+                      '{count} skills (enabled {enabled})',
+                    )
+                      .replace('{count}', String(skillRows.length))
+                      .replace(
+                        '{enabled}',
+                        String(
+                          skillRows.filter((skill) => skill.enabled).length,
+                        ),
+                      )}
+                  </div>
+                </div>
+
+                <div className="smtcmp-agent-skill-summary-row">
+                  <span className="smtcmp-agent-chip">
+                    {t('settings.agent.skillLoadAlways', 'Always')}:{' '}
+                    {alwaysSkillRows.length}
+                  </span>
+                  <span className="smtcmp-agent-chip">
+                    {t('settings.agent.skillLoadLazy', 'On demand')}:{' '}
+                    {lazySkillRows.length}
+                  </span>
+                </div>
+
+                {skillRows.length > 0 ? (
+                  <div className="smtcmp-agent-tool-list">
+                    {skillRows.map((skill) => {
+                      const disabledByGlobal = skill.globallyDisabled
+                      return (
+                        <div key={skill.id} className="smtcmp-agent-tool-row">
+                          <div className="smtcmp-agent-tool-main">
+                            <div className="smtcmp-agent-tool-name">
+                              {skill.name}
+                            </div>
+                            <div className="smtcmp-agent-tool-source smtcmp-agent-tool-source--preview">
+                              {skill.description}
+                            </div>
+                            <div className="smtcmp-agent-skill-meta">
+                              <span className="smtcmp-agent-chip">
+                                id: {skill.id}
+                              </span>
+                              <span className="smtcmp-agent-chip">
+                                {skill.path}
+                              </span>
+                              {disabledByGlobal && (
+                                <span className="smtcmp-agent-chip">
+                                  {t(
+                                    'settings.agent.skillDisabledGlobally',
+                                    'Disabled globally',
+                                  )}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="smtcmp-agent-skill-controls">
+                            <ObsidianToggle
+                              value={skill.enabled}
+                              onChange={(value) => {
+                                if (disabledByGlobal) {
+                                  return
+                                }
+                                setSkillEnabled(skill.id, value)
+                              }}
+                            />
+                            <select
+                              value={skill.loadMode}
+                              disabled={!skill.enabled || disabledByGlobal}
+                              onChange={(event) =>
+                                setSkillLoadMode(
+                                  skill.id,
+                                  event.target.value as AssistantSkillLoadMode,
+                                )
+                              }
+                            >
+                              <option value="always">
+                                {t('settings.agent.skillLoadAlways', 'Always')}
+                              </option>
+                              <option value="lazy">
+                                {t('settings.agent.skillLoadLazy', 'On demand')}
+                              </option>
+                            </select>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                ) : (
+                  <div className="smtcmp-agent-tools-empty">
+                    {t(
+                      'settings.agent.skillsEmptyHint',
+                      'No skills found. Create markdown skills under YOLO/skills.',
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

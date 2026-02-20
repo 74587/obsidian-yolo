@@ -264,6 +264,15 @@ export const smartComposerSettingsSchema = z.object({
       builtinToolOptions: {},
     }),
 
+  // Skills configuration
+  skills: z
+    .object({
+      disabledSkillIds: z.array(z.string()).catch([]),
+    })
+    .catch({
+      disabledSkillIds: [],
+    }),
+
   // Chat options
   chatOptions: z
     .object({

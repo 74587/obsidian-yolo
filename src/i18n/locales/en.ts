@@ -291,6 +291,13 @@ export const en: TranslationKeys = {
       toolsCountWithEnabled: '{count} tools (enabled {enabled})',
       skills: 'Skills',
       skillsCount: '{count} skills',
+      skillsCountWithEnabled: '{count} skills (enabled {enabled})',
+      skillsGlobalDesc:
+        'Skills are discovered from YOLO/skills/**/*.skill.md. Disable a skill here to block it for all agents.',
+      skillsSourcePath: 'Path: YOLO/skills/**/*.skill.md',
+      refreshSkills: 'Refresh',
+      skillsEmptyHint:
+        'No skills found. Create markdown skills under YOLO/skills.',
       agents: 'Agents',
       agentsDesc: 'Click Configure to edit each agent profile and prompt.',
       configureAgents: 'Configure',
@@ -307,6 +314,7 @@ export const en: TranslationKeys = {
       noMcpTools: 'No custom tools (MCP) discovered yet',
       toolsEnabledCount: '{count} enabled',
       manageTools: 'Manage tools',
+      manageSkills: 'Manage skills',
       descriptionColumn: 'Description',
       builtinFsListLabel: 'Read Vault',
       builtinFsListDesc:
@@ -321,6 +329,8 @@ export const en: TranslationKeys = {
       builtinFsWriteLabel: 'Write Vault',
       builtinFsWriteDesc:
         'Execute vault write operations for files and folders.',
+      builtinOpenSkillLabel: 'Open Skill',
+      builtinOpenSkillDesc: 'Load a skill markdown file by id or name.',
       editorDefaultName: 'New agent',
       editorIntro: "Configure this agent's capabilities, model, and behavior.",
       editorTabProfile: 'Profile',
@@ -353,6 +363,10 @@ export const en: TranslationKeys = {
       editorMaxOutputTokensDesc: 'Maximum generated tokens',
       editorToolsCount: '{count} tools',
       editorSkillsCount: '{count} skills',
+      editorSkillsCountWithEnabled: '{count} skills (enabled {enabled})',
+      skillLoadAlways: 'Always',
+      skillLoadLazy: 'On demand',
+      skillDisabledGlobally: 'Disabled globally',
     },
     providers: {
       title: 'Providers',
