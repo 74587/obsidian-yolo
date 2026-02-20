@@ -198,6 +198,8 @@ export type TranslationKeys = {
       skillsSourcePath?: string
       refreshSkills?: string
       skillsEmptyHint?: string
+      createSkillTemplates?: string
+      skillsTemplateCreated?: string
       agents?: string
       agentsDesc?: string
       configureAgents?: string

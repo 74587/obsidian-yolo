@@ -540,13 +540,15 @@ ${currentAssistant.systemPrompt}
     }
 
     const disabledSkillIds = this.settings.skills?.disabledSkillIds ?? []
-    const enabledSkillEntries = listLiteSkillEntries(this.app).filter((skill) =>
-      isSkillEnabledForAssistant({
-        assistant: currentAssistant,
-        skillId: skill.id,
-        disabledSkillIds,
-      }),
-    )
+    const enabledSkillEntries = currentAssistant
+      ? listLiteSkillEntries(this.app).filter((skill) =>
+          isSkillEnabledForAssistant({
+            assistant: currentAssistant,
+            skillId: skill.id,
+            disabledSkillIds,
+          }),
+        )
+      : []
 
     if (enabledSkillEntries.length > 0) {
       parts.push(`<available_skills>

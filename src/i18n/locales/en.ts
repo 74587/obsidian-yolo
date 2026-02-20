@@ -298,6 +298,8 @@ export const en: TranslationKeys = {
       refreshSkills: 'Refresh',
       skillsEmptyHint:
         'No skills found. Create markdown skills under YOLO/skills.',
+      createSkillTemplates: 'Initialize Skills system',
+      skillsTemplateCreated: 'Skills system initialized in YOLO/skills.',
       agents: 'Agents',
       agentsDesc: 'Click Configure to edit each agent profile and prompt.',
       configureAgents: 'Configure',
@@ -364,7 +366,7 @@ export const en: TranslationKeys = {
       editorToolsCount: '{count} tools',
       editorSkillsCount: '{count} skills',
       editorSkillsCountWithEnabled: '{count} skills (enabled {enabled})',
-      skillLoadAlways: 'Always',
+      skillLoadAlways: 'Full inject',
       skillLoadLazy: 'On demand',
       skillDisabledGlobally: 'Disabled globally',
     },

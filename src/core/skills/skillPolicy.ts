@@ -19,8 +19,8 @@ export function resolveAssistantSkillPolicy({
   skillId: string
 }): ResolvedAssistantSkillPolicy {
   const preference = assistant?.skillPreferences?.[skillId]
-  const legacyEnabled = Boolean(assistant?.enabledSkills?.includes(skillId))
-  const enabled = preference?.enabled ?? legacyEnabled
+  void skillId
+  const enabled = preference?.enabled ?? true
   const loadMode: AssistantSkillLoadMode =
     preference?.loadMode === 'always' ? 'always' : 'lazy'
 

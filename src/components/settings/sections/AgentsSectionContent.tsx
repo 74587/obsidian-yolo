@@ -394,7 +394,7 @@ export function AgentsSectionContent({
         enabled:
           draftAgent.skillPreferences?.[skillId]?.enabled ??
           draftAgent.enabledSkills?.includes(skillId) ??
-          false,
+          true,
         loadMode,
       },
     }
@@ -787,7 +787,7 @@ export function AgentsSectionContent({
 
                 <div className="smtcmp-agent-skill-summary-row">
                   <span className="smtcmp-agent-chip">
-                    {t('settings.agent.skillLoadAlways', 'Always')}:{' '}
+                    {t('settings.agent.skillLoadAlways', 'Full inject')}:{' '}
                     {alwaysSkillRows.length}
                   </span>
                   <span className="smtcmp-agent-chip">
@@ -847,7 +847,10 @@ export function AgentsSectionContent({
                               }
                             >
                               <option value="always">
-                                {t('settings.agent.skillLoadAlways', 'Always')}
+                                {t(
+                                  'settings.agent.skillLoadAlways',
+                                  'Full inject',
+                                )}
                               </option>
                               <option value="lazy">
                                 {t('settings.agent.skillLoadLazy', 'On demand')}

@@ -1,4 +1,4 @@
-import { App } from 'obsidian'
+import { App, Notice, normalizePath } from 'obsidian'
 import { useMemo, useState } from 'react'
 
 import { useLanguage } from '../../../contexts/language-context'
@@ -7,6 +7,11 @@ import {
   useSettings,
 } from '../../../contexts/settings-context'
 import { listLiteSkillEntries } from '../../../core/skills/liteSkills'
+import {
+  YOLO_SKILLS_DIR,
+  YOLO_SKILLS_INDEX_TEMPLATE,
+  YOLO_SKILL_CREATOR_TEMPLATE,
+} from '../../../core/skills/templates'
 import SmartComposerPlugin from '../../../main'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianToggle } from '../../common/ObsidianToggle'
@@ -89,6 +94,41 @@ function AgentSkillsModalContent({
     })
   }
 
+  const handleInitializeSkillsSystem = async () => {
+    const skillsDir = normalizePath(YOLO_SKILLS_DIR)
+    const indexPath = normalizePath(`${skillsDir}/Skills.md`)
+    const skillCreatorPath = normalizePath(
+      `${skillsDir}/skill-creator.skill.md`,
+    )
+
+    try {
+      const maybeFolder = app.vault.getAbstractFileByPath(skillsDir)
+      if (!maybeFolder) {
+        await app.vault.createFolder(skillsDir)
+      }
+
+      if (!app.vault.getAbstractFileByPath(indexPath)) {
+        await app.vault.create(indexPath, YOLO_SKILLS_INDEX_TEMPLATE)
+      }
+
+      if (!app.vault.getAbstractFileByPath(skillCreatorPath)) {
+        await app.vault.create(skillCreatorPath, YOLO_SKILL_CREATOR_TEMPLATE)
+      }
+
+      setRefreshTick((value) => value + 1)
+      new Notice(
+        t(
+          'settings.agent.skillsTemplateCreated',
+          'Skills system initialized in YOLO/skills.',
+        ),
+      )
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : 'Failed to create skill files.'
+      new Notice(message)
+    }
+  }
+
   return (
     <div className="smtcmp-settings-section">
       <div className="smtcmp-settings-desc smtcmp-settings-callout">
@@ -105,10 +145,19 @@ function AgentSkillsModalContent({
             'Path: YOLO/skills/**/*.skill.md',
           )}
         </div>
-        <ObsidianButton
-          text={t('settings.agent.refreshSkills', 'Refresh')}
-          onClick={() => setRefreshTick((value) => value + 1)}
-        />
+        <div className="smtcmp-agent-skills-toolbar-actions">
+          <ObsidianButton
+            text={t(
+              'settings.agent.createSkillTemplates',
+              'Initialize Skills system',
+            )}
+            onClick={() => void handleInitializeSkillsSystem()}
+          />
+          <ObsidianButton
+            text={t('settings.agent.refreshSkills', 'Refresh')}
+            onClick={() => setRefreshTick((value) => value + 1)}
+          />
+        </div>
       </div>
 
       <div className="smtcmp-agent-tools-panel smtcmp-agent-skills-modal-panel">
