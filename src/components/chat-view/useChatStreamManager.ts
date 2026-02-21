@@ -130,6 +130,10 @@ export function useChatStreamManager({
           chatMode === 'agent' ? selectedAssistant?.topP : undefined
         const assistantMaxTokens =
           chatMode === 'agent' ? selectedAssistant?.maxOutputTokens : undefined
+        const assistantMaxContextMessages =
+          chatMode === 'agent'
+            ? selectedAssistant?.maxContextMessages
+            : undefined
         const disabledSkillIds = settings.skills?.disabledSkillIds ?? []
         const enabledSkillEntries =
           chatMode === 'agent' && selectedAssistant
@@ -205,7 +209,9 @@ export function useChatStreamManager({
                 max_tokens: assistantMaxTokens,
               },
               maxContextOverride:
-                conversationOverrides?.maxContextMessages ?? undefined,
+                conversationOverrides?.maxContextMessages ??
+                assistantMaxContextMessages ??
+                undefined,
               currentFileContextMode: 'summary',
               currentFileOverride,
               geminiTools: {

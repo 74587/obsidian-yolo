@@ -265,11 +265,7 @@ export type TranslationKeys = {
       editorTopPDesc?: string
       editorMaxOutputTokens?: string
       editorMaxOutputTokensDesc?: string
-      editorModelHintCreative?: string
-      editorModelHintFocused?: string
-      editorModelHintTokenCost?: string
-      editorModelHintTokenShort?: string
-      editorModelHintBalanced?: string
+      editorMaxContextMessages?: string
       editorToolsCount?: string
       editorSkillsCount?: string
       editorSkillsCountWithEnabled?: string

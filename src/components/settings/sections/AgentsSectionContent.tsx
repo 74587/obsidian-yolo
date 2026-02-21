@@ -101,9 +101,9 @@ const BUILTIN_TOOL_LABEL_KEYS: Record<
 
 const AGENT_EDITOR_TABS: AgentEditorTab[] = [
   'profile',
+  'model',
   'tools',
   'skills',
-  'model',
 ]
 
 const AGENT_EDITOR_TAB_ICONS = {
@@ -121,6 +121,11 @@ const AGENT_MODEL_DEFAULTS = {
   maxOutputTokens: 4096,
 } as const
 
+const AGENT_MAX_CONTEXT_MESSAGES_RANGE = {
+  min: 1,
+  max: 100,
+} as const
+
 function clampTemperature(value: number): number {
   return Math.min(2, Math.max(0, value))
 }
@@ -131,6 +136,13 @@ function clampTopP(value: number): number {
 
 function clampMaxOutputTokens(value: number): number {
   return Math.max(1, Math.floor(value))
+}
+
+function clampMaxContextMessages(value: number): number {
+  return Math.min(
+    AGENT_MAX_CONTEXT_MESSAGES_RANGE.max,
+    Math.max(AGENT_MAX_CONTEXT_MESSAGES_RANGE.min, Math.floor(value)),
+  )
 }
 
 function createNewAgent(defaultModelId: string): Assistant {
@@ -149,6 +161,7 @@ function createNewAgent(defaultModelId: string): Assistant {
     temperature: undefined,
     topP: undefined,
     maxOutputTokens: undefined,
+    maxContextMessages: undefined,
     createdAt: Date.now(),
     updatedAt: Date.now(),
   }
@@ -170,6 +183,7 @@ function toDraftAgent(
     temperature: assistant.temperature,
     topP: assistant.topP,
     maxOutputTokens: assistant.maxOutputTokens,
+    maxContextMessages: assistant.maxContextMessages,
   }
 }
 
@@ -221,10 +235,14 @@ export function AgentsSectionContent({
     temperature: number
     topP: number
     maxOutputTokens: number
+    maxContextMessages: number
   }>(() => ({
     temperature: AGENT_MODEL_DEFAULTS.temperature,
     topP: AGENT_MODEL_DEFAULTS.topP,
     maxOutputTokens: AGENT_MODEL_DEFAULTS.maxOutputTokens,
+    maxContextMessages: clampMaxContextMessages(
+      settings.chatOptions.maxContextMessages ?? 32,
+    ),
   }))
   const activeTabIndex = AGENT_EDITOR_TABS.findIndex((tab) => tab === activeTab)
   const activeTabIndexRef = useRef(activeTabIndex)
@@ -344,6 +362,8 @@ export function AgentsSectionContent({
       temperature: draftAgent.temperature ?? prev.temperature,
       topP: draftAgent.topP ?? prev.topP,
       maxOutputTokens: draftAgent.maxOutputTokens ?? prev.maxOutputTokens,
+      maxContextMessages:
+        draftAgent.maxContextMessages ?? prev.maxContextMessages,
     }))
   }, [draftAgent])
 
@@ -581,16 +601,21 @@ export function AgentsSectionContent({
     if (!draftAgent) {
       return
     }
+    const defaultMaxContextMessages = clampMaxContextMessages(
+      settings.chatOptions.maxContextMessages ?? 32,
+    )
     setModelParamCache({
       temperature: AGENT_MODEL_DEFAULTS.temperature,
       topP: AGENT_MODEL_DEFAULTS.topP,
       maxOutputTokens: AGENT_MODEL_DEFAULTS.maxOutputTokens,
+      maxContextMessages: defaultMaxContextMessages,
     })
     setDraftAgent({
       ...draftAgent,
       temperature: AGENT_MODEL_DEFAULTS.temperature,
       topP: AGENT_MODEL_DEFAULTS.topP,
       maxOutputTokens: AGENT_MODEL_DEFAULTS.maxOutputTokens,
+      maxContextMessages: defaultMaxContextMessages,
     })
   }
 
@@ -628,6 +653,19 @@ export function AgentsSectionContent({
     setDraftAgent({
       ...draftAgent,
       maxOutputTokens: enabled ? current : undefined,
+    })
+  }
+
+  const setMaxContextMessagesEnabled = (enabled: boolean) => {
+    if (!draftAgent) {
+      return
+    }
+    const current =
+      draftAgent.maxContextMessages ?? modelParamCache.maxContextMessages
+    setModelParamCache((prev) => ({ ...prev, maxContextMessages: current }))
+    setDraftAgent({
+      ...draftAgent,
+      maxContextMessages: enabled ? current : undefined,
     })
   }
 
@@ -1268,6 +1306,86 @@ export function AgentsSectionContent({
                             setDraftAgent({
                               ...draftAgent,
                               maxOutputTokens: clamped,
+                            })
+                          }}
+                        />
+                      </div>
+                    )}
+                  </div>
+
+                  <div
+                    className={`smtcmp-agent-model-control${
+                      draftAgent.maxContextMessages === undefined
+                        ? ' is-disabled'
+                        : ''
+                    }`}
+                  >
+                    <div className="smtcmp-agent-model-control-top">
+                      <div className="smtcmp-agent-model-control-meta">
+                        <div className="smtcmp-agent-model-control-label">
+                          {t(
+                            'settings.agent.editorMaxContextMessages',
+                            'Max context messages',
+                          )}
+                        </div>
+                      </div>
+                      <div className="smtcmp-agent-model-control-actions">
+                        <ObsidianToggle
+                          value={draftAgent.maxContextMessages !== undefined}
+                          onChange={setMaxContextMessagesEnabled}
+                        />
+                      </div>
+                    </div>
+                    {draftAgent.maxContextMessages !== undefined && (
+                      <div className="smtcmp-agent-model-control-adjust">
+                        <input
+                          type="range"
+                          min={AGENT_MAX_CONTEXT_MESSAGES_RANGE.min}
+                          max={AGENT_MAX_CONTEXT_MESSAGES_RANGE.max}
+                          step={1}
+                          value={
+                            draftAgent.maxContextMessages ??
+                            modelParamCache.maxContextMessages
+                          }
+                          onChange={(event) => {
+                            const next = Number(event.currentTarget.value)
+                            if (!Number.isFinite(next)) {
+                              return
+                            }
+                            const clamped = clampMaxContextMessages(next)
+                            setModelParamCache((prev) => ({
+                              ...prev,
+                              maxContextMessages: clamped,
+                            }))
+                            setDraftAgent({
+                              ...draftAgent,
+                              maxContextMessages: clamped,
+                            })
+                          }}
+                        />
+                        <input
+                          type="number"
+                          className="smtcmp-agent-model-number"
+                          min={AGENT_MAX_CONTEXT_MESSAGES_RANGE.min}
+                          max={AGENT_MAX_CONTEXT_MESSAGES_RANGE.max}
+                          step={1}
+                          value={
+                            draftAgent.maxContextMessages ??
+                            modelParamCache.maxContextMessages
+                          }
+                          onChange={(event) => {
+                            const next = Number(event.currentTarget.value)
+                            if (!Number.isFinite(next)) {
+                              return
+                            }
+                            const clamped = clampMaxContextMessages(next)
+                            setModelParamCache((prev) => ({
+                              ...prev,
+                              maxContextMessages: clamped,
+                            }))
+                            setDraftAgent({
+                              ...draftAgent,
+                              maxContextMessages: clamped,
                             })
                           }}
                         />

@@ -38,6 +38,7 @@ export const assistantSchema = z.object({
   temperature: z.number().min(0).max(2).optional(),
   topP: z.number().min(0).max(1).optional(),
   maxOutputTokens: z.number().int().min(1).optional(),
+  maxContextMessages: z.number().int().min(1).max(100).optional(),
   enableTools: z.boolean().optional(),
   includeBuiltinTools: z.boolean().optional(),
   enabledToolNames: z.array(z.string()).optional(),

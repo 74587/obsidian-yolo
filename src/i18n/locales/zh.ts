@@ -336,15 +336,7 @@ export const zh: TranslationKeys = {
       editorTopPDesc: '0.0 - 1.0',
       editorMaxOutputTokens: '最大输出 token',
       editorMaxOutputTokensDesc: '最大生成 token 数',
-      editorModelHintCreative:
-        '当前采样偏发散，回复会更有创造性，但稳定性会下降。',
-      editorModelHintFocused:
-        '当前采样偏保守，适合结构化任务，但表达多样性会降低。',
-      editorModelHintTokenCost:
-        '最大输出 token 较高，长回答更完整，但会显著增加消耗。',
-      editorModelHintTokenShort: '最大输出 token 偏低，回答可能提前截断。',
-      editorModelHintBalanced:
-        '当前参数较均衡，适合大多数通用问答与工具调用场景。',
+      editorMaxContextMessages: '上下文条数',
       editorToolsCount: '{count} 个工具',
       editorSkillsCount: '{count} 个技能',
       editorSkillsCountWithEnabled: '{count} 个技能（已启用 {enabled} 个）',
