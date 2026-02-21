@@ -28,7 +28,12 @@ import {
   AssistantSkillLoadMode,
 } from '../../../types/assistant.types'
 import { McpTool } from '../../../types/mcp.types'
+import {
+  normalizeCustomParameterType,
+  sanitizeCustomParameters,
+} from '../../../utils/custom-parameters'
 import { ObsidianButton } from '../../common/ObsidianButton'
+import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextArea } from '../../common/ObsidianTextArea'
 import { ObsidianTextInput } from '../../common/ObsidianTextInput'
@@ -126,6 +131,8 @@ const AGENT_MAX_CONTEXT_MESSAGES_RANGE = {
   max: 100,
 } as const
 
+const CUSTOM_PARAMETER_TYPES = ['text', 'number', 'boolean', 'json'] as const
+
 function clampTemperature(value: number): number {
   return Math.min(2, Math.max(0, value))
 }
@@ -162,6 +169,7 @@ function createNewAgent(defaultModelId: string): Assistant {
     topP: undefined,
     maxOutputTokens: undefined,
     maxContextMessages: undefined,
+    customParameters: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
   }
@@ -184,6 +192,7 @@ function toDraftAgent(
     topP: assistant.topP,
     maxOutputTokens: assistant.maxOutputTokens,
     maxContextMessages: assistant.maxContextMessages,
+    customParameters: assistant.customParameters ?? [],
   }
 }
 
@@ -390,10 +399,18 @@ export function AgentsSectionContent({
       return
     }
 
+    const sanitizedCustomParameters = sanitizeCustomParameters(
+      draftAgent.customParameters ?? [],
+    )
+
     const normalized: Assistant = {
       ...draftAgent,
       name: draftAgent.name.trim(),
       description: draftAgent.description?.trim(),
+      customParameters:
+        sanitizedCustomParameters.length > 0
+          ? sanitizedCustomParameters
+          : undefined,
       enabledToolNames: normalizeToolSelection(
         draftAgent.enabledToolNames,
         availableTools,
@@ -1394,6 +1411,111 @@ export function AgentsSectionContent({
                   </div>
                 </div>
               </div>
+
+              <ObsidianSetting
+                name={t(
+                  'settings.agent.editorCustomParameters',
+                  'Custom parameters',
+                )}
+                desc={t(
+                  'settings.agent.editorCustomParametersDesc',
+                  'Additional request fields for this agent. Same keys override model-level parameters.',
+                )}
+              >
+                <ObsidianButton
+                  text={t(
+                    'settings.agent.editorCustomParametersAdd',
+                    'Add parameter',
+                  )}
+                  onClick={() =>
+                    setDraftAgent({
+                      ...draftAgent,
+                      customParameters: [
+                        ...(draftAgent.customParameters ?? []),
+                        {
+                          key: '',
+                          value: '',
+                          type: 'text',
+                        },
+                      ],
+                    })
+                  }
+                />
+              </ObsidianSetting>
+
+              {(draftAgent.customParameters ?? []).map((param, index) => (
+                <ObsidianSetting
+                  key={`${param.key}-${param.type ?? 'text'}-${param.value}`}
+                  className="smtcmp-settings-kv-entry smtcmp-settings-kv-entry--inline"
+                >
+                  <ObsidianTextInput
+                    value={param.key}
+                    placeholder={t(
+                      'settings.agent.editorCustomParametersKeyPlaceholder',
+                      'Key',
+                    )}
+                    onChange={(value) => {
+                      const next = [...(draftAgent.customParameters ?? [])]
+                      next[index] = { ...next[index], key: value }
+                      setDraftAgent({
+                        ...draftAgent,
+                        customParameters: next,
+                      })
+                    }}
+                  />
+                  <ObsidianDropdown
+                    value={normalizeCustomParameterType(param.type)}
+                    options={Object.fromEntries(
+                      CUSTOM_PARAMETER_TYPES.map((type) => [
+                        type,
+                        t(
+                          `settings.models.customParameterType${
+                            type.charAt(0).toUpperCase() + type.slice(1)
+                          }`,
+                          type,
+                        ),
+                      ]),
+                    )}
+                    onChange={(value: string) => {
+                      const next = [...(draftAgent.customParameters ?? [])]
+                      next[index] = {
+                        ...next[index],
+                        type: normalizeCustomParameterType(value),
+                      }
+                      setDraftAgent({
+                        ...draftAgent,
+                        customParameters: next,
+                      })
+                    }}
+                  />
+                  <ObsidianTextInput
+                    value={param.value}
+                    placeholder={t(
+                      'settings.agent.editorCustomParametersValuePlaceholder',
+                      'Value',
+                    )}
+                    onChange={(value) => {
+                      const next = [...(draftAgent.customParameters ?? [])]
+                      next[index] = { ...next[index], value }
+                      setDraftAgent({
+                        ...draftAgent,
+                        customParameters: next,
+                      })
+                    }}
+                  />
+                  <ObsidianButton
+                    text={t('common.remove', 'Remove')}
+                    onClick={() => {
+                      setDraftAgent({
+                        ...draftAgent,
+                        customParameters: (
+                          draftAgent.customParameters ?? []
+                        ).filter((_, removeIndex) => removeIndex !== index),
+                      })
+                    }}
+                  />
+                </ObsidianSetting>
+              ))}
             </div>
           )}
 

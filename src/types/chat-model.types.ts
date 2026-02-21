@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { customParameterSchema } from './custom-parameter.types'
+
 const baseChatModelSchema = z.object({
   providerId: z
     .string({
@@ -23,18 +25,7 @@ const baseChatModelSchema = z.object({
   reasoningType: z
     .enum(['none', 'openai', 'gemini', 'anthropic', 'generic'])
     .optional(),
-  customParameters: z
-    .array(
-      z.object({
-        key: z
-          .string({
-            required_error: 'custom parameter key is required',
-          })
-          .min(1, 'custom parameter key is required'),
-        value: z.string().default(''),
-      }),
-    )
-    .optional(),
+  customParameters: z.array(customParameterSchema).optional(),
 })
 
 export const chatModelSchema = z.discriminatedUnion('providerType', [

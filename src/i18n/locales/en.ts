@@ -370,6 +370,12 @@ export const en: TranslationKeys = {
       editorMaxOutputTokens: 'Max output tokens',
       editorMaxOutputTokensDesc: 'Maximum generated tokens',
       editorMaxContextMessages: 'Max context messages',
+      editorCustomParameters: 'Custom parameters',
+      editorCustomParametersDesc:
+        'Additional request fields for this agent. Same keys override model-level parameters',
+      editorCustomParametersAdd: 'Add parameter',
+      editorCustomParametersKeyPlaceholder: 'Key',
+      editorCustomParametersValuePlaceholder: 'Value',
       editorToolsCount: '{count} tools',
       editorSkillsCount: '{count} skills',
       editorSkillsCountWithEnabled: '{count} skills (enabled {enabled})',
@@ -456,9 +462,12 @@ export const en: TranslationKeys = {
       customParametersDesc:
         'Attach additional request fields; values accept plain text or JSON (for example, {"thinking": {"type": "enabled"}}).',
       customParametersAdd: 'Add parameter',
-      customParametersKeyPlaceholder: 'Key, for example, thinking',
-      customParametersValuePlaceholder:
-        'Value in plain text or JSON; for example, {"type":"enabled"} or 0.7',
+      customParametersKeyPlaceholder: 'Key',
+      customParametersValuePlaceholder: 'Value',
+      customParameterTypeText: 'Text',
+      customParameterTypeNumber: 'Number',
+      customParameterTypeBoolean: 'Boolean',
+      customParameterTypeJson: 'JSON',
       dimension: 'Dimension',
       dimensionDesc: 'The dimension of the embedding model (optional)',
       dimensionPlaceholder: '1536',

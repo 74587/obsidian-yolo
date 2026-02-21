@@ -266,6 +266,11 @@ export type TranslationKeys = {
       editorMaxOutputTokens?: string
       editorMaxOutputTokensDesc?: string
       editorMaxContextMessages?: string
+      editorCustomParameters?: string
+      editorCustomParametersDesc?: string
+      editorCustomParametersAdd?: string
+      editorCustomParametersKeyPlaceholder?: string
+      editorCustomParametersValuePlaceholder?: string
       editorToolsCount?: string
       editorSkillsCount?: string
       editorSkillsCountWithEnabled?: string
@@ -346,6 +351,10 @@ export type TranslationKeys = {
       customParametersAdd?: string
       customParametersKeyPlaceholder?: string
       customParametersValuePlaceholder?: string
+      customParameterTypeText?: string
+      customParameterTypeNumber?: string
+      customParameterTypeBoolean?: string
+      customParameterTypeJson?: string
       dimension: string
       dimensionDesc: string
       dimensionPlaceholder: string

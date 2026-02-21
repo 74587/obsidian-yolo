@@ -337,6 +337,12 @@ export const zh: TranslationKeys = {
       editorMaxOutputTokens: '最大输出 token',
       editorMaxOutputTokensDesc: '最大生成 token 数',
       editorMaxContextMessages: '上下文条数',
+      editorCustomParameters: '自定义参数',
+      editorCustomParametersDesc:
+        '为此 Agent 附加额外请求字段。同名参数会覆盖模型侧参数',
+      editorCustomParametersAdd: '添加参数',
+      editorCustomParametersKeyPlaceholder: '参数名',
+      editorCustomParametersValuePlaceholder: '参数值',
       editorToolsCount: '{count} 个工具',
       editorSkillsCount: '{count} 个技能',
       editorSkillsCountWithEnabled: '{count} 个技能（已启用 {enabled} 个）',
@@ -421,9 +427,12 @@ export const zh: TranslationKeys = {
       customParametersDesc:
         '为请求附加额外字段，值支持纯文本或 JSON（例如 {"type":"enabled"} 或 0.7）。',
       customParametersAdd: '添加参数',
-      customParametersKeyPlaceholder: '参数名，例如 thinking',
-      customParametersValuePlaceholder:
-        '参数值，支持 JSON，如 {"type":"enabled"} 或 0.7',
+      customParametersKeyPlaceholder: '参数名',
+      customParametersValuePlaceholder: '参数值',
+      customParameterTypeText: '文本',
+      customParameterTypeNumber: '数字',
+      customParameterTypeBoolean: '布尔',
+      customParameterTypeJson: 'JSON',
       dimension: '维度',
       dimensionDesc: '嵌入模型的维度（可选）',
       dimensionPlaceholder: '1536',

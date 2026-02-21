@@ -19,6 +19,7 @@ import { ChatMessage } from '../../types/chat'
 import { ConversationOverrideSettings } from '../../types/conversation-settings.types'
 import { PromptGenerator } from '../../utils/chat/promptGenerator'
 import { ResponseGenerator } from '../../utils/chat/responseGenerator'
+import { mergeCustomParameters } from '../../utils/custom-parameters'
 import { ErrorModal } from '../modals/ErrorModal'
 
 import { ChatMode } from './chat-input/ChatModeSelect'
@@ -134,6 +135,16 @@ export function useChatStreamManager({
           chatMode === 'agent'
             ? selectedAssistant?.maxContextMessages
             : undefined
+        const effectiveModel =
+          chatMode === 'agent' && selectedAssistant
+            ? {
+                ...resolvedClient.model,
+                customParameters: mergeCustomParameters(
+                  resolvedClient.model.customParameters,
+                  selectedAssistant.customParameters,
+                ),
+              }
+            : resolvedClient.model
         const disabledSkillIds = settings.skills?.disabledSkillIds ?? []
         const enabledSkillEntries =
           chatMode === 'agent' && selectedAssistant
@@ -191,7 +202,7 @@ export function useChatStreamManager({
             },
             input: {
               providerClient: resolvedClient.providerClient,
-              model: resolvedClient.model,
+              model: effectiveModel,
               messages: chatMessages,
               conversationId,
               promptGenerator,
@@ -223,7 +234,7 @@ export function useChatStreamManager({
         } else {
           const responseGenerator = new ResponseGenerator({
             providerClient: resolvedClient.providerClient,
-            model: resolvedClient.model,
+            model: effectiveModel,
             messages: chatMessages,
             conversationId,
             enableTools: settings.chatOptions.enableTools,

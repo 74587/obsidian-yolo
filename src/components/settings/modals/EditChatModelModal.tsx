@@ -4,6 +4,11 @@ import React, { useState } from 'react'
 import { useLanguage } from '../../../contexts/language-context'
 import SmartComposerPlugin from '../../../main'
 import { ChatModel } from '../../../types/chat-model.types'
+import { CustomParameter } from '../../../types/custom-parameter.types'
+import {
+  normalizeCustomParameterType,
+  sanitizeCustomParameters,
+} from '../../../utils/custom-parameters'
 import {
   detectReasoningTypeFromModelId,
   ensureUniqueModelId,
@@ -32,8 +37,10 @@ type EditableChatModel = ChatModel & {
   }
   toolType?: 'none' | 'gemini'
   isBaseModel?: boolean
-  customParameters?: { key: string; value: string }[]
+  customParameters?: CustomParameter[]
 }
+
+const CUSTOM_PARAMETER_TYPES = ['text', 'number', 'boolean', 'json'] as const
 
 export class EditChatModelModal extends ReactModal<EditChatModelModalComponentProps> {
   constructor(app: App, plugin: SmartComposerPlugin, model: ChatModel) {
@@ -56,11 +63,11 @@ function EditChatModelModalComponent({
 }: EditChatModelModalComponentProps & { onClose: () => void }) {
   const { t } = useLanguage()
   const editableModel: EditableChatModel = model
-  const defaultSamplingCustomParameters: { key: string; value: string }[] = [
-    { key: 'temperature', value: '0.8' },
-    { key: 'top_p', value: '' },
+  const defaultSamplingCustomParameters: CustomParameter[] = [
+    { key: 'temperature', value: '0.8', type: 'number' },
+    { key: 'top_p', value: '', type: 'number' },
   ]
-  const withSamplingDefaults = (entries?: { key: string; value: string }[]) => {
+  const withSamplingDefaults = (entries?: CustomParameter[]) => {
     const base = Array.isArray(entries) ? entries : []
     const existingKeys = new Set(
       base.map((entry) => entry.key.trim().toLowerCase()),
@@ -137,9 +144,9 @@ function EditChatModelModalComponent({
   const [toolType, setToolType] = useState<'none' | 'gemini'>(
     normalizeToolType(editableModel.toolType ?? 'none'),
   )
-  const [customParameters, setCustomParameters] = useState<
-    { key: string; value: string }[]
-  >(() => withSamplingDefaults(editableModel.customParameters))
+  const [customParameters, setCustomParameters] = useState<CustomParameter[]>(
+    () => withSamplingDefaults(editableModel.customParameters),
+  )
 
   const handleSubmit = () => {
     if (!formData.model.trim()) {
@@ -210,9 +217,8 @@ function EditChatModelModalComponent({
         // Apply tool type
         updatedModel.toolType = toolType
 
-        const sanitizedCustomParameters = customParameters
-          .map((entry) => ({ key: entry.key.trim(), value: entry.value }))
-          .filter((entry) => entry.key.length > 0)
+        const sanitizedCustomParameters =
+          sanitizeCustomParameters(customParameters)
 
         if (sanitizedCustomParameters.length > 0) {
           updatedModel.customParameters = sanitizedCustomParameters
@@ -324,15 +330,22 @@ function EditChatModelModalComponent({
         <ObsidianButton
           text={t('settings.models.customParametersAdd')}
           onClick={() =>
-            setCustomParameters((prev) => [...prev, { key: '', value: '' }])
+            setCustomParameters((prev) => [
+              ...prev,
+              {
+                key: '',
+                value: '',
+                type: 'text',
+              },
+            ])
           }
         />
       </ObsidianSetting>
 
       {customParameters.map((param, index) => (
         <ObsidianSetting
-          key={`custom-parameter-${index}`}
-          className="smtcmp-settings-kv-entry"
+          key={`${param.key}-${param.type ?? 'text'}-${param.value}`}
+          className="smtcmp-settings-kv-entry smtcmp-settings-kv-entry--inline"
         >
           <ObsidianTextInput
             value={param.key}
@@ -341,6 +354,30 @@ function EditChatModelModalComponent({
               setCustomParameters((prev) => {
                 const next = [...prev]
                 next[index] = { ...next[index], key: value }
+                return next
+              })
+            }
+          />
+          <ObsidianDropdown
+            value={normalizeCustomParameterType(param.type)}
+            options={Object.fromEntries(
+              CUSTOM_PARAMETER_TYPES.map((type) => [
+                type,
+                t(
+                  `settings.models.customParameterType${
+                    type.charAt(0).toUpperCase() + type.slice(1)
+                  }`,
+                  type,
+                ),
+              ]),
+            )}
+            onChange={(value: string) =>
+              setCustomParameters((prev) => {
+                const next = [...prev]
+                next[index] = {
+                  ...next[index],
+                  type: normalizeCustomParameterType(value),
+                }
                 return next
               })
             }

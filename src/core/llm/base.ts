@@ -9,6 +9,7 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import { parseCustomParameterValue } from '../../utils/custom-parameters'
 
 // TODO: do these really have to be class? why not just function?
 export abstract class BaseLLMProvider<P extends LLMProvider> {
@@ -51,21 +52,8 @@ export abstract class BaseLLMProvider<P extends LLMProvider> {
       if (rawValue.trim().length === 0) {
         continue
       }
-      next[key] = parseCustomParameterValue(rawValue)
+      next[key] = parseCustomParameterValue(rawValue, entry.type)
     }
     return next as T
-  }
-}
-
-function parseCustomParameterValue(raw: string): unknown {
-  const trimmed = raw.trim()
-  if (trimmed.length === 0) {
-    return raw
-  }
-
-  try {
-    return JSON.parse(trimmed)
-  } catch {
-    return raw
   }
 }
