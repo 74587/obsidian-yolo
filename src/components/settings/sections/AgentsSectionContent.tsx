@@ -130,6 +130,7 @@ const AGENT_MAX_CONTEXT_MESSAGES_RANGE = {
   min: 1,
   max: 100,
 } as const
+const DEFAULT_MAX_CONTEXT_MESSAGES = 32
 
 const CUSTOM_PARAMETER_TYPES = ['text', 'number', 'boolean', 'json'] as const
 
@@ -249,9 +250,7 @@ export function AgentsSectionContent({
     temperature: AGENT_MODEL_DEFAULTS.temperature,
     topP: AGENT_MODEL_DEFAULTS.topP,
     maxOutputTokens: AGENT_MODEL_DEFAULTS.maxOutputTokens,
-    maxContextMessages: clampMaxContextMessages(
-      settings.chatOptions.maxContextMessages ?? 32,
-    ),
+    maxContextMessages: clampMaxContextMessages(DEFAULT_MAX_CONTEXT_MESSAGES),
   }))
   const activeTabIndex = AGENT_EDITOR_TABS.findIndex((tab) => tab === activeTab)
   const activeTabIndexRef = useRef(activeTabIndex)
@@ -619,7 +618,7 @@ export function AgentsSectionContent({
       return
     }
     const defaultMaxContextMessages = clampMaxContextMessages(
-      settings.chatOptions.maxContextMessages ?? 32,
+      DEFAULT_MAX_CONTEXT_MESSAGES,
     )
     setModelParamCache({
       temperature: AGENT_MODEL_DEFAULTS.temperature,

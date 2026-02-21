@@ -243,14 +243,6 @@ export const en: TranslationKeys = {
       includeCurrentFile: 'Auto-include current page',
       includeCurrentFileDesc:
         'Automatically include the content of your current file in chats.',
-      enableTools: 'Enable tools',
-      enableToolsDesc: 'Allow the assistant to use custom tools (MCP).',
-      maxAutoIterations: 'Max auto tool requests',
-      maxAutoIterationsDesc:
-        'Maximum number of consecutive tool calls that can be made automatically without user confirmation; higher values can significantly increase costs as each tool call consumes additional tokens.',
-      maxContextMessages: 'Max context messages',
-      maxContextMessagesDesc:
-        'Number of previous chat messages to include in each request (0 to include none); 32 is recommended (about 16 user-assistant turns).',
     },
     assistants: {
       title: 'Assistants',

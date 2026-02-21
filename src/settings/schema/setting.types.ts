@@ -277,9 +277,6 @@ export const smartComposerSettingsSchema = z.object({
   chatOptions: z
     .object({
       includeCurrentFileContent: z.boolean(),
-      enableTools: z.boolean(),
-      maxAutoIterations: z.number(),
-      maxContextMessages: z.number(),
       chatTitlePrompt: z.string().optional(),
       baseModelSpecialPrompt: z.string().optional(),
       // Chat mode (chat/agent)
@@ -287,9 +284,6 @@ export const smartComposerSettingsSchema = z.object({
     })
     .catch({
       includeCurrentFileContent: true,
-      enableTools: true,
-      maxAutoIterations: 1,
-      maxContextMessages: 32,
       chatTitlePrompt: '',
       baseModelSpecialPrompt: '',
       chatMode: 'chat',

@@ -245,15 +245,6 @@ export const it: TranslationKeys = {
       includeCurrentFile: 'Includi file corrente',
       includeCurrentFileDesc:
         'Include automaticamente il file correntemente aperto nel contesto della chat.',
-      enableTools: 'Abilita strumenti',
-      enableToolsDesc:
-        "Permetti all'AI di usare strumenti personalizzati (MCP).",
-      maxAutoIterations: 'Iterazioni automatiche massime',
-      maxAutoIterationsDesc:
-        "Quante volte l'AI può chiamare automaticamente gli strumenti in una singola risposta.",
-      maxContextMessages: 'Messaggi di contesto massimi',
-      maxContextMessagesDesc:
-        'Numero di messaggi precedenti da includere nel contesto della chat.',
     },
     assistants: {
       title: 'Assistenti',

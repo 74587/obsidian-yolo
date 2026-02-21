@@ -64,6 +64,7 @@ import { AssistantSelectMenu } from './AssistantSelectMenu'
 import { ModeSelect, QuickAskMode } from './ModeSelect'
 
 const FIRST_TOKEN_TIMEOUT_MS = 12000
+const DEFAULT_MAX_AUTO_TOOL_ITERATIONS = 100
 
 type QuickAskPanelProps = {
   plugin: SmartComposerPlugin
@@ -667,8 +668,8 @@ export function QuickAskPanel({
           model,
           messages: newMessages,
           conversationId,
-          enableTools: settings.chatOptions.enableTools,
-          maxAutoIterations: settings.chatOptions.maxAutoIterations,
+          enableTools: true,
+          maxAutoIterations: DEFAULT_MAX_AUTO_TOOL_ITERATIONS,
           promptGenerator,
           mcpManager,
           abortSignal: abortController.signal,

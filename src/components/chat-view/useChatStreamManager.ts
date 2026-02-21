@@ -35,6 +35,8 @@ type UseChatStreamManagerParams = {
   currentFileOverride?: TFile | null
 }
 
+const DEFAULT_MAX_AUTO_TOOL_ITERATIONS = 100
+
 export type UseChatStreamManager = {
   abortActiveStreams: () => void
   submitChatMutation: UseMutationResult<
@@ -193,10 +195,7 @@ export function useChatStreamManager({
             conversationId,
             loopConfig: {
               enableTools: selectedAssistant?.enableTools ?? true,
-              maxAutoIterations: Math.max(
-                8,
-                settings.chatOptions.maxAutoIterations,
-              ),
+              maxAutoIterations: DEFAULT_MAX_AUTO_TOOL_ITERATIONS,
               includeBuiltinTools:
                 selectedAssistant?.includeBuiltinTools ?? true,
             },
@@ -237,8 +236,8 @@ export function useChatStreamManager({
             model: effectiveModel,
             messages: chatMessages,
             conversationId,
-            enableTools: settings.chatOptions.enableTools,
-            maxAutoIterations: settings.chatOptions.maxAutoIterations,
+            enableTools: true,
+            maxAutoIterations: DEFAULT_MAX_AUTO_TOOL_ITERATIONS,
             includeBuiltinTools: false,
             promptGenerator,
             mcpManager,

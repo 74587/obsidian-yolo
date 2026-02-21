@@ -140,12 +140,6 @@ export type TranslationKeys = {
       title: string
       includeCurrentFile: string
       includeCurrentFileDesc: string
-      enableTools: string
-      enableToolsDesc: string
-      maxAutoIterations: string
-      maxAutoIterationsDesc: string
-      maxContextMessages: string
-      maxContextMessagesDesc: string
     }
     assistants: {
       title: string

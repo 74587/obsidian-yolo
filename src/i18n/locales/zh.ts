@@ -211,14 +211,6 @@ export const zh: TranslationKeys = {
       title: '聊天偏好',
       includeCurrentFile: '自动添加当前页面文件',
       includeCurrentFileDesc: '自动在聊天中包含当前文件的内容。',
-      enableTools: '启用工具',
-      enableToolsDesc: '允许 AI 使用自定义工具（MCP）。',
-      maxAutoIterations: '最大自动工具请求',
-      maxAutoIterationsDesc:
-        '可以自动进行的连续工具调用的最大数量，无需用户确认。更高的值会显著增加成本，因为每次工具调用都会消耗额外的令牌。',
-      maxContextMessages: '默认上下文传递条数',
-      maxContextMessagesDesc:
-        '每次请求要包含的历史消息条数（0 表示不包含）。建议 32 条（约等于 16 轮对话）。',
     },
     assistants: {
       title: '助手',

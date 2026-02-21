@@ -148,13 +148,10 @@ export class PromptGenerator {
   }): RequestMessage[] {
     // Determine max context messages with priority:
     // 1) explicit override from conversation settings
-    // 2) global settings.chatOptions.maxContextMessages
-    // 3) class default (32)
+    // 2) class default (32)
     const maxContext = Math.max(
       0,
-      maxContextOverride ??
-        this.settings?.chatOptions?.maxContextMessages ??
-        this.MAX_CONTEXT_MESSAGES,
+      maxContextOverride ?? this.MAX_CONTEXT_MESSAGES,
     )
 
     // Get the last N messages and parse them into request messages
