@@ -56,7 +56,6 @@ import {
   supportsReasoning,
 } from './ReasoningSelect'
 import { SubmitButton } from './SubmitButton'
-import ToolBadge from './ToolBadge'
 
 export type ChatUserInputRef = {
   focus: () => void
@@ -499,11 +498,6 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
         className={`smtcmp-chat-user-input-wrapper${compact ? ' smtcmp-chat-user-input-wrapper--compact' : ''}`}
         onBlur={handleBlur}
       >
-        {!compact && (
-          <div className="smtcmp-chat-user-input-tools-row">
-            <ToolBadge />
-          </div>
-        )}
         <div
           className="smtcmp-chat-user-input-container"
           ref={containerRef}
