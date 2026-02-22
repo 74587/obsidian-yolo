@@ -124,6 +124,9 @@ export function useChatStreamManager({
           }
         }
 
+        const modelTemperature = resolvedClient.model.temperature
+        const modelTopP = resolvedClient.model.topP
+        const modelMaxTokens = resolvedClient.model.maxOutputTokens
         const assistantTemperature =
           chatMode === 'agent' ? selectedAssistant?.temperature : undefined
         const assistantTopP =
@@ -219,9 +222,11 @@ export function useChatStreamManager({
             requestParams: {
               stream: conversationOverrides?.stream ?? true,
               temperature:
-                conversationOverrides?.temperature ?? assistantTemperature,
-              top_p: conversationOverrides?.top_p ?? assistantTopP,
-              max_tokens: assistantMaxTokens,
+                conversationOverrides?.temperature ??
+                assistantTemperature ??
+                modelTemperature,
+              top_p: conversationOverrides?.top_p ?? assistantTopP ?? modelTopP,
+              max_tokens: assistantMaxTokens ?? modelMaxTokens,
             },
             maxContextOverride:
               conversationOverrides?.maxContextMessages ??
