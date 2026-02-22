@@ -1,4 +1,4 @@
-import { TranslationKeys } from '../types'
+import type { TranslationKeys } from '../types'
 
 export const en: TranslationKeys = {
   commands: {
@@ -119,7 +119,6 @@ export const en: TranslationKeys = {
     title: 'Yolo settings',
     tabs: {
       models: 'Models',
-      chat: 'Chat',
       editor: 'Editor',
       knowledge: 'Knowledge',
       tools: 'Tools',
@@ -243,14 +242,6 @@ export const en: TranslationKeys = {
       includeCurrentFile: 'Auto-include current page',
       includeCurrentFileDesc:
         'Automatically include the content of your current file in chats.',
-      enableTools: 'Enable tools',
-      enableToolsDesc: 'Allow the assistant to use custom tools (MCP).',
-      maxAutoIterations: 'Max auto tool requests',
-      maxAutoIterationsDesc:
-        'Maximum number of consecutive tool calls that can be made automatically without user confirmation; higher values can significantly increase costs as each tool call consumes additional tokens.',
-      maxContextMessages: 'Max context messages',
-      maxContextMessagesDesc:
-        'Number of previous chat messages to include in each request (0 to include none); 32 is recommended (about 16 user-assistant turns).',
     },
     assistants: {
       title: 'Assistants',
@@ -291,6 +282,16 @@ export const en: TranslationKeys = {
       toolsCountWithEnabled: '{count} tools (enabled {enabled})',
       skills: 'Skills',
       skillsCount: '{count} skills',
+      skillsCountWithEnabled: '{count} skills (enabled {enabled})',
+      skillsGlobalDesc:
+        'Skills are discovered from built-in skills and YOLO/skills/**/*.md (excluding Skills.md). Disable a skill here to block it for all agents.',
+      skillsSourcePath:
+        'Source: built-in skills + YOLO/skills/**/*.md (excluding Skills.md)',
+      refreshSkills: 'Refresh',
+      skillsEmptyHint:
+        'No skills found. Create skill markdown files under YOLO/skills (excluding Skills.md).',
+      createSkillTemplates: 'Initialize Skills system',
+      skillsTemplateCreated: 'Skills system initialized in YOLO/skills.',
       agents: 'Agents',
       agentsDesc: 'Click Configure to edit each agent profile and prompt.',
       configureAgents: 'Configure',
@@ -307,6 +308,7 @@ export const en: TranslationKeys = {
       noMcpTools: 'No custom tools (MCP) discovered yet',
       toolsEnabledCount: '{count} enabled',
       manageTools: 'Manage tools',
+      manageSkills: 'Manage skills',
       descriptionColumn: 'Description',
       builtinFsListLabel: 'Read Vault',
       builtinFsListDesc:
@@ -321,6 +323,8 @@ export const en: TranslationKeys = {
       builtinFsWriteLabel: 'Write Vault',
       builtinFsWriteDesc:
         'Execute vault write operations for files and folders.',
+      builtinOpenSkillLabel: 'Open Skill',
+      builtinOpenSkillDesc: 'Load a skill markdown file by id or name.',
       editorDefaultName: 'New agent',
       editorIntro: "Configure this agent's capabilities, model, and behavior.",
       editorTabProfile: 'Profile',
@@ -344,15 +348,32 @@ export const en: TranslationKeys = {
       editorEnabled: 'Enabled',
       editorDisabled: 'Disabled',
       editorModel: 'Model',
+      editorModelDesc: 'Select the model used by this agent',
       editorModelCurrent: 'Current: {model}',
+      editorModelSampling: 'Sampling parameters',
+      editorModelResetDefaults: 'Restore defaults',
+      modelPresetFocused: 'Focused',
+      modelPresetBalanced: 'Balanced',
+      modelPresetCreative: 'Creative',
       editorTemperature: 'Temperature',
       editorTemperatureDesc: '0.0 - 2.0',
       editorTopP: 'Top P',
       editorTopPDesc: '0.0 - 1.0',
       editorMaxOutputTokens: 'Max output tokens',
       editorMaxOutputTokensDesc: 'Maximum generated tokens',
+      editorMaxContextMessages: 'Max context messages',
+      editorCustomParameters: 'Custom parameters',
+      editorCustomParametersDesc:
+        'Additional request fields for this agent. Same keys override model-level parameters',
+      editorCustomParametersAdd: 'Add parameter',
+      editorCustomParametersKeyPlaceholder: 'Key',
+      editorCustomParametersValuePlaceholder: 'Value',
       editorToolsCount: '{count} tools',
       editorSkillsCount: '{count} skills',
+      editorSkillsCountWithEnabled: '{count} skills (enabled {enabled})',
+      skillLoadAlways: 'Full inject',
+      skillLoadLazy: 'On demand',
+      skillDisabledGlobally: 'Disabled globally',
     },
     providers: {
       title: 'Providers',
@@ -433,9 +454,12 @@ export const en: TranslationKeys = {
       customParametersDesc:
         'Attach additional request fields; values accept plain text or JSON (for example, {"thinking": {"type": "enabled"}}).',
       customParametersAdd: 'Add parameter',
-      customParametersKeyPlaceholder: 'Key, for example, thinking',
-      customParametersValuePlaceholder:
-        'Value in plain text or JSON; for example, {"type":"enabled"} or 0.7',
+      customParametersKeyPlaceholder: 'Key',
+      customParametersValuePlaceholder: 'Value',
+      customParameterTypeText: 'Text',
+      customParameterTypeNumber: 'Number',
+      customParameterTypeBoolean: 'Boolean',
+      customParameterTypeJson: 'JSON',
       dimension: 'Dimension',
       dimensionDesc: 'The dimension of the embedding model (optional)',
       dimensionPlaceholder: '1536',
@@ -705,6 +729,12 @@ export const en: TranslationKeys = {
       resetProvidersConfirm:
         'Are you sure you want to reset providers and models to defaults and overwrite the existing configuration?',
       resetProvidersSuccess: 'Providers and models have been reset to defaults',
+      resetAgents: 'Reset agents',
+      resetAgentsDesc:
+        'Restore default agent configuration and remove custom agents',
+      resetAgentsConfirm:
+        'Are you sure you want to reset agent configuration? This will remove custom agents and reset the current selection.',
+      resetAgentsSuccess: 'Agent configuration has been reset to defaults',
     },
   },
 
@@ -724,6 +754,14 @@ export const en: TranslationKeys = {
     regenerate: 'Regenerate',
     reasoning: 'Reasoning',
     annotations: 'Annotations',
+    emptyState: {
+      chatTitle: 'Think first, then write',
+      chatDescription:
+        'Great for questions, polishing, and rewriting with focus on expression.',
+      agentTitle: 'Let AI execute',
+      agentDescription:
+        'Enable tools to handle search, read/write operations, and multi-step tasks.',
+    },
     codeBlock: {
       showRawText: 'Show raw text',
       showFormattedText: 'Show formatted text',
@@ -819,6 +857,7 @@ export const en: TranslationKeys = {
         fs_read: 'Read files',
         fs_edit: 'Edit file',
         fs_write: 'File operation',
+        open_skill: 'Open skill',
       },
       writeAction: {
         create_file: 'Create file',
@@ -934,16 +973,29 @@ export const en: TranslationKeys = {
     editNoFile: 'Please open a file first',
     editNoChanges: 'No valid changes returned by model',
     editPartialSuccess:
-      'Applied ${appliedCount} of ${blocks.length} edits. Check console for details.',
-    editApplied:
-      'Successfully applied ${appliedCount} edit(s) to ${activeFile.name}',
+      'Applied {appliedCount} of {totalEdits} edits. Check console for details.',
+    editApplied: 'Successfully applied {appliedCount} edit(s) to {fileName}',
   },
 
   chatMode: {
     chat: 'Chat',
-    chatDesc: 'Normal conversation mode',
+    chatDesc: 'Best for asking, polishing, and rewriting',
     agent: 'Agent',
-    agentDesc: 'Think sharp, move fast',
+    agentDesc: 'Enable tools for multi-step execution',
+    warning: {
+      title: 'Please confirm before enabling Agent mode',
+      description:
+        'Agent can automatically invoke tools. Please review the following risks before continuing:',
+      permission:
+        'Strictly control tool-call permissions and grant only what is necessary.',
+      cost: 'Agent tasks may consume significant model resources and incur higher costs.',
+      backup:
+        'Back up important content in advance to avoid unintended changes.',
+      checkbox:
+        'I understand the risks above and accept responsibility for proceeding',
+      cancel: 'Cancel',
+      confirm: 'Continue and Enable Agent',
+    },
   },
 
   reasoning: {

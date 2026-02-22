@@ -71,6 +71,8 @@ export class NativeAgentRuntime implements AgentRuntime {
       reasoningLevel: input.reasoningLevel,
       requestParams: input.requestParams,
       allowedToolNames: input.allowedToolNames,
+      allowedSkillIds: input.allowedSkillIds,
+      allowedSkillNames: input.allowedSkillNames,
       maxContextOverride: input.maxContextOverride,
       currentFileContextMode: input.currentFileContextMode,
       currentFileOverride: input.currentFileOverride,
@@ -122,7 +124,9 @@ export class NativeAgentRuntime implements AgentRuntime {
   }
 
   private notifySubscribers(messages: ChatMessage[]): void {
-    this.subscribers.forEach((callback) => callback(messages))
+    this.subscribers.forEach((callback) => {
+      callback(messages)
+    })
   }
 
   private mergeAbortSignals(

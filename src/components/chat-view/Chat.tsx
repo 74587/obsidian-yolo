@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
-import { CircleStop, History, Plus } from 'lucide-react'
-import { Notice, Platform, TFile, TFolder } from 'obsidian'
+import { Bot, CircleStop, History, MessageCircle, Plus } from 'lucide-react'
+import { Notice, Platform } from 'obsidian'
+import type { TFile, TFolder } from 'obsidian'
 import {
   forwardRef,
   useCallback,
@@ -26,14 +27,14 @@ import {
 import { getChatModelClient } from '../../core/llm/manager'
 import { useChatHistory } from '../../hooks/useChatHistory'
 import type { ApplyViewState } from '../../types/apply-view.types'
-import {
+import type {
   AssistantToolMessageGroup,
   ChatMessage,
   ChatToolMessage,
   ChatUserMessage,
 } from '../../types/chat'
-import { ConversationOverrideSettings } from '../../types/conversation-settings.types'
-import {
+import type { ConversationOverrideSettings } from '../../types/conversation-settings.types'
+import type {
   MentionableBlock,
   MentionableBlockData,
   MentionableCurrentFile,
@@ -47,23 +48,24 @@ import {
 import { groupAssistantAndToolMessages } from '../../utils/chat/message-groups'
 import { PromptGenerator } from '../../utils/chat/promptGenerator'
 import { readTFileContent } from '../../utils/obsidian'
+import { AgentModeWarningModal } from '../modals/AgentModeWarningModal'
 import { ErrorModal } from '../modals/ErrorModal'
 
 // removed Prompt Templates feature
 
 import { AssistantSelector } from './AssistantSelector'
 import AssistantToolMessageGroupItem from './AssistantToolMessageGroupItem'
-import { ChatMode } from './chat-input/ChatModeSelect'
+import type { ChatMode } from './chat-input/ChatModeSelect'
 import ChatSettingsButton from './chat-input/ChatSettingsButton'
-import ChatUserInput, { ChatUserInputRef } from './chat-input/ChatUserInput'
-import {
-  ReasoningLevel,
-  getDefaultReasoningLevel,
-} from './chat-input/ReasoningSelect'
+import ChatUserInput from './chat-input/ChatUserInput'
+import type { ChatUserInputRef } from './chat-input/ChatUserInput'
+import { getDefaultReasoningLevel } from './chat-input/ReasoningSelect'
+import type { ReasoningLevel } from './chat-input/ReasoningSelect'
 import { editorStateToPlainText } from './chat-input/utils/editor-state-to-plain-text'
 import { ChatListDropdown } from './ChatListDropdown'
 import Composer from './Composer'
-import QueryProgress, { QueryProgressState } from './QueryProgress'
+import QueryProgress from './QueryProgress'
+import type { QueryProgressState } from './QueryProgress'
 import { useAutoScroll } from './useAutoScroll'
 import { useChatStreamManager } from './useChatStreamManager'
 import UserMessageItem from './UserMessageItem'
@@ -107,7 +109,7 @@ export type ChatProps = {
 const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
   const app = useApp()
   const plugin = usePlugin()
-  const { settings } = useSettings()
+  const { settings, setSettings } = useSettings()
   const { t } = useLanguage()
   const { getRAGEngine } = useRAG()
   const { getMcpManager } = useMcp()
@@ -406,11 +408,10 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     },
     [
       abortActiveStreams,
-      app,
       getConversationById,
       settings.chatModelId,
       settings.chatModels,
-      settings.chatOptions.includeCurrentFileContent,
+      settings.chatOptions.chatMode,
       normalizeReasoningLevel,
     ],
   )
@@ -765,7 +766,6 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
       chatMessages,
       currentConversationId,
       submitChatMutation,
-      setChatMessages,
       getMcpManager,
       forceScrollToBottom,
       resolveReasoningLevelForMessages,
@@ -820,20 +820,15 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     if (submitMutationPendingRef.current) {
       submitMutationPendingRef.current = false
       void persistConversation(chatMessages)
+      void generateConversationTitle(currentConversationId, chatMessages)
     }
-  }, [chatMessages, persistConversation, submitChatMutation.isPending])
-
-  // 用户首次发送消息后自动生成对话标题
-  // 不需要等待模型回答，只要有用户消息就触发
-  // generateConversationTitle 内部会检查标题是否已经命名过
-  useEffect(() => {
-    if (chatMessages.length > 0 && currentConversationId) {
-      const hasUserMessage = chatMessages.some((m) => m.role === 'user')
-      if (hasUserMessage) {
-        void generateConversationTitle(currentConversationId, chatMessages)
-      }
-    }
-  }, [chatMessages, currentConversationId, generateConversationTitle])
+  }, [
+    chatMessages,
+    currentConversationId,
+    generateConversationTitle,
+    persistConversation,
+    submitChatMutation.isPending,
+  ])
 
   const handleActiveLeafChange = useCallback(() => {
     setActiveFile(app.workspace.getActiveFile())
@@ -1018,7 +1013,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         ),
       }))
     },
-    [currentConversationId, updateAutoAttachCurrentFile],
+    [updateAutoAttachCurrentFile],
   )
 
   useImperativeHandle(ref, () => ({
@@ -1224,21 +1219,88 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     },
   }))
 
+  const applyChatModeChange = useCallback(
+    (nextMode: ChatMode) => {
+      setChatMode(nextMode)
+      setConversationOverrides((prev) => ({
+        ...(prev ?? {}),
+        chatMode: nextMode,
+      }))
+      conversationOverridesRef.current.set(currentConversationId, {
+        ...(conversationOverridesRef.current.get(currentConversationId) ?? {}),
+        chatMode: nextMode,
+      })
+    },
+    [currentConversationId],
+  )
+
   const handleChatModeChange = useCallback(
     (nextMode: ChatMode) => {
       const resolvedMode =
         !Platform.isDesktop && nextMode === 'agent' ? 'chat' : nextMode
-      setChatMode(resolvedMode)
-      setConversationOverrides((prev) => ({
-        ...(prev ?? {}),
-        chatMode: resolvedMode,
-      }))
-      conversationOverridesRef.current.set(currentConversationId, {
-        ...(conversationOverridesRef.current.get(currentConversationId) ?? {}),
-        chatMode: resolvedMode,
-      })
+
+      if (
+        resolvedMode === 'agent' &&
+        !settings.chatOptions.agentModeWarningConfirmed
+      ) {
+        new AgentModeWarningModal(app, {
+          title: t(
+            'chatMode.warning.title',
+            'Please confirm before enabling Agent mode',
+          ),
+          description: t(
+            'chatMode.warning.description',
+            'Agent can automatically invoke tools. Please review the following risks before continuing:',
+          ),
+          risks: [
+            t(
+              'chatMode.warning.permission',
+              'Strictly control tool-call permissions and grant only what is necessary.',
+            ),
+            t(
+              'chatMode.warning.cost',
+              'Agent tasks may consume significant model resources and incur higher costs.',
+            ),
+            t(
+              'chatMode.warning.backup',
+              'Back up important content in advance to avoid unintended changes.',
+            ),
+          ],
+          checkboxLabel: t(
+            'chatMode.warning.checkbox',
+            'I understand the risks above and accept responsibility for proceeding',
+          ),
+          cancelText: t('chatMode.warning.cancel', 'Cancel'),
+          confirmText: t(
+            'chatMode.warning.confirm',
+            'Continue and Enable Agent',
+          ),
+          onConfirm: () => {
+            applyChatModeChange('agent')
+            void (async () => {
+              try {
+                await setSettings({
+                  ...settings,
+                  chatOptions: {
+                    ...settings.chatOptions,
+                    agentModeWarningConfirmed: true,
+                  },
+                })
+              } catch (error: unknown) {
+                console.error(
+                  'Failed to persist agent mode warning confirmation',
+                  error,
+                )
+              }
+            })()
+          },
+        }).open()
+        return
+      }
+
+      applyChatModeChange(resolvedMode)
     },
-    [currentConversationId],
+    [app, applyChatModeChange, setSettings, settings, t],
   )
 
   const header = (
@@ -1259,6 +1321,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           <AssistantSelector />
           <div className="smtcmp-chat-header-buttons">
             <button
+              type="button"
               onClick={() => handleNewChat()}
               className="clickable-icon"
               aria-label="New Chat"
@@ -1317,6 +1380,38 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     <div className="smtcmp-chat-container">
       {header}
       <div className="smtcmp-chat-messages" ref={chatMessagesRef}>
+        {groupedChatMessages.length === 0 && !submitChatMutation.isPending && (
+          <div className="smtcmp-chat-empty-state">
+            <div
+              key={chatMode}
+              className="smtcmp-chat-empty-state-icon"
+              data-mode={chatMode}
+              aria-hidden="true"
+            >
+              {chatMode === 'agent' ? (
+                <Bot size={18} strokeWidth={2} />
+              ) : (
+                <MessageCircle size={18} strokeWidth={2} />
+              )}
+            </div>
+            <div className="smtcmp-chat-empty-state-title">
+              {chatMode === 'agent'
+                ? t('chat.emptyState.agentTitle', '让 AI 去执行')
+                : t('chat.emptyState.chatTitle', '先想清楚，再落笔')}
+            </div>
+            <div className="smtcmp-chat-empty-state-description">
+              {chatMode === 'agent'
+                ? t(
+                    'chat.emptyState.agentDescription',
+                    '启用工具链，处理搜索、读写与多步骤任务',
+                  )
+                : t(
+                    'chat.emptyState.chatDescription',
+                    '适合提问、润色与改写，专注表达本身',
+                  )}
+            </div>
+          </div>
+        )}
         {groupedChatMessages.map((messageOrGroup, index) => {
           if (Array.isArray(messageOrGroup)) {
             return (
@@ -1499,6 +1594,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         {showContinueResponseButton && (
           <div className="smtcmp-continue-response-button-container">
             <button
+              type="button"
               className="smtcmp-continue-response-button"
               onClick={handleContinueResponse}
             >
@@ -1507,7 +1603,11 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           </div>
         )}
         {submitChatMutation.isPending && (
-          <button onClick={abortActiveStreams} className="smtcmp-stop-gen-btn">
+          <button
+            type="button"
+            onClick={abortActiveStreams}
+            className="smtcmp-stop-gen-btn"
+          >
             <CircleStop size={16} />
             <div>Stop generation</div>
           </button>

@@ -6,7 +6,9 @@ import {
   reasoningLevelToConfig,
 } from '../../components/chat-view/chat-input/ReasoningSelect'
 import { BaseLLMProvider } from '../../core/llm/base'
+import { getLocalFileToolServerName } from '../../core/mcp/localFileTools'
 import { McpManager } from '../../core/mcp/mcpManager'
+import { parseToolName } from '../../core/mcp/tool-name-utils'
 import {
   ChatAssistantMessage,
   ChatMessage,
@@ -47,6 +49,8 @@ export type ResponseGeneratorParams = {
     max_tokens?: number
   }
   allowedToolNames?: string[]
+  allowedSkillIds?: string[]
+  allowedSkillNames?: string[]
   reasoningLevel?: ReasoningLevel
   maxContextOverride?: number
   currentFileContextMode?: 'full' | 'summary'
@@ -76,6 +80,8 @@ export class ResponseGenerator {
     max_tokens?: number
   }
   private readonly allowedToolNames?: Set<string>
+  private readonly allowedSkillIds?: Set<string>
+  private readonly allowedSkillNames?: Set<string>
   private readonly reasoningLevel?: ReasoningLevel
   private readonly maxContextOverride?: number
   private readonly currentFileContextMode?: 'full' | 'summary'
@@ -103,6 +109,12 @@ export class ResponseGenerator {
     this.requestParams = params.requestParams
     this.allowedToolNames = params.allowedToolNames
       ? new Set(params.allowedToolNames)
+      : undefined
+    this.allowedSkillIds = params.allowedSkillIds
+      ? new Set(params.allowedSkillIds.map((id) => id.toLowerCase()))
+      : undefined
+    this.allowedSkillNames = params.allowedSkillNames
+      ? new Set(params.allowedSkillNames.map((name) => name.toLowerCase()))
       : undefined
     this.reasoningLevel = params.reasoningLevel
     this.maxContextOverride = params.maxContextOverride
@@ -177,6 +189,35 @@ export class ResponseGenerator {
               toolCall.response.status === ToolCallResponseStatus.Running,
           )
           .map(async (toolCall) => {
+            const skillPermission = this.checkSkillPermissionForToolCall(
+              toolCall.request,
+            )
+            if (!skillPermission.allowed) {
+              this.updateResponseMessages((messages) =>
+                messages.map((message) =>
+                  message.id === toolMessage.id && message.role === 'tool'
+                    ? {
+                        ...message,
+                        toolCalls: message.toolCalls?.map((tc) =>
+                          tc.request.id === toolCall.request.id
+                            ? {
+                                ...tc,
+                                response: {
+                                  status: ToolCallResponseStatus.Error,
+                                  error:
+                                    skillPermission.reason ??
+                                    'Skill is not allowed for the current assistant.',
+                                },
+                              }
+                            : tc,
+                        ),
+                      }
+                    : message,
+                ),
+              )
+              return
+            }
+
             const response = await this.mcpManager.callTool({
               name: toolCall.request.name,
               args: toolCall.request.arguments,
@@ -660,7 +701,9 @@ export class ResponseGenerator {
   }
 
   private notifySubscribers(messages: ChatMessage[]) {
-    this.subscribers.forEach((callback) => callback(messages))
+    this.subscribers.forEach((callback) => {
+      callback(messages)
+    })
   }
 
   private mergeToolCallDeltas(
@@ -740,9 +783,95 @@ export class ResponseGenerator {
   }
 
   private isToolAllowed(toolName: string): boolean {
+    if (this.isOpenSkillToolName(toolName)) {
+      const hasAllowedSkills =
+        (this.allowedSkillIds?.size ?? 0) > 0 ||
+        (this.allowedSkillNames?.size ?? 0) > 0
+      if (!hasAllowedSkills) {
+        return false
+      }
+    }
+
     if (!this.allowedToolNames) {
       return true
     }
     return this.allowedToolNames.has(toolName)
+  }
+
+  private isOpenSkillToolName(toolName: string): boolean {
+    try {
+      const parsed = parseToolName(toolName)
+      return (
+        parsed.serverName === getLocalFileToolServerName() &&
+        parsed.toolName === 'open_skill'
+      )
+    } catch {
+      return false
+    }
+  }
+
+  private parseToolArguments(
+    args?: Record<string, unknown> | string,
+  ): Record<string, unknown> {
+    if (!args) {
+      return {}
+    }
+    if (typeof args === 'string') {
+      if (args.trim().length === 0) {
+        return {}
+      }
+      try {
+        const parsed = JSON.parse(args)
+        if (parsed && typeof parsed === 'object') {
+          return parsed as Record<string, unknown>
+        }
+        return {}
+      } catch {
+        return {}
+      }
+    }
+    return args
+  }
+
+  private checkSkillPermissionForToolCall(request: ToolCallRequest): {
+    allowed: boolean
+    reason?: string
+  } {
+    try {
+      const parsed = parseToolName(request.name)
+      if (
+        parsed.serverName !== getLocalFileToolServerName() ||
+        parsed.toolName !== 'open_skill'
+      ) {
+        return { allowed: true }
+      }
+
+      if (!this.allowedSkillIds && !this.allowedSkillNames) {
+        return {
+          allowed: false,
+          reason: 'open_skill is not allowed in the current conversation.',
+        }
+      }
+
+      const args = this.parseToolArguments(request.arguments)
+      const id = typeof args.id === 'string' ? args.id.trim().toLowerCase() : ''
+      const name =
+        typeof args.name === 'string' ? args.name.trim().toLowerCase() : ''
+
+      const allowedById = Boolean(id) && Boolean(this.allowedSkillIds?.has(id))
+      const allowedByName =
+        Boolean(name) && Boolean(this.allowedSkillNames?.has(name))
+
+      if (!allowedById && !allowedByName) {
+        return {
+          allowed: false,
+          reason: 'Skill is not enabled for the current assistant.',
+        }
+      }
+
+      return { allowed: true }
+    } catch {
+      return { allowed: true }
+    }
   }
 }

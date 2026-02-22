@@ -1,4 +1,4 @@
-import { TranslationKeys } from '../types'
+import type { TranslationKeys } from '../types'
 
 export const it: TranslationKeys = {
   commands: {
@@ -119,7 +119,6 @@ export const it: TranslationKeys = {
     title: 'Impostazioni Yolo',
     tabs: {
       models: 'Modelli',
-      chat: 'Chat',
       editor: 'Editor',
       knowledge: 'Conoscenza',
       tools: 'Strumenti',
@@ -245,15 +244,6 @@ export const it: TranslationKeys = {
       includeCurrentFile: 'Includi file corrente',
       includeCurrentFileDesc:
         'Include automaticamente il file correntemente aperto nel contesto della chat.',
-      enableTools: 'Abilita strumenti',
-      enableToolsDesc:
-        "Permetti all'AI di usare strumenti personalizzati (MCP).",
-      maxAutoIterations: 'Iterazioni automatiche massime',
-      maxAutoIterationsDesc:
-        "Quante volte l'AI può chiamare automaticamente gli strumenti in una singola risposta.",
-      maxContextMessages: 'Messaggi di contesto massimi',
-      maxContextMessagesDesc:
-        'Numero di messaggi precedenti da includere nel contesto della chat.',
     },
     assistants: {
       title: 'Assistenti',
@@ -300,6 +290,16 @@ export const it: TranslationKeys = {
       toolsCountWithEnabled: '{count} strumenti (abilitati {enabled})',
       skills: 'Competenze',
       skillsCount: '{count} competenze',
+      skillsCountWithEnabled: '{count} competenze (abilitate {enabled})',
+      skillsGlobalDesc:
+        'Le skill vengono rilevate dalle skill integrate e da YOLO/skills/**/*.md (escludendo Skills.md). Disabilitale qui per bloccarle su tutti gli agent.',
+      skillsSourcePath:
+        'Origine: skill integrate + YOLO/skills/**/*.md (escludendo Skills.md)',
+      refreshSkills: 'Aggiorna',
+      skillsEmptyHint:
+        'Nessuna skill trovata. Crea file markdown skill sotto YOLO/skills (escludendo Skills.md).',
+      createSkillTemplates: 'Inizializza sistema Skills',
+      skillsTemplateCreated: 'Sistema Skills inizializzato in YOLO/skills.',
       agents: 'Agent',
       agentsDesc:
         'Clicca Configura per modificare il profilo e il prompt di ciascun agent.',
@@ -317,6 +317,7 @@ export const it: TranslationKeys = {
       noMcpTools: 'Nessuno strumento personalizzato (MCP) rilevato',
       toolsEnabledCount: '{count} abilitati',
       manageTools: 'Gestisci strumenti',
+      manageSkills: 'Gestisci competenze',
       descriptionColumn: 'Descrizione',
       builtinFsListLabel: 'Leggi vault',
       builtinFsListDesc:
@@ -333,6 +334,8 @@ export const it: TranslationKeys = {
       builtinFsWriteLabel: 'Scrivi nel vault',
       builtinFsWriteDesc:
         'Esegue operazioni di scrittura su file e cartelle nel vault.',
+      builtinOpenSkillLabel: 'Apri skill',
+      builtinOpenSkillDesc: 'Carica un file markdown skill tramite id o nome.',
       editorDefaultName: 'Nuovo agent',
       editorIntro:
         'Configura le capacità, il modello e il comportamento di questo agent.',
@@ -367,6 +370,10 @@ export const it: TranslationKeys = {
       editorMaxOutputTokensDesc: 'Numero massimo di token generati',
       editorToolsCount: '{count} strumenti',
       editorSkillsCount: '{count} competenze',
+      editorSkillsCountWithEnabled: '{count} competenze (abilitate {enabled})',
+      skillLoadAlways: 'Iniezione completa',
+      skillLoadLazy: 'Su richiesta',
+      skillDisabledGlobally: 'Disabilitata globalmente',
     },
     providers: {
       title: 'Provider',
@@ -713,6 +720,13 @@ export const it: TranslationKeys = {
       resetProvidersConfirm:
         'Sei sicuro di voler ripristinare tutti i provider? Questa azione non può essere annullata.',
       resetProvidersSuccess: 'Provider ripristinati con successo.',
+      resetAgents: 'Ripristina agent',
+      resetAgentsDesc:
+        'Ripristina la configurazione predefinita degli agent e rimuove gli agent personalizzati.',
+      resetAgentsConfirm:
+        'Sei sicuro di voler ripristinare la configurazione degli agent? Questa azione rimuoverà gli agent personalizzati e reimposterà la selezione corrente.',
+      resetAgentsSuccess:
+        'La configurazione degli agent è stata ripristinata ai valori predefiniti.',
     },
   },
 
@@ -732,6 +746,14 @@ export const it: TranslationKeys = {
     regenerate: 'Rigenera',
     reasoning: 'Ragionamento',
     annotations: 'Annotazioni',
+    emptyState: {
+      chatTitle: 'Pensa prima, poi scrivi',
+      chatDescription:
+        "Ideale per domande, revisione e riscrittura, con focus sull'espressione.",
+      agentTitle: "Lascia eseguire all'AI",
+      agentDescription:
+        'Abilita gli strumenti per ricerca, lettura/scrittura e task multi-step.',
+    },
     codeBlock: {
       showRawText: 'Mostra testo grezzo',
       showFormattedText: 'Mostra testo formattato',
@@ -845,6 +867,7 @@ export const it: TranslationKeys = {
         fs_read: 'Leggi file',
         fs_edit: 'Modifica file',
         fs_write: 'Operazione file',
+        open_skill: 'Apri skill',
       },
       writeAction: {
         create_file: 'Crea file',
@@ -958,16 +981,30 @@ export const it: TranslationKeys = {
     editNoFile: 'Apri prima un file',
     editNoChanges: 'Nessuna modifica valida restituita dal modello',
     editPartialSuccess:
-      'Applicate ${appliedCount} di ${blocks.length} modifiche. Controlla la console per i dettagli.',
+      'Applicate {appliedCount} di {totalEdits} modifiche. Controlla la console per i dettagli.',
     editApplied:
-      'Applicate con successo ${appliedCount} modifica/modifiche a ${activeFile.name}',
+      'Applicate con successo {appliedCount} modifica/modifiche a {fileName}',
   },
 
   chatMode: {
     chat: 'Chat',
-    chatDesc: 'Modalità conversazione normale',
+    chatDesc: 'Ideale per domande, revisione e riscrittura',
     agent: 'Agent',
-    agentDesc: 'Pensiero rapido, azione agile',
+    agentDesc: 'Abilita strumenti per esecuzione multi-step',
+    warning: {
+      title: 'Conferma prima di abilitare la modalita Agent',
+      description:
+        "L'Agent puo invocare strumenti automaticamente. Prima di continuare, leggi i seguenti rischi:",
+      permission:
+        'Controlla rigorosamente i permessi di chiamata degli strumenti e concedi solo quelli necessari.',
+      cost: "Le attivita dell'Agent possono consumare molte risorse del modello e comportare costi piu elevati.",
+      backup:
+        'Esegui un backup dei contenuti importanti in anticipo per evitare modifiche indesiderate.',
+      checkbox:
+        'Ho compreso i rischi sopra indicati e accetto la responsabilita di procedere',
+      cancel: 'Annulla',
+      confirm: 'Continua e abilita Agent',
+    },
   },
 
   reasoning: {

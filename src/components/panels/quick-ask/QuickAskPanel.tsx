@@ -64,6 +64,7 @@ import { AssistantSelectMenu } from './AssistantSelectMenu'
 import { ModeSelect, QuickAskMode } from './ModeSelect'
 
 const FIRST_TOKEN_TIMEOUT_MS = 12000
+const DEFAULT_MAX_AUTO_TOOL_ITERATIONS = 100
 
 type QuickAskPanelProps = {
   plugin: SmartComposerPlugin
@@ -667,8 +668,8 @@ export function QuickAskPanel({
           model,
           messages: newMessages,
           conversationId,
-          enableTools: settings.chatOptions.enableTools,
-          maxAutoIterations: settings.chatOptions.maxAutoIterations,
+          enableTools: true,
+          maxAutoIterations: DEFAULT_MAX_AUTO_TOOL_ITERATIONS,
           promptGenerator,
           mcpManager,
           abortSignal: abortController.signal,
@@ -929,10 +930,10 @@ export function QuickAskPanel({
           console.warn('Some edits failed:', errors)
           const partialMessage = t(
             'quickAsk.editPartialSuccess',
-            `Applied ${appliedCount} of ${blocks.length} edits. Check console for details.`,
+            `Applied {appliedCount} of {totalEdits} edits. Check console for details.`,
           )
-            .replace('${appliedCount}', String(appliedCount))
-            .replace('${blocks.length}', String(blocks.length))
+            .replace('{appliedCount}', String(appliedCount))
+            .replace('{totalEdits}', String(blocks.length))
           new Notice(partialMessage)
         }
 
@@ -941,10 +942,10 @@ export function QuickAskPanel({
 
         const successMessage = t(
           'quickAsk.editApplied',
-          `Successfully applied ${appliedCount} edit(s) to ${activeFile.name}`,
+          `Successfully applied {appliedCount} edit(s) to {fileName}`,
         )
-          .replace('${appliedCount}', String(appliedCount))
-          .replace('${activeFile.name}', activeFile.name)
+          .replace('{appliedCount}', String(appliedCount))
+          .replace('{fileName}', activeFile.name)
         new Notice(successMessage)
 
         // Close Quick Ask

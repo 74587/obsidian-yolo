@@ -1,4 +1,4 @@
-import { TranslationKeys } from '../types'
+import type { TranslationKeys } from '../types'
 
 export const zh: TranslationKeys = {
   commands: {
@@ -97,7 +97,6 @@ export const zh: TranslationKeys = {
     title: 'YOLO 设置',
     tabs: {
       models: '模型',
-      chat: '聊天',
       editor: '编辑器',
       knowledge: '知识库',
       tools: '工具',
@@ -211,14 +210,6 @@ export const zh: TranslationKeys = {
       title: '聊天偏好',
       includeCurrentFile: '自动添加当前页面文件',
       includeCurrentFileDesc: '自动在聊天中包含当前文件的内容。',
-      enableTools: '启用工具',
-      enableToolsDesc: '允许 AI 使用自定义工具（MCP）。',
-      maxAutoIterations: '最大自动工具请求',
-      maxAutoIterationsDesc:
-        '可以自动进行的连续工具调用的最大数量，无需用户确认。更高的值会显著增加成本，因为每次工具调用都会消耗额外的令牌。',
-      maxContextMessages: '默认上下文传递条数',
-      maxContextMessagesDesc:
-        '每次请求要包含的历史消息条数（0 表示不包含）。建议 32 条（约等于 16 轮对话）。',
     },
     assistants: {
       title: '助手',
@@ -262,6 +253,16 @@ export const zh: TranslationKeys = {
       toolsCountWithEnabled: '{count} 个工具（已启用 {enabled} 个）',
       skills: '技能',
       skillsCount: '{count} 个技能',
+      skillsCountWithEnabled: '{count} 个技能（已启用 {enabled} 个）',
+      skillsGlobalDesc:
+        '技能会从内置技能与 YOLO/skills/**/*.md 自动发现（排除 Skills.md）。在这里禁用后，所有 Agent 都无法使用。',
+      skillsSourcePath:
+        '来源：内置技能 + YOLO/skills/**/*.md（排除 Skills.md）',
+      refreshSkills: '刷新',
+      skillsEmptyHint:
+        '未发现技能。请在 YOLO/skills 下创建 .md 技能文件（排除 Skills.md）。',
+      createSkillTemplates: '初始化 Skills 系统',
+      skillsTemplateCreated: '已在 YOLO/skills 完成 Skills 系统初始化。',
       agents: 'Agents',
       agentsDesc: '点击配置以编辑每个 Agent 的资料与提示词。',
       configureAgents: '配置',
@@ -278,6 +279,7 @@ export const zh: TranslationKeys = {
       noMcpTools: '尚未发现自定义工具（MCP）',
       toolsEnabledCount: '已启用 {count} 个',
       manageTools: '管理工具',
+      manageSkills: '管理技能',
       descriptionColumn: '描述',
       builtinFsListLabel: '浏览目录',
       builtinFsListDesc: '列出库内目录结构，便于快速了解工作区。',
@@ -289,6 +291,8 @@ export const zh: TranslationKeys = {
       builtinFsEditDesc: '在单个文件中执行精确文本替换。',
       builtinFsWriteLabel: '文件编辑',
       builtinFsWriteDesc: '执行文件与文件夹写操作（创建、写入、删除、移动）。',
+      builtinOpenSkillLabel: '加载技能',
+      builtinOpenSkillDesc: '按 id 或名称读取技能 Markdown 内容。',
       editorDefaultName: '新建 Agent',
       editorIntro: '配置此 Agent 的能力、模型与行为。',
       editorTabProfile: '资料',
@@ -311,15 +315,32 @@ export const zh: TranslationKeys = {
       editorEnabled: '已启用',
       editorDisabled: '已禁用',
       editorModel: '模型',
+      editorModelDesc: '选择此 Agent 使用的模型',
       editorModelCurrent: '当前：{model}',
+      editorModelSampling: '采样参数',
+      editorModelResetDefaults: '恢复默认值',
+      modelPresetFocused: '专注',
+      modelPresetBalanced: '平衡',
+      modelPresetCreative: '创意',
       editorTemperature: '温度',
       editorTemperatureDesc: '0.0 - 2.0',
       editorTopP: 'Top P',
       editorTopPDesc: '0.0 - 1.0',
       editorMaxOutputTokens: '最大输出 token',
       editorMaxOutputTokensDesc: '最大生成 token 数',
+      editorMaxContextMessages: '上下文条数',
+      editorCustomParameters: '自定义参数',
+      editorCustomParametersDesc:
+        '为此 Agent 附加额外请求字段。同名参数会覆盖模型侧参数',
+      editorCustomParametersAdd: '添加参数',
+      editorCustomParametersKeyPlaceholder: '参数名',
+      editorCustomParametersValuePlaceholder: '参数值',
       editorToolsCount: '{count} 个工具',
       editorSkillsCount: '{count} 个技能',
+      editorSkillsCountWithEnabled: '{count} 个技能（已启用 {enabled} 个）',
+      skillLoadAlways: '全量注入',
+      skillLoadLazy: '按需加载',
+      skillDisabledGlobally: '已全局禁用',
     },
     providers: {
       title: '提供商',
@@ -398,9 +419,12 @@ export const zh: TranslationKeys = {
       customParametersDesc:
         '为请求附加额外字段，值支持纯文本或 JSON（例如 {"type":"enabled"} 或 0.7）。',
       customParametersAdd: '添加参数',
-      customParametersKeyPlaceholder: '参数名，例如 thinking',
-      customParametersValuePlaceholder:
-        '参数值，支持 JSON，如 {"type":"enabled"} 或 0.7',
+      customParametersKeyPlaceholder: '参数名',
+      customParametersValuePlaceholder: '参数值',
+      customParameterTypeText: '文本',
+      customParameterTypeNumber: '数字',
+      customParameterTypeBoolean: '布尔',
+      customParameterTypeJson: 'JSON',
       dimension: '维度',
       dimensionDesc: '嵌入模型的维度（可选）',
       dimensionPlaceholder: '1536',
@@ -646,6 +670,11 @@ export const zh: TranslationKeys = {
       resetProvidersConfirm:
         '确定要重置供应商与模型配置为默认吗？此操作将覆盖现有配置。',
       resetProvidersSuccess: '供应商与模型配置已重置为默认',
+      resetAgents: '重置 Agent',
+      resetAgentsDesc: '恢复默认 Agent 配置并移除自定义 Agent',
+      resetAgentsConfirm:
+        '确定要重置 Agent 配置吗？此操作将删除自定义 Agent 并重置当前选择。',
+      resetAgentsSuccess: 'Agent 配置已重置为默认',
     },
   },
 
@@ -682,6 +711,12 @@ export const zh: TranslationKeys = {
     regenerate: '重新生成',
     reasoning: '推理过程',
     annotations: '注释',
+    emptyState: {
+      chatTitle: '先想清楚，再落笔',
+      chatDescription: '适合提问、润色与改写，专注表达本身',
+      agentTitle: '让 AI 去执行',
+      agentDescription: '启用工具链，处理搜索、读写与多步骤任务',
+    },
     codeBlock: {
       showRawText: '显示原始文本',
       showFormattedText: '显示格式化文本',
@@ -770,6 +805,7 @@ export const zh: TranslationKeys = {
         fs_read: '读取文件',
         fs_edit: '编辑文件',
         fs_write: '文件操作',
+        open_skill: '加载技能',
       },
       writeAction: {
         create_file: '创建文件',
@@ -883,15 +919,27 @@ export const zh: TranslationKeys = {
     editNoFile: '请先打开一个文件',
     editNoChanges: '模型未返回有效的编辑内容',
     editPartialSuccess:
-      '已应用 ${appliedCount}/${blocks.length} 个编辑，详情请查看控制台',
-    editApplied: '成功应用了 ${appliedCount} 个编辑到 ${activeFile.name}',
+      '已应用 {appliedCount}/{totalEdits} 个编辑，详情请查看控制台',
+    editApplied: '成功应用了 {appliedCount} 个编辑到 {fileName}',
   },
 
   chatMode: {
     chat: '对话',
-    chatDesc: '普通对话模式',
+    chatDesc: '适合提问、润色与改写',
     agent: 'Agent',
-    agentDesc: '敏思，捷行',
+    agentDesc: '启用工具链，处理多步骤任务',
+    warning: {
+      title: '⚠️ Agent 模式风险提示',
+      description:
+        'Agent 具备自动调用工具、修改文件内容的能力。请在继续前了解以下风险：',
+      permission:
+        '模型可能出错：部分操作可能无法撤销，请严格控制工具调用权限，仅授予必要权限',
+      cost: '资源消耗较高：Agent 任务可能消耗较多 Token 并产生更高成本',
+      backup: '请提前备份：重要内容建议备份，以防误操作导致意外变更',
+      checkbox: '我已了解上述风险，并愿意自行承担相关后果',
+      cancel: '取消',
+      confirm: '继续并启用 Agent',
+    },
   },
 
   reasoning: {

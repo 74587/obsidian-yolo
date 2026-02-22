@@ -264,26 +264,32 @@ export const smartComposerSettingsSchema = z.object({
       builtinToolOptions: {},
     }),
 
+  // Skills configuration
+  skills: z
+    .object({
+      disabledSkillIds: z.array(z.string()).catch([]),
+    })
+    .catch({
+      disabledSkillIds: [],
+    }),
+
   // Chat options
   chatOptions: z
     .object({
       includeCurrentFileContent: z.boolean(),
-      enableTools: z.boolean(),
-      maxAutoIterations: z.number(),
-      maxContextMessages: z.number(),
       chatTitlePrompt: z.string().optional(),
       baseModelSpecialPrompt: z.string().optional(),
       // Chat mode (chat/agent)
       chatMode: z.enum(['chat', 'agent']).optional(),
+      // Whether the user has acknowledged the first-time agent mode warning
+      agentModeWarningConfirmed: z.boolean().optional(),
     })
     .catch({
       includeCurrentFileContent: true,
-      enableTools: true,
-      maxAutoIterations: 1,
-      maxContextMessages: 32,
       chatTitlePrompt: '',
       baseModelSpecialPrompt: '',
       chatMode: 'chat',
+      agentModeWarningConfirmed: false,
     }),
 
   // Continuation (续写) options

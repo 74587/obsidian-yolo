@@ -4,6 +4,10 @@ import React, { useState } from 'react'
 
 import { useLanguage } from '../../contexts/language-context'
 import { useSettings } from '../../contexts/settings-context'
+import {
+  DEFAULT_ASSISTANT_ID,
+  isDefaultAssistantId,
+} from '../../core/agent/default-assistant'
 import { Assistant } from '../../types/assistant.types'
 import { renderAssistantIcon } from '../../utils/assistant-icon'
 
@@ -14,7 +18,7 @@ export function AssistantSelector() {
 
   // Get assistant list and currently selected assistant
   const assistants = settings.assistants || []
-  const currentAssistantId = settings.currentAssistantId
+  const currentAssistantId = settings.currentAssistantId ?? DEFAULT_ASSISTANT_ID
 
   // Get the current assistant object
   const currentAssistant = assistants.find((a) => a.id === currentAssistantId)
@@ -34,17 +38,17 @@ export function AssistantSelector() {
     })()
   }
 
-  // Handler function for selecting "no assistant"
-  const handleSelectNoAssistant = () => {
+  // Handler function for selecting default assistant
+  const handleSelectDefaultAssistant = () => {
     void (async () => {
       try {
         await setSettings({
           ...settings,
-          currentAssistantId: undefined,
+          currentAssistantId: DEFAULT_ASSISTANT_ID,
         })
         setOpen(false)
       } catch (error: unknown) {
-        console.error('Failed to clear assistant selection', error)
+        console.error('Failed to select default assistant', error)
       }
     })()
   }
@@ -53,6 +57,7 @@ export function AssistantSelector() {
     <Popover.Root open={open} onOpenChange={setOpen}>
       <Popover.Trigger asChild>
         <button
+          type="button"
           className="smtcmp-assistant-selector-button"
           data-state={open ? 'open' : 'closed'}
         >
@@ -79,43 +84,55 @@ export function AssistantSelector() {
         >
           <ul className="smtcmp-assistant-selector-list smtcmp-model-select-list">
             {/* "No Assistant" option */}
-            <li
-              className={`smtcmp-assistant-selector-item ${
-                !currentAssistantId ? 'selected' : ''
-              }`}
-              onClick={handleSelectNoAssistant}
-            >
-              <div className="smtcmp-assistant-selector-item-content">
-                <div className="smtcmp-assistant-selector-item-name">
-                  {t('settings.assistants.noAssistant')}
+            <li className="smtcmp-assistant-selector-row">
+              <button
+                type="button"
+                className={`smtcmp-assistant-selector-item ${
+                  isDefaultAssistantId(currentAssistantId) ? 'selected' : ''
+                }`}
+                onClick={handleSelectDefaultAssistant}
+              >
+                <div className="smtcmp-assistant-selector-item-content">
+                  <div className="smtcmp-assistant-selector-item-name">
+                    {assistants.find((assistant) =>
+                      isDefaultAssistantId(assistant.id),
+                    )?.name ?? t('settings.assistants.noAssistant')}
+                  </div>
                 </div>
-              </div>
+              </button>
             </li>
 
             {/* Available assistants */}
-            {assistants.map((assistant) => (
-              <li
-                key={assistant.id}
-                className={`smtcmp-assistant-selector-item ${
-                  assistant.id === currentAssistantId ? 'selected' : ''
-                }`}
-                onClick={() => handleSelectAssistant(assistant)}
-              >
-                <div className="smtcmp-assistant-selector-item-icon">
-                  {renderAssistantIcon(assistant.icon, 14)}
-                </div>
-                <div className="smtcmp-assistant-selector-item-content">
-                  <div className="smtcmp-assistant-selector-item-name">
-                    {assistant.name}
-                  </div>
-                  {assistant.description && (
-                    <div className="smtcmp-assistant-selector-item-description">
-                      {assistant.description}
+            {assistants
+              .filter((assistant) => !isDefaultAssistantId(assistant.id))
+              .map((assistant) => (
+                <li
+                  key={assistant.id}
+                  className="smtcmp-assistant-selector-row"
+                >
+                  <button
+                    type="button"
+                    className={`smtcmp-assistant-selector-item ${
+                      assistant.id === currentAssistantId ? 'selected' : ''
+                    }`}
+                    onClick={() => handleSelectAssistant(assistant)}
+                  >
+                    <div className="smtcmp-assistant-selector-item-icon">
+                      {renderAssistantIcon(assistant.icon, 14)}
                     </div>
-                  )}
-                </div>
-              </li>
-            ))}
+                    <div className="smtcmp-assistant-selector-item-content">
+                      <div className="smtcmp-assistant-selector-item-name">
+                        {assistant.name}
+                      </div>
+                      {assistant.description && (
+                        <div className="smtcmp-assistant-selector-item-description">
+                          {assistant.description}
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                </li>
+              ))}
           </ul>
         </Popover.Content>
       </Popover.Portal>

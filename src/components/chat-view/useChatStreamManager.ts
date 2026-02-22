@@ -13,10 +13,12 @@ import {
   LLMModelNotFoundException,
 } from '../../core/llm/exception'
 import { getChatModelClient } from '../../core/llm/manager'
+import { listLiteSkillEntries } from '../../core/skills/liteSkills'
+import { isSkillEnabledForAssistant } from '../../core/skills/skillPolicy'
 import { ChatMessage } from '../../types/chat'
 import { ConversationOverrideSettings } from '../../types/conversation-settings.types'
 import { PromptGenerator } from '../../utils/chat/promptGenerator'
-import { ResponseGenerator } from '../../utils/chat/responseGenerator'
+import { mergeCustomParameters } from '../../utils/custom-parameters'
 import { ErrorModal } from '../modals/ErrorModal'
 
 import { ChatMode } from './chat-input/ChatModeSelect'
@@ -31,6 +33,8 @@ type UseChatStreamManagerParams = {
   chatMode: ChatMode
   currentFileOverride?: TFile | null
 }
+
+const DEFAULT_MAX_AUTO_TOOL_ITERATIONS = 100
 
 export type UseChatStreamManager = {
   abortActiveStreams: () => void
@@ -128,6 +132,41 @@ export function useChatStreamManager({
           chatMode === 'agent' ? selectedAssistant?.topP : undefined
         const assistantMaxTokens =
           chatMode === 'agent' ? selectedAssistant?.maxOutputTokens : undefined
+        const assistantMaxContextMessages =
+          chatMode === 'agent'
+            ? selectedAssistant?.maxContextMessages
+            : undefined
+        const effectiveModel =
+          chatMode === 'agent' && selectedAssistant
+            ? {
+                ...resolvedClient.model,
+                customParameters: mergeCustomParameters(
+                  resolvedClient.model.customParameters,
+                  selectedAssistant.customParameters,
+                ),
+              }
+            : resolvedClient.model
+        const disabledSkillIds = settings.skills?.disabledSkillIds ?? []
+        const enabledSkillEntries =
+          chatMode === 'agent' && selectedAssistant
+            ? listLiteSkillEntries(app).filter((skill) =>
+                isSkillEnabledForAssistant({
+                  assistant: selectedAssistant,
+                  skillId: skill.id,
+                  disabledSkillIds,
+                }),
+              )
+            : []
+        const allowedSkillIds = enabledSkillEntries.map((skill) => skill.id)
+        const allowedSkillNames = enabledSkillEntries.map((skill) => skill.name)
+
+        const effectiveEnableTools =
+          chatMode === 'agent'
+            ? (selectedAssistant?.enableTools ?? true)
+            : false
+        const effectiveIncludeBuiltinTools = effectiveEnableTools
+          ? (selectedAssistant?.includeBuiltinTools ?? true)
+          : false
 
         const mcpManager = await getMcpManager()
         const onRunnerMessages = (responseMessages: ChatMessage[]) => {
@@ -150,84 +189,54 @@ export function useChatStreamManager({
           autoScrollToBottom()
         }
 
-        if (chatMode === 'agent') {
-          const agentService = plugin.getAgentService()
-          unsubscribeRunner = agentService.subscribe(
-            conversationId,
-            (state) => {
-              onRunnerMessages(state.messages)
-            },
-            { emitCurrent: false },
-          )
-          await agentService.run({
-            conversationId,
-            loopConfig: {
-              enableTools: selectedAssistant?.enableTools ?? true,
-              maxAutoIterations: Math.max(
-                8,
-                settings.chatOptions.maxAutoIterations,
-              ),
-              includeBuiltinTools:
-                selectedAssistant?.includeBuiltinTools ?? true,
-            },
-            input: {
-              providerClient: resolvedClient.providerClient,
-              model: resolvedClient.model,
-              messages: chatMessages,
-              conversationId,
-              promptGenerator,
-              mcpManager,
-              abortSignal: abortController.signal,
-              reasoningLevel,
-              allowedToolNames: selectedAssistant?.enabledToolNames,
-              requestParams: {
-                stream: conversationOverrides?.stream ?? true,
-                temperature:
-                  conversationOverrides?.temperature ?? assistantTemperature,
-                top_p: conversationOverrides?.top_p ?? assistantTopP,
-                max_tokens: assistantMaxTokens,
-              },
-              maxContextOverride:
-                conversationOverrides?.maxContextMessages ?? undefined,
-              currentFileContextMode: 'summary',
-              currentFileOverride,
-              geminiTools: {
-                useWebSearch: conversationOverrides?.useWebSearch ?? false,
-                useUrlContext: conversationOverrides?.useUrlContext ?? false,
-              },
-            },
-          })
-        } else {
-          const responseGenerator = new ResponseGenerator({
+        const agentService = plugin.getAgentService()
+        unsubscribeRunner = agentService.subscribe(
+          conversationId,
+          (state) => {
+            onRunnerMessages(state.messages)
+          },
+          { emitCurrent: false },
+        )
+        await agentService.run({
+          conversationId,
+          loopConfig: {
+            enableTools: effectiveEnableTools,
+            maxAutoIterations: DEFAULT_MAX_AUTO_TOOL_ITERATIONS,
+            includeBuiltinTools: effectiveIncludeBuiltinTools,
+          },
+          input: {
             providerClient: resolvedClient.providerClient,
-            model: resolvedClient.model,
+            model: effectiveModel,
             messages: chatMessages,
             conversationId,
-            enableTools: settings.chatOptions.enableTools,
-            maxAutoIterations: settings.chatOptions.maxAutoIterations,
-            includeBuiltinTools: false,
             promptGenerator,
             mcpManager,
             abortSignal: abortController.signal,
             reasoningLevel,
+            allowedToolNames: effectiveEnableTools
+              ? selectedAssistant?.enabledToolNames
+              : undefined,
+            allowedSkillIds,
+            allowedSkillNames,
             requestParams: {
               stream: conversationOverrides?.stream ?? true,
-              temperature: conversationOverrides?.temperature ?? undefined,
-              top_p: conversationOverrides?.top_p ?? undefined,
+              temperature:
+                conversationOverrides?.temperature ?? assistantTemperature,
+              top_p: conversationOverrides?.top_p ?? assistantTopP,
+              max_tokens: assistantMaxTokens,
             },
             maxContextOverride:
-              conversationOverrides?.maxContextMessages ?? undefined,
-            currentFileContextMode: 'full',
+              conversationOverrides?.maxContextMessages ??
+              assistantMaxContextMessages ??
+              undefined,
+            currentFileContextMode: chatMode === 'agent' ? 'summary' : 'full',
             currentFileOverride,
             geminiTools: {
               useWebSearch: conversationOverrides?.useWebSearch ?? false,
               useUrlContext: conversationOverrides?.useUrlContext ?? false,
             },
-          })
-
-          unsubscribeRunner = responseGenerator.subscribe(onRunnerMessages)
-          await responseGenerator.run()
-        }
+          },
+        })
       } catch (error) {
         // Ignore AbortError
         if (error instanceof Error && error.name === 'AbortError') {

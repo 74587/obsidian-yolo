@@ -6,7 +6,12 @@ import { DEFAULT_PROVIDERS } from '../../../constants'
 import { useLanguage } from '../../../contexts/language-context'
 import SmartComposerPlugin from '../../../main'
 import { ChatModel, chatModelSchema } from '../../../types/chat-model.types'
+import { CustomParameter } from '../../../types/custom-parameter.types'
 import { LLMProvider } from '../../../types/provider.types'
+import {
+  normalizeCustomParameterType,
+  sanitizeCustomParameters,
+} from '../../../utils/custom-parameters'
 import {
   detectReasoningTypeFromModelId,
   ensureUniqueModelId,
@@ -37,6 +42,7 @@ const REASONING_TYPES = [
 type ReasoningType = (typeof REASONING_TYPES)[number]
 
 const GEMINI_TOOL_TYPES = ['none', 'gemini'] as const
+const CUSTOM_PARAMETER_TYPES = ['text', 'number', 'boolean', 'json'] as const
 
 const REASONING_CONFIG_PROVIDER_TYPES = [
   'openai',
@@ -162,13 +168,13 @@ function AddChatModelModalComponent({
   // Tool type (only meaningful for Gemini provider)
   const [toolType, setToolType] =
     useState<(typeof GEMINI_TOOL_TYPES)[number]>('none')
-  const defaultSamplingCustomParameters: { key: string; value: string }[] = [
-    { key: 'temperature', value: '0.8' },
-    { key: 'top_p', value: '' },
+  const defaultSamplingCustomParameters: CustomParameter[] = [
+    { key: 'temperature', value: '0.8', type: 'number' },
+    { key: 'top_p', value: '', type: 'number' },
   ]
-  const [customParameters, setCustomParameters] = useState<
-    { key: string; value: string }[]
-  >([...defaultSamplingCustomParameters])
+  const [customParameters, setCustomParameters] = useState<CustomParameter[]>([
+    ...defaultSamplingCustomParameters,
+  ])
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -325,9 +331,7 @@ function AddChatModelModalComponent({
     const baseInternalId = generateModelId(formData.providerId, formData.model)
     const existingIds = plugin.settings.chatModels.map((m) => m.id)
     const modelIdWithPrefix = ensureUniqueModelId(existingIds, baseInternalId)
-    const sanitizedCustomParameters = customParameters
-      .map((entry) => ({ key: entry.key.trim(), value: entry.value }))
-      .filter((entry) => entry.key.length > 0)
+    const sanitizedCustomParameters = sanitizeCustomParameters(customParameters)
 
     let modelDataWithPrefix: ChatModel = {
       ...formData,
@@ -531,15 +535,22 @@ function AddChatModelModalComponent({
         <ObsidianButton
           text={t('settings.models.customParametersAdd')}
           onClick={() =>
-            setCustomParameters((prev) => [...prev, { key: '', value: '' }])
+            setCustomParameters((prev) => [
+              ...prev,
+              {
+                key: '',
+                value: '',
+                type: 'text',
+              },
+            ])
           }
         />
       </ObsidianSetting>
 
       {customParameters.map((param, index) => (
         <ObsidianSetting
-          key={`custom-parameter-${index}`}
-          className="smtcmp-settings-kv-entry"
+          key={`${param.key}-${param.type ?? 'text'}-${param.value}`}
+          className="smtcmp-settings-kv-entry smtcmp-settings-kv-entry--inline"
         >
           <ObsidianTextInput
             value={param.key}
@@ -548,6 +559,30 @@ function AddChatModelModalComponent({
               setCustomParameters((prev) => {
                 const next = [...prev]
                 next[index] = { ...next[index], key: value }
+                return next
+              })
+            }
+          />
+          <ObsidianDropdown
+            value={normalizeCustomParameterType(param.type)}
+            options={Object.fromEntries(
+              CUSTOM_PARAMETER_TYPES.map((type) => [
+                type,
+                t(
+                  `settings.models.customParameterType${
+                    type.charAt(0).toUpperCase() + type.slice(1)
+                  }`,
+                  type,
+                ),
+              ]),
+            )}
+            onChange={(value: string) =>
+              setCustomParameters((prev) => {
+                const next = [...prev]
+                next[index] = {
+                  ...next[index],
+                  type: normalizeCustomParameterType(value),
+                }
                 return next
               })
             }

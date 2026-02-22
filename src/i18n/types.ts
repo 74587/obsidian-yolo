@@ -107,7 +107,6 @@ export type TranslationKeys = {
     title: string
     tabs: {
       models: string
-      chat: string
       editor: string
       knowledge: string
       tools: string
@@ -140,12 +139,6 @@ export type TranslationKeys = {
       title: string
       includeCurrentFile: string
       includeCurrentFileDesc: string
-      enableTools: string
-      enableToolsDesc: string
-      maxAutoIterations: string
-      maxAutoIterationsDesc: string
-      maxContextMessages: string
-      maxContextMessagesDesc: string
     }
     assistants: {
       title: string
@@ -193,6 +186,13 @@ export type TranslationKeys = {
       toolsCountWithEnabled?: string
       skills?: string
       skillsCount?: string
+      skillsCountWithEnabled?: string
+      skillsGlobalDesc?: string
+      skillsSourcePath?: string
+      refreshSkills?: string
+      skillsEmptyHint?: string
+      createSkillTemplates?: string
+      skillsTemplateCreated?: string
       agents?: string
       agentsDesc?: string
       configureAgents?: string
@@ -209,6 +209,7 @@ export type TranslationKeys = {
       noMcpTools?: string
       toolsEnabledCount?: string
       manageTools?: string
+      manageSkills?: string
       descriptionColumn?: string
       builtinFsListLabel?: string
       builtinFsListDesc?: string
@@ -220,6 +221,8 @@ export type TranslationKeys = {
       builtinFsEditDesc?: string
       builtinFsWriteLabel?: string
       builtinFsWriteDesc?: string
+      builtinOpenSkillLabel?: string
+      builtinOpenSkillDesc?: string
       editorDefaultName?: string
       editorIntro?: string
       editorTabProfile?: string
@@ -242,15 +245,31 @@ export type TranslationKeys = {
       editorEnabled?: string
       editorDisabled?: string
       editorModel?: string
+      editorModelDesc?: string
       editorModelCurrent?: string
+      editorModelSampling?: string
+      editorModelResetDefaults?: string
+      modelPresetFocused?: string
+      modelPresetBalanced?: string
+      modelPresetCreative?: string
       editorTemperature?: string
       editorTemperatureDesc?: string
       editorTopP?: string
       editorTopPDesc?: string
       editorMaxOutputTokens?: string
       editorMaxOutputTokensDesc?: string
+      editorMaxContextMessages?: string
+      editorCustomParameters?: string
+      editorCustomParametersDesc?: string
+      editorCustomParametersAdd?: string
+      editorCustomParametersKeyPlaceholder?: string
+      editorCustomParametersValuePlaceholder?: string
       editorToolsCount?: string
       editorSkillsCount?: string
+      editorSkillsCountWithEnabled?: string
+      skillLoadAlways?: string
+      skillLoadLazy?: string
+      skillDisabledGlobally?: string
     }
     providers: {
       title: string
@@ -325,6 +344,10 @@ export type TranslationKeys = {
       customParametersAdd?: string
       customParametersKeyPlaceholder?: string
       customParametersValuePlaceholder?: string
+      customParameterTypeText?: string
+      customParameterTypeNumber?: string
+      customParameterTypeBoolean?: string
+      customParameterTypeJson?: string
       dimension: string
       dimensionDesc: string
       dimensionPlaceholder: string
@@ -538,6 +561,10 @@ export type TranslationKeys = {
       resetProvidersDesc?: string
       resetProvidersConfirm?: string
       resetProvidersSuccess?: string
+      resetAgents?: string
+      resetAgentsDesc?: string
+      resetAgentsConfirm?: string
+      resetAgentsSuccess?: string
     }
     smartSpace?: {
       quickActionsTitle: string
@@ -645,6 +672,12 @@ export type TranslationKeys = {
     regenerate: string
     reasoning: string
     annotations: string
+    emptyState?: {
+      chatTitle?: string
+      chatDescription?: string
+      agentTitle?: string
+      agentDescription?: string
+    }
     codeBlock?: {
       showRawText?: string
       showFormattedText?: string
@@ -711,6 +744,7 @@ export type TranslationKeys = {
         fs_read?: string
         fs_edit?: string
         fs_write?: string
+        open_skill?: string
       }
       writeAction?: {
         create_file?: string
@@ -837,6 +871,16 @@ export type TranslationKeys = {
     chatDesc?: string
     agent?: string
     agentDesc?: string
+    warning?: {
+      title?: string
+      description?: string
+      permission?: string
+      cost?: string
+      backup?: string
+      checkbox?: string
+      cancel?: string
+      confirm?: string
+    }
   }
 
   // Reasoning Select

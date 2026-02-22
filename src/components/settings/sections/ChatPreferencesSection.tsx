@@ -1,30 +1,11 @@
-import { useEffect, useState } from 'react'
-
 import { useLanguage } from '../../../contexts/language-context'
 import { useSettings } from '../../../contexts/settings-context'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
-import { ObsidianTextInput } from '../../common/ObsidianTextInput'
 import { ObsidianToggle } from '../../common/ObsidianToggle'
 
 export function ChatPreferencesSection() {
   const { settings, setSettings } = useSettings()
   const { t } = useLanguage()
-  const [maxAutoIterationsInput, setMaxAutoIterationsInput] = useState(
-    settings.chatOptions.maxAutoIterations.toString(),
-  )
-  const [maxContextMessagesInput, setMaxContextMessagesInput] = useState(
-    (settings.chatOptions.maxContextMessages ?? 32).toString(),
-  )
-
-  useEffect(() => {
-    setMaxAutoIterationsInput(settings.chatOptions.maxAutoIterations.toString())
-  }, [settings.chatOptions.maxAutoIterations])
-
-  useEffect(() => {
-    setMaxContextMessagesInput(
-      (settings.chatOptions.maxContextMessages ?? 32).toString(),
-    )
-  }, [settings.chatOptions.maxContextMessages])
 
   const updateChatOptions = (
     patch: Partial<typeof settings.chatOptions>,
@@ -43,13 +24,6 @@ export function ChatPreferencesSection() {
         console.error(`Failed to update chat options: ${context}`, error)
       }
     })()
-  }
-
-  const parseIntegerInput = (value: string) => {
-    const trimmed = value.trim()
-    if (trimmed.length === 0) return null
-    if (!/^\d+$/.test(trimmed)) return null
-    return parseInt(trimmed, 10)
   }
 
   return (
@@ -71,79 +45,6 @@ export function ChatPreferencesSection() {
               },
               'includeCurrentFileContent',
             )
-          }}
-        />
-      </ObsidianSetting>
-
-      <ObsidianSetting
-        name={t('settings.chatPreferences.enableTools')}
-        desc={t('settings.chatPreferences.enableToolsDesc')}
-      >
-        <ObsidianToggle
-          value={settings.chatOptions.enableTools}
-          onChange={(value) => {
-            updateChatOptions(
-              {
-                enableTools: value,
-              },
-              'enableTools',
-            )
-          }}
-        />
-      </ObsidianSetting>
-
-      <ObsidianSetting
-        name={t('settings.chatPreferences.maxAutoIterations')}
-        desc={t('settings.chatPreferences.maxAutoIterationsDesc')}
-      >
-        <ObsidianTextInput
-          value={maxAutoIterationsInput}
-          onChange={(value) => {
-            setMaxAutoIterationsInput(value)
-            const parsedValue = parseIntegerInput(value)
-            if (parsedValue === null || parsedValue < 1) return
-            updateChatOptions(
-              {
-                maxAutoIterations: parsedValue,
-              },
-              'maxAutoIterations',
-            )
-          }}
-          onBlur={() => {
-            const parsedValue = parseIntegerInput(maxAutoIterationsInput)
-            if (parsedValue === null || parsedValue < 1) {
-              setMaxAutoIterationsInput(
-                settings.chatOptions.maxAutoIterations.toString(),
-              )
-            }
-          }}
-        />
-      </ObsidianSetting>
-
-      <ObsidianSetting
-        name={t('settings.chatPreferences.maxContextMessages')}
-        desc={t('settings.chatPreferences.maxContextMessagesDesc')}
-      >
-        <ObsidianTextInput
-          value={maxContextMessagesInput}
-          onChange={(value) => {
-            setMaxContextMessagesInput(value)
-            const parsedValue = parseIntegerInput(value)
-            if (parsedValue === null || parsedValue < 0) return
-            updateChatOptions(
-              {
-                maxContextMessages: parsedValue,
-              },
-              'maxContextMessages',
-            )
-          }}
-          onBlur={() => {
-            const parsedValue = parseIntegerInput(maxContextMessagesInput)
-            if (parsedValue === null || parsedValue < 0) {
-              setMaxContextMessagesInput(
-                (settings.chatOptions.maxContextMessages ?? 32).toString(),
-              )
-            }
           }}
         />
       </ObsidianSetting>

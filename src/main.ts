@@ -15,6 +15,7 @@ import { ChatView } from './ChatView'
 import { ChatProps } from './components/chat-view/Chat'
 import { InstallerUpdateRequiredModal } from './components/modals/InstallerUpdateRequiredModal'
 import { CHAT_VIEW_TYPE } from './constants'
+import { ensureDefaultAssistantInSettings } from './core/agent/default-assistant'
 import { AgentService } from './core/agent/service'
 import { McpCoordinator } from './core/mcp/mcpCoordinator'
 import type { McpManager } from './core/mcp/mcpManager'
@@ -883,7 +884,9 @@ export default class SmartComposerPlugin extends Plugin {
     this.writeAssistController = null
 
     // clear all timers
-    this.timeoutIds.forEach((id) => clearTimeout(id))
+    this.timeoutIds.forEach((id) => {
+      clearTimeout(id)
+    })
     this.timeoutIds = []
 
     // RagEngine cleanup
@@ -915,12 +918,16 @@ export default class SmartComposerPlugin extends Plugin {
   }
 
   async loadSettings() {
-    this.settings = parseSmartComposerSettings(await this.loadData())
+    this.settings = ensureDefaultAssistantInSettings(
+      parseSmartComposerSettings(await this.loadData()),
+    )
     await this.saveData(this.settings) // Save updated settings
   }
 
   async setSettings(newSettings: SmartComposerSettings) {
-    const validationResult = smartComposerSettingsSchema.safeParse(newSettings)
+    const normalizedSettings = ensureDefaultAssistantInSettings(newSettings)
+    const validationResult =
+      smartComposerSettingsSchema.safeParse(normalizedSettings)
 
     if (!validationResult.success) {
       new Notice(`Invalid settings:
@@ -928,10 +935,12 @@ ${validationResult.error.issues.map((v) => v.message).join('\n')}`)
       return
     }
 
-    this.settings = newSettings
-    await this.saveData(newSettings)
-    this.ragCoordinator?.updateSettings(newSettings)
-    this.settingsChangeListeners.forEach((listener) => listener(newSettings))
+    this.settings = normalizedSettings
+    await this.saveData(normalizedSettings)
+    this.ragCoordinator?.updateSettings(normalizedSettings)
+    this.settingsChangeListeners.forEach((listener) => {
+      listener(normalizedSettings)
+    })
   }
 
   addSettingsChangeListener(
