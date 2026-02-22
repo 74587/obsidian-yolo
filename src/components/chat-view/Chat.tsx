@@ -116,6 +116,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
 
   const {
     createOrUpdateConversation,
+    createOrUpdateConversationImmediately,
     deleteConversation,
     getConversationById,
     updateConversationTitle,
@@ -347,6 +348,37 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
       chatMode,
       conversationOverrides,
       createOrUpdateConversation,
+      currentConversationId,
+      reasoningLevel,
+    ],
+  )
+
+  const persistConversationImmediately = useCallback(
+    async (messages: ChatMessage[]): Promise<boolean> => {
+      if (messages.length === 0) return false
+      try {
+        const effectiveOverrides = {
+          ...(conversationOverrides ?? {}),
+          chatMode,
+        }
+        await createOrUpdateConversationImmediately(
+          currentConversationId,
+          messages,
+          effectiveOverrides,
+          conversationReasoningLevelRef.current.get(currentConversationId) ??
+            reasoningLevel,
+        )
+        return true
+      } catch (error) {
+        new Notice('Failed to save chat history')
+        console.error('Failed to save chat history', error)
+        return false
+      }
+    },
+    [
+      chatMode,
+      conversationOverrides,
+      createOrUpdateConversationImmediately,
       currentConversationId,
       reasoningLevel,
     ],
@@ -855,14 +887,21 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     }
     if (submitMutationPendingRef.current) {
       submitMutationPendingRef.current = false
-      void persistConversation(chatMessages)
-      void generateConversationTitle(currentConversationId, chatMessages)
+      void (async () => {
+        const saved = await persistConversationImmediately(chatMessages)
+        if (!saved) {
+          return
+        }
+        await generateConversationTitle(currentConversationId, chatMessages)
+      })().catch((error) => {
+        console.error('Failed to generate conversation title', error)
+      })
     }
   }, [
     chatMessages,
     currentConversationId,
     generateConversationTitle,
-    persistConversation,
+    persistConversationImmediately,
     submitChatMutation.isPending,
   ])
 
