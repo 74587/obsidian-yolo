@@ -972,9 +972,9 @@ export const it: TranslationKeys = {
 
   chatMode: {
     chat: 'Chat',
-    chatDesc: 'Modalità conversazione normale',
+    chatDesc: 'Agent predefinito (strumenti disabilitati)',
     agent: 'Agent',
-    agentDesc: 'Pensiero rapido, azione agile',
+    agentDesc: 'Modalità agent con strumenti',
   },
 
   reasoning: {

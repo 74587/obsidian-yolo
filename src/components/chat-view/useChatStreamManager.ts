@@ -6,6 +6,7 @@ import { useApp } from '../../contexts/app-context'
 import { useMcp } from '../../contexts/mcp-context'
 import { usePlugin } from '../../contexts/plugin-context'
 import { useSettings } from '../../contexts/settings-context'
+import { isDefaultAssistantId } from '../../core/agent/default-assistant'
 import {
   LLMAPIKeyInvalidException,
   LLMAPIKeyNotSetException,
@@ -18,7 +19,6 @@ import { isSkillEnabledForAssistant } from '../../core/skills/skillPolicy'
 import { ChatMessage } from '../../types/chat'
 import { ConversationOverrideSettings } from '../../types/conversation-settings.types'
 import { PromptGenerator } from '../../utils/chat/promptGenerator'
-import { ResponseGenerator } from '../../utils/chat/responseGenerator'
 import { mergeCustomParameters } from '../../utils/custom-parameters'
 import { ErrorModal } from '../modals/ErrorModal'
 
@@ -161,6 +161,16 @@ export function useChatStreamManager({
         const allowedSkillIds = enabledSkillEntries.map((skill) => skill.id)
         const allowedSkillNames = enabledSkillEntries.map((skill) => skill.name)
 
+        const isDefaultAssistant = isDefaultAssistantId(selectedAssistant?.id)
+        const effectiveEnableTools =
+          chatMode === 'agent' && !isDefaultAssistant
+            ? (selectedAssistant?.enableTools ?? true)
+            : false
+        const effectiveIncludeBuiltinTools =
+          effectiveEnableTools && !isDefaultAssistant
+            ? (selectedAssistant?.includeBuiltinTools ?? true)
+            : false
+
         const mcpManager = await getMcpManager()
         const onRunnerMessages = (responseMessages: ChatMessage[]) => {
           setChatMessages((prevChatMessages) => {
@@ -182,85 +192,54 @@ export function useChatStreamManager({
           autoScrollToBottom()
         }
 
-        if (chatMode === 'agent') {
-          const agentService = plugin.getAgentService()
-          unsubscribeRunner = agentService.subscribe(
-            conversationId,
-            (state) => {
-              onRunnerMessages(state.messages)
-            },
-            { emitCurrent: false },
-          )
-          await agentService.run({
-            conversationId,
-            loopConfig: {
-              enableTools: selectedAssistant?.enableTools ?? true,
-              maxAutoIterations: DEFAULT_MAX_AUTO_TOOL_ITERATIONS,
-              includeBuiltinTools:
-                selectedAssistant?.includeBuiltinTools ?? true,
-            },
-            input: {
-              providerClient: resolvedClient.providerClient,
-              model: effectiveModel,
-              messages: chatMessages,
-              conversationId,
-              promptGenerator,
-              mcpManager,
-              abortSignal: abortController.signal,
-              reasoningLevel,
-              allowedToolNames: selectedAssistant?.enabledToolNames,
-              allowedSkillIds,
-              allowedSkillNames,
-              requestParams: {
-                stream: conversationOverrides?.stream ?? true,
-                temperature:
-                  conversationOverrides?.temperature ?? assistantTemperature,
-                top_p: conversationOverrides?.top_p ?? assistantTopP,
-                max_tokens: assistantMaxTokens,
-              },
-              maxContextOverride:
-                conversationOverrides?.maxContextMessages ??
-                assistantMaxContextMessages ??
-                undefined,
-              currentFileContextMode: 'summary',
-              currentFileOverride,
-              geminiTools: {
-                useWebSearch: conversationOverrides?.useWebSearch ?? false,
-                useUrlContext: conversationOverrides?.useUrlContext ?? false,
-              },
-            },
-          })
-        } else {
-          const responseGenerator = new ResponseGenerator({
+        const agentService = plugin.getAgentService()
+        unsubscribeRunner = agentService.subscribe(
+          conversationId,
+          (state) => {
+            onRunnerMessages(state.messages)
+          },
+          { emitCurrent: false },
+        )
+        await agentService.run({
+          conversationId,
+          loopConfig: {
+            enableTools: effectiveEnableTools,
+            maxAutoIterations: DEFAULT_MAX_AUTO_TOOL_ITERATIONS,
+            includeBuiltinTools: effectiveIncludeBuiltinTools,
+          },
+          input: {
             providerClient: resolvedClient.providerClient,
             model: effectiveModel,
             messages: chatMessages,
             conversationId,
-            enableTools: true,
-            maxAutoIterations: DEFAULT_MAX_AUTO_TOOL_ITERATIONS,
-            includeBuiltinTools: false,
             promptGenerator,
             mcpManager,
             abortSignal: abortController.signal,
             reasoningLevel,
+            allowedToolNames: effectiveEnableTools
+              ? selectedAssistant?.enabledToolNames
+              : undefined,
+            allowedSkillIds,
+            allowedSkillNames,
             requestParams: {
               stream: conversationOverrides?.stream ?? true,
-              temperature: conversationOverrides?.temperature ?? undefined,
-              top_p: conversationOverrides?.top_p ?? undefined,
+              temperature:
+                conversationOverrides?.temperature ?? assistantTemperature,
+              top_p: conversationOverrides?.top_p ?? assistantTopP,
+              max_tokens: assistantMaxTokens,
             },
             maxContextOverride:
-              conversationOverrides?.maxContextMessages ?? undefined,
-            currentFileContextMode: 'full',
+              conversationOverrides?.maxContextMessages ??
+              assistantMaxContextMessages ??
+              undefined,
+            currentFileContextMode: chatMode === 'agent' ? 'summary' : 'full',
             currentFileOverride,
             geminiTools: {
               useWebSearch: conversationOverrides?.useWebSearch ?? false,
               useUrlContext: conversationOverrides?.useUrlContext ?? false,
             },
-          })
-
-          unsubscribeRunner = responseGenerator.subscribe(onRunnerMessages)
-          await responseGenerator.run()
-        }
+          },
+        })
       } catch (error) {
         // Ignore AbortError
         if (error instanceof Error && error.name === 'AbortError') {

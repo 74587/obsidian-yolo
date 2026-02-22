@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '../../../contexts/language-context'
 import { usePlugin } from '../../../contexts/plugin-context'
 import { useSettings } from '../../../contexts/settings-context'
+import { isDefaultAssistantId } from '../../../core/agent/default-assistant'
 import { getLocalFileTools } from '../../../core/mcp/localFileTools'
 import { McpManager } from '../../../core/mcp/mcpManager'
 import { listLiteSkillEntries } from '../../../core/skills/liteSkills'
@@ -125,6 +126,10 @@ export function AgentSection({ app }: AgentSectionProps) {
   }
 
   const handleDeleteAssistant = (assistant: Assistant) => {
+    if (isDefaultAssistantId(assistant.id)) {
+      return
+    }
+
     let confirmed = false
 
     const modal = new ConfirmModal(app, {
@@ -407,17 +412,19 @@ export function AgentSection({ app }: AgentSectionProps) {
                             {t('settings.agent.duplicate', 'Duplicate')}
                           </li>
                         </DropdownMenu.Item>
-                        <DropdownMenu.Item
-                          asChild
-                          onSelect={() => handleDeleteAssistant(assistant)}
-                        >
-                          <li className="smtcmp-agent-card-menu-item smtcmp-agent-card-menu-danger">
-                            <span className="smtcmp-agent-card-menu-icon">
-                              <Trash2 size={16} />
-                            </span>
-                            {t('common.delete')}
-                          </li>
-                        </DropdownMenu.Item>
+                        {!isDefaultAssistantId(assistant.id) && (
+                          <DropdownMenu.Item
+                            asChild
+                            onSelect={() => handleDeleteAssistant(assistant)}
+                          >
+                            <li className="smtcmp-agent-card-menu-item smtcmp-agent-card-menu-danger">
+                              <span className="smtcmp-agent-card-menu-icon">
+                                <Trash2 size={16} />
+                              </span>
+                              {t('common.delete')}
+                            </li>
+                          </DropdownMenu.Item>
+                        )}
                       </ul>
                     </DropdownMenu.Content>
                   </DropdownMenu.Portal>

@@ -965,9 +965,9 @@ export const en: TranslationKeys = {
 
   chatMode: {
     chat: 'Chat',
-    chatDesc: 'Normal conversation mode',
+    chatDesc: 'Default agent (tools disabled)',
     agent: 'Agent',
-    agentDesc: 'Think sharp, move fast',
+    agentDesc: 'Tool-enabled agent mode',
   },
 
   reasoning: {

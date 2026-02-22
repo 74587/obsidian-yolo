@@ -913,9 +913,9 @@ export const zh: TranslationKeys = {
 
   chatMode: {
     chat: '对话',
-    chatDesc: '普通对话模式',
+    chatDesc: '默认 Agent（禁用工具）',
     agent: 'Agent',
-    agentDesc: '敏思，捷行',
+    agentDesc: '工具增强 Agent 模式',
   },
 
   reasoning: {

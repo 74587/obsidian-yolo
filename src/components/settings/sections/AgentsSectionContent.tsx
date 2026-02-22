@@ -12,6 +12,7 @@ import {
 import { useLanguage } from '../../../contexts/language-context'
 import { usePlugin } from '../../../contexts/plugin-context'
 import { useSettings } from '../../../contexts/settings-context'
+import { isDefaultAssistantId } from '../../../core/agent/default-assistant'
 import { getLocalFileToolServerName } from '../../../core/mcp/localFileTools'
 import { parseToolName } from '../../../core/mcp/tool-name-utils'
 import {
@@ -253,6 +254,7 @@ export function AgentsSectionContent({
     maxContextMessages: clampMaxContextMessages(DEFAULT_MAX_CONTEXT_MESSAGES),
   }))
   const activeTabIndex = AGENT_EDITOR_TABS.findIndex((tab) => tab === activeTab)
+  const isDefaultDraftAgent = isDefaultAssistantId(draftAgent?.id)
   const activeTabIndexRef = useRef(activeTabIndex)
   const tabsNavRef = useRef<HTMLDivElement | null>(null)
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([])
@@ -441,6 +443,9 @@ export function AgentsSectionContent({
 
   const toggleTool = (toolName: string) => {
     if (!draftAgent) {
+      return
+    }
+    if (isDefaultAssistantId(draftAgent.id)) {
       return
     }
     const current = new Set(draftAgent.enabledToolNames ?? [])
@@ -847,12 +852,13 @@ export function AgentsSectionContent({
               >
                 <ObsidianToggle
                   value={Boolean(draftAgent.enableTools)}
-                  onChange={(value) =>
+                  onChange={(value) => {
+                    if (isDefaultDraftAgent) return
                     setDraftAgent({
                       ...draftAgent,
                       enableTools: value,
                     })
-                  }
+                  }}
                 />
               </ObsidianSetting>
               <ObsidianSetting
@@ -867,17 +873,20 @@ export function AgentsSectionContent({
               >
                 <ObsidianToggle
                   value={Boolean(draftAgent.includeBuiltinTools)}
-                  onChange={(value) =>
+                  onChange={(value) => {
+                    if (isDefaultDraftAgent) return
                     setDraftAgent({
                       ...draftAgent,
                       includeBuiltinTools: value,
                     })
-                  }
+                  }}
                 />
               </ObsidianSetting>
               <div
                 className={`smtcmp-agent-tools-panel${
-                  draftAgent.enableTools ? '' : ' is-disabled'
+                  draftAgent.enableTools && !isDefaultDraftAgent
+                    ? ''
+                    : ' is-disabled'
                 }`}
               >
                 <div className="smtcmp-agent-tools-panel-head">
