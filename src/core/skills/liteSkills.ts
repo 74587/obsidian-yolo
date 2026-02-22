@@ -1,5 +1,10 @@
 import { App, TFile } from 'obsidian'
 
+import {
+  getBuiltinLiteSkillByIdOrName,
+  listBuiltinLiteSkills,
+} from './builtinSkills'
+
 export type LiteSkillMode = 'lazy' | 'always'
 
 export type LiteSkillEntry = {
@@ -118,13 +123,29 @@ export function listLiteSkillEntries(app: App): LiteSkillEntry[] {
     .filter((file) => isLiteSkillFile(file))
     .sort((a, b) => a.path.localeCompare(b.path))
 
-  return files.map((file) => {
+  const mergedById = new Map<string, LiteSkillEntry>()
+
+  listBuiltinLiteSkills().forEach((skill) => {
+    mergedById.set(skill.id, {
+      id: skill.id,
+      name: skill.name,
+      description: skill.description,
+      mode: skill.mode,
+      path: skill.path,
+    })
+  })
+
+  files.forEach((file) => {
     const frontmatter = app.metadataCache.getFileCache(file)?.frontmatter
-    return toLiteSkillEntry({
+    const entry = toLiteSkillEntry({
       file,
       frontmatter: frontmatter ?? null,
     })
+    // Vault skill with the same id overrides builtin skill.
+    mergedById.set(entry.id, entry)
   })
+
+  return [...mergedById.values()].sort((a, b) => a.path.localeCompare(b.path))
 }
 
 const findLiteSkillFile = ({
@@ -174,19 +195,36 @@ export async function getLiteSkillDocument({
   name?: string
 }): Promise<LiteSkillDocument | null> {
   const file = findLiteSkillFile({ app, id, name })
-  if (!file) {
+  if (file) {
+    const content = await app.vault.cachedRead(file)
+    const parsedFrontmatter = parseFrontmatterFromContent(content)
+    const entry = toLiteSkillEntry({
+      file,
+      frontmatter: parsedFrontmatter,
+    })
+
+    return {
+      entry,
+      content,
+    }
+  }
+
+  const builtin = getBuiltinLiteSkillByIdOrName({
+    id,
+    name,
+  })
+  if (!builtin) {
     return null
   }
 
-  const content = await app.vault.cachedRead(file)
-  const parsedFrontmatter = parseFrontmatterFromContent(content)
-  const entry = toLiteSkillEntry({
-    file,
-    frontmatter: parsedFrontmatter,
-  })
-
   return {
-    entry,
-    content,
+    entry: {
+      id: builtin.id,
+      name: builtin.name,
+      description: builtin.description,
+      mode: builtin.mode,
+      path: builtin.path,
+    },
+    content: builtin.content,
   }
 }

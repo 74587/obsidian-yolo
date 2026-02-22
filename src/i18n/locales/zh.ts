@@ -255,8 +255,9 @@ export const zh: TranslationKeys = {
       skillsCount: '{count} 个技能',
       skillsCountWithEnabled: '{count} 个技能（已启用 {enabled} 个）',
       skillsGlobalDesc:
-        '技能会从 YOLO/skills/**/*.md 自动发现（排除 Skills.md）。在这里禁用后，所有 Agent 都无法使用。',
-      skillsSourcePath: '路径：YOLO/skills/**/*.md（排除 Skills.md）',
+        '技能会从内置技能与 YOLO/skills/**/*.md 自动发现（排除 Skills.md）。在这里禁用后，所有 Agent 都无法使用。',
+      skillsSourcePath:
+        '来源：内置技能 + YOLO/skills/**/*.md（排除 Skills.md）',
       refreshSkills: '刷新',
       skillsEmptyHint:
         '未发现技能。请在 YOLO/skills 下创建 .md 技能文件（排除 Skills.md）。',

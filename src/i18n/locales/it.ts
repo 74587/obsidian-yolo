@@ -292,8 +292,9 @@ export const it: TranslationKeys = {
       skillsCount: '{count} competenze',
       skillsCountWithEnabled: '{count} competenze (abilitate {enabled})',
       skillsGlobalDesc:
-        'Le skill vengono rilevate da YOLO/skills/**/*.md (escludendo Skills.md). Disabilitale qui per bloccarle su tutti gli agent.',
-      skillsSourcePath: 'Percorso: YOLO/skills/**/*.md (escludendo Skills.md)',
+        'Le skill vengono rilevate dalle skill integrate e da YOLO/skills/**/*.md (escludendo Skills.md). Disabilitale qui per bloccarle su tutti gli agent.',
+      skillsSourcePath:
+        'Origine: skill integrate + YOLO/skills/**/*.md (escludendo Skills.md)',
       refreshSkills: 'Aggiorna',
       skillsEmptyHint:
         'Nessuna skill trovata. Crea file markdown skill sotto YOLO/skills (escludendo Skills.md).',

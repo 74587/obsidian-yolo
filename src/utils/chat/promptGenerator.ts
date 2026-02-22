@@ -130,9 +130,6 @@ export class PromptGenerator {
         messages: compiledMessages,
         maxContextOverride,
       }),
-      ...(shouldUseRAG && !isBaseModel
-        ? [this.getRagInstructionMessage()]
-        : []),
       ...(currentFileMessage ? [currentFileMessage] : []),
     ]
 
@@ -496,17 +493,10 @@ ${await this.getWebsiteContent(url)}
       ? this.buildRAGBehaviorSection(hasTools)
       : this.buildDefaultBehaviorSection(hasTools)
 
-    // Build output format section
-    const outputFormatSection = useRAGPrompt
-      ? this.buildRAGOutputFormatSection()
-      : this.buildDefaultOutputFormatSection()
-
-    // Combine all sections: user instructions first, then base behavior, then output format
-    const sections = [
-      customInstructionsSection,
-      baseBehaviorSection,
-      outputFormatSection,
-    ].filter(Boolean)
+    // Combine all sections: user instructions first, then base behavior
+    const sections = [customInstructionsSection, baseBehaviorSection].filter(
+      Boolean,
+    )
 
     return {
       role: 'system',
@@ -543,6 +533,7 @@ ${currentAssistant.systemPrompt}
             assistant: currentAssistant,
             skillId: skill.id,
             disabledSkillIds,
+            defaultLoadMode: skill.mode,
           }),
         )
       : []
@@ -570,6 +561,7 @@ ${enabledSkillEntries
         resolveAssistantSkillPolicy({
           assistant: currentAssistant,
           skillId: skill.id,
+          defaultLoadMode: skill.mode,
         }).loadMode === 'always'
       )
     })
@@ -649,45 +641,6 @@ ${customInstruction}
     return section
   }
 
-  private buildDefaultOutputFormatSection(): string {
-    return `## Output Format
-
-- When you output a new Markdown block (for new content), wrap it in <smtcmp_block> tags. Example:
-<smtcmp_block language="markdown">
-{{ content }}
-</smtcmp_block>
-
-- When you output Markdown for an existing file, add filename and language attributes to <smtcmp_block>. Restate the relevant section or heading so the user knows which part of the file you are editing. Example:
-<smtcmp_block filename="path/to/file.md" language="markdown">
-## Section Title
-{{ content }}
-</smtcmp_block>
-
-- When the user asks for edits to their Markdown file, output a simplified Markdown block that focuses only on the changed parts. Use comments to skip unchanged content. Wrap it with <smtcmp_block> and include filename and language. Example:
-<smtcmp_block filename="path/to/file.md" language="markdown">
-<!-- ... existing content ... -->
-{{ edit_1 }}
-<!-- ... existing content ... -->
-{{ edit_2 }}
-<!-- ... existing content ... -->
-</smtcmp_block>
-
-- The user has full access to the file, so show only the modified parts unless they explicitly ask for the full file. You may briefly explain what you changed when helpful.`
-  }
-
-  private buildRAGOutputFormatSection(): string {
-    return `## Output Format
-
-- When referencing markdown blocks in your answer:
-  a. Never include line numbers in the output.
-  b. Wrap user-facing markdown with <smtcmp_block language="...">...</smtcmp_block>.
-  c. Add the filename attribute when the block corresponds to an existing file.
-  d. If the user gives you a markdown block, output an empty placeholder with filename, language, startLine, and endLine attributes (e.g. <smtcmp_block filename="path/to/file.md" language="markdown" startLine="2" endLine="30"></smtcmp_block>) and keep commentary outside the block.
-
-- When you output new Markdown content, wrap it in <smtcmp_block language="markdown">...</smtcmp_block>.
-- When editing an existing file, include filename and language on the block, restate the relevant heading, and show only the changed sections using <!-- ... --> comments for skipped content. The user already has full access to the file.`
-  }
-
   private async getCurrentFileMessage(
     currentFile: TFile,
     currentFileContextMode: CurrentFileContextMode,
@@ -717,16 +670,6 @@ ${fileContent}
 Path: ${currentFile.path}
 Title: ${currentFile.name}
 \n\n`,
-    }
-  }
-
-  private getRagInstructionMessage(): RequestMessage {
-    return {
-      role: 'user',
-      content: `If you need to reference any of the markdown blocks I gave you, add the startLine and endLine attributes to the <smtcmp_block> tags without any content inside. For example:
-<smtcmp_block filename="path/to/file.md" language="markdown" startLine="200" endLine="310"></smtcmp_block>
-
-When writing out new markdown blocks, remember not to include "line_number|" at the beginning of each line.`,
     }
   }
 

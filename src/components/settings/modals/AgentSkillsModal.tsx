@@ -10,7 +10,6 @@ import { listLiteSkillEntries } from '../../../core/skills/liteSkills'
 import {
   YOLO_SKILLS_DIR,
   YOLO_SKILLS_INDEX_TEMPLATE,
-  YOLO_SKILL_CREATOR_TEMPLATE,
 } from '../../../core/skills/templates'
 import SmartComposerPlugin from '../../../main'
 import { ObsidianButton } from '../../common/ObsidianButton'
@@ -97,7 +96,6 @@ function AgentSkillsModalContent({
   const handleInitializeSkillsSystem = async () => {
     const skillsDir = normalizePath(YOLO_SKILLS_DIR)
     const indexPath = normalizePath(`${skillsDir}/Skills.md`)
-    const skillCreatorPath = normalizePath(`${skillsDir}/skill-creator.md`)
 
     try {
       const maybeFolder = app.vault.getAbstractFileByPath(skillsDir)
@@ -107,10 +105,6 @@ function AgentSkillsModalContent({
 
       if (!app.vault.getAbstractFileByPath(indexPath)) {
         await app.vault.create(indexPath, YOLO_SKILLS_INDEX_TEMPLATE)
-      }
-
-      if (!app.vault.getAbstractFileByPath(skillCreatorPath)) {
-        await app.vault.create(skillCreatorPath, YOLO_SKILL_CREATOR_TEMPLATE)
       }
 
       setRefreshTick((value) => value + 1)
@@ -132,7 +126,7 @@ function AgentSkillsModalContent({
       <div className="smtcmp-settings-desc smtcmp-settings-callout">
         {t(
           'settings.agent.skillsGlobalDesc',
-          'Skills are discovered from YOLO/skills/**/*.md (excluding Skills.md). Disable a skill here to block it for all agents.',
+          'Skills are discovered from built-in skills and YOLO/skills/**/*.md (excluding Skills.md). Disable a skill here to block it for all agents.',
         )}
       </div>
 
@@ -140,7 +134,7 @@ function AgentSkillsModalContent({
         <div className="smtcmp-settings-desc">
           {t(
             'settings.agent.skillsSourcePath',
-            'Path: YOLO/skills/**/*.md (excluding Skills.md)',
+            'Source: built-in skills + YOLO/skills/**/*.md (excluding Skills.md)',
           )}
         </div>
         <div className="smtcmp-agent-skills-toolbar-actions">

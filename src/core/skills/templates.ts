@@ -6,9 +6,63 @@ Store your skill files here.
 
 - Skill file pattern: \`*.md\` (exclude \`Skills.md\`)
 - Required frontmatter: \`id\`, \`name\`, \`description\`
+`
 
-Suggested starter skill:
-- \`skill-creator.md\`
+export const YOLO_OBSIDIAN_OUTPUT_FORMAT_TEMPLATE = `---
+id: obsidian-output-format
+name: Obsidian Output Format
+description: Enforce Obsidian markdown output contract with <smtcmp_block> tags. Use whenever returning markdown content, proposing markdown edits, or referencing markdown snippets.
+mode: always
+---
+
+# Obsidian Output Format
+
+Follow this format whenever you output markdown content for the user.
+
+## Core Rules
+
+1. Wrap user-facing markdown blocks with \`<smtcmp_block>...</smtcmp_block>\`.
+2. Never include line numbers in the markdown text you output.
+3. Keep commentary outside \`<smtcmp_block>\`.
+
+## New Markdown Content
+
+When generating new markdown content, use:
+
+~~~xml
+<smtcmp_block language="markdown">
+{{ content }}
+</smtcmp_block>
+~~~
+
+## Editing Existing Files
+
+When proposing edits to an existing markdown file:
+
+1. Include \`filename\` and \`language\` attributes.
+2. Restate the relevant section heading to anchor where changes belong.
+3. Show only changed parts. Use HTML comments to skip unchanged content.
+
+~~~xml
+<smtcmp_block filename="path/to/file.md" language="markdown">
+<!-- ... existing content ... -->
+## Section Title
+{{ edit }}
+<!-- ... existing content ... -->
+</smtcmp_block>
+~~~
+
+The user already has full file access, so do not dump the full file unless explicitly requested.
+
+## Referencing Provided Markdown Snippets
+
+If the user context includes numbered markdown snippets and you need to reference one of them, output an empty placeholder block with location attributes:
+
+~~~xml
+<smtcmp_block filename="path/to/file.md" language="markdown" startLine="2" endLine="30"></smtcmp_block>
+~~~
+
+Do not place snippet content inside this placeholder block.
 `
 
 export const YOLO_SKILL_CREATOR_TEMPLATE = `---

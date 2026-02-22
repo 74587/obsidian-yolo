@@ -14,15 +14,21 @@ export function getDisabledSkillIdSet(
 export function resolveAssistantSkillPolicy({
   assistant,
   skillId,
+  defaultLoadMode,
 }: {
   assistant: Assistant | null | undefined
   skillId: string
+  defaultLoadMode?: AssistantSkillLoadMode
 }): ResolvedAssistantSkillPolicy {
   const preference = assistant?.skillPreferences?.[skillId]
   void skillId
   const enabled = preference?.enabled ?? true
   const loadMode: AssistantSkillLoadMode =
-    preference?.loadMode === 'always' ? 'always' : 'lazy'
+    preference?.loadMode === 'always'
+      ? 'always'
+      : preference?.loadMode === 'lazy'
+        ? 'lazy'
+        : (defaultLoadMode ?? 'lazy')
 
   return {
     enabled,
@@ -34,10 +40,12 @@ export function isSkillEnabledForAssistant({
   assistant,
   skillId,
   disabledSkillIds,
+  defaultLoadMode,
 }: {
   assistant: Assistant | null | undefined
   skillId: string
   disabledSkillIds?: string[]
+  defaultLoadMode?: AssistantSkillLoadMode
 }): boolean {
   const disabledSet = getDisabledSkillIdSet(disabledSkillIds)
   if (disabledSet.has(skillId)) {
@@ -47,5 +55,6 @@ export function isSkillEnabledForAssistant({
   return resolveAssistantSkillPolicy({
     assistant,
     skillId,
+    defaultLoadMode,
   }).enabled
 }

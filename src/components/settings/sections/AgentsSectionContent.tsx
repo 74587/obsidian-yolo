@@ -593,6 +593,7 @@ export function AgentsSectionContent({
       const policy = resolveAssistantSkillPolicy({
         assistant: draftAgent,
         skillId: skill.id,
+        defaultLoadMode: skill.mode,
       })
       const enabled = policy.enabled && !globallyDisabled
       return {
