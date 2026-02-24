@@ -27,6 +27,9 @@ import {
   validateServerName,
 } from './tool-name-utils'
 
+export const INVALID_TOOL_ARGUMENTS_JSON_ERROR =
+  'Tool arguments must be valid JSON. Please escape quotes/newlines inside string values and retry.'
+
 export class McpManager {
   static readonly TOOL_NAME_DELIMITER = '__' // Delimiter for tool name construction (serverName__toolName)
 
@@ -490,7 +493,27 @@ export class McpManager {
     try {
       const { serverName, toolName } = parseToolName(name)
       const parsedArgs: Record<string, unknown> | undefined =
-        typeof args === 'string' ? (args === '' ? {} : JSON.parse(args)) : args
+        typeof args === 'string'
+          ? (() => {
+              const trimmedArgs = args.trim()
+              if (trimmedArgs.length === 0) {
+                return {}
+              }
+              try {
+                const parsed = JSON.parse(trimmedArgs)
+                if (
+                  parsed &&
+                  typeof parsed === 'object' &&
+                  !Array.isArray(parsed)
+                ) {
+                  return parsed as Record<string, unknown>
+                }
+                throw new Error('Tool arguments must be a JSON object.')
+              } catch {
+                throw new Error(INVALID_TOOL_ARGUMENTS_JSON_ERROR)
+              }
+            })()
+          : args
 
       if (serverName === getLocalFileToolServerName()) {
         if (!this.isLocalToolEnabled(toolName)) {

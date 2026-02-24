@@ -7,7 +7,10 @@ import {
 } from '../../components/chat-view/chat-input/ReasoningSelect'
 import { BaseLLMProvider } from '../../core/llm/base'
 import { getLocalFileToolServerName } from '../../core/mcp/localFileTools'
-import { McpManager } from '../../core/mcp/mcpManager'
+import {
+  INVALID_TOOL_ARGUMENTS_JSON_ERROR,
+  McpManager,
+} from '../../core/mcp/mcpManager'
 import { parseToolName } from '../../core/mcp/tool-name-utils'
 import {
   ChatAssistantMessage,
@@ -175,6 +178,7 @@ export class ResponseGenerator {
   public async run() {
     let completedToolRounds = 0
     let geminiEmptyAfterToolRetryUsed = false
+    let toolArgValidationRetryUsed = false
 
     for (let i = 0; i < this.maxAutoIterations; i++) {
       const { toolCallRequests, assistantHasOutput } =
@@ -299,6 +303,23 @@ export class ResponseGenerator {
         // Exit the auto-iteration loop if any tool call hasn't completed
         // Only 'success' or 'error' states are considered complete
         return
+      }
+
+      const shouldRetryToolArgValidationFailure =
+        !toolArgValidationRetryUsed &&
+        this.shouldRetryToolArgValidationFailure(updatedToolMessage)
+      if (shouldRetryToolArgValidationFailure) {
+        toolArgValidationRetryUsed = true
+        console.warn(
+          '[Smart Composer] Tool call arguments are invalid JSON; requesting one automatic repair round.',
+          {
+            conversationId: this.conversationId,
+            model: this.model.model,
+            iteration: i + 1,
+          },
+        )
+        i -= 1 // Allow one repair retry without consuming loop budget
+        continue
       }
 
       completedToolRounds += 1
@@ -854,6 +875,27 @@ export class ResponseGenerator {
       typeof reasoning === 'string' && reasoning.trim().length > 0
     const hasAnnotations = Boolean(annotations && annotations.length > 0)
     return hasContent || hasReasoning || hasAnnotations
+  }
+
+  private shouldRetryToolArgValidationFailure(
+    toolMessage: ChatToolMessage | undefined,
+  ): boolean {
+    if (!toolMessage?.toolCalls?.length) {
+      return false
+    }
+
+    const hasSuccess = toolMessage.toolCalls.some(
+      (toolCall) => toolCall.response.status === ToolCallResponseStatus.Success,
+    )
+    if (hasSuccess) {
+      return false
+    }
+
+    return toolMessage.toolCalls.some(
+      (toolCall) =>
+        toolCall.response.status === ToolCallResponseStatus.Error &&
+        toolCall.response.error.includes(INVALID_TOOL_ARGUMENTS_JSON_ERROR),
+    )
   }
 
   private normalizeToolCallName(toolName: string): string {

@@ -97,6 +97,24 @@ function normalizeFunctionArguments(value: unknown): string | undefined {
   }
 }
 
+function normalizeRequestToolCallArguments(value: unknown): string {
+  const argumentsText = normalizeFunctionArguments(value)
+  if (!argumentsText || argumentsText.trim().length === 0) {
+    return '{}'
+  }
+
+  try {
+    const parsed = JSON.parse(argumentsText)
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return JSON.stringify(parsed)
+    }
+  } catch {
+    // fallback below
+  }
+
+  return '{}'
+}
+
 function normalizeToolCalls(source: unknown): ToolCall[] | undefined {
   if (!Array.isArray(source)) {
     return undefined
@@ -445,7 +463,7 @@ export class OpenAIMessageAdapter {
           tool_calls: message.tool_calls?.map((toolCall) => ({
             id: toolCall.id,
             function: {
-              arguments: toolCall.arguments ?? '{}',
+              arguments: normalizeRequestToolCallArguments(toolCall.arguments),
               name: toolCall.name,
             },
             type: 'function',

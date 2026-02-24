@@ -30,6 +30,7 @@ import type {
   MentionableUrl,
   MentionableVault,
 } from '../../types/mentionable'
+import type { ToolCallRequest } from '../../types/tool-call.types'
 import { ToolCallResponseStatus } from '../../types/tool-call.types'
 import { tokenCount } from '../llm/token'
 import { getNestedFiles, readTFileContent } from '../obsidian'
@@ -172,45 +173,44 @@ export class PromptGenerator {
         }
       })
 
-    // TODO: Also verify that tool messages appear right after their corresponding assistant tool calls
-    const filteredRequestMessages: RequestMessage[] = requestMessages
-      .map((msg) => {
-        switch (msg.role) {
-          case 'user':
-            return msg
-          case 'assistant': {
-            // Filter out tool calls that don't have a corresponding tool message
-            const filteredToolCalls = msg.tool_calls?.filter((t) =>
-              requestMessages.some(
-                (rm) => rm.role === 'tool' && rm.tool_call.id === t.id,
-              ),
-            )
-            return {
-              ...msg,
-              tool_calls:
-                filteredToolCalls && filteredToolCalls.length > 0
-                  ? filteredToolCalls
-                  : undefined,
-            }
-          }
-          case 'tool': {
-            // Filter out tool messages that don't have a corresponding assistant message
-            const assistantMessage = requestMessages.find(
-              (rm) =>
-                rm.role === 'assistant' &&
-                rm.tool_calls?.some((t) => t.id === msg.tool_call.id),
-            )
-            if (!assistantMessage) {
-              return null
-            } else {
-              return msg
-            }
-          }
-          default:
-            return msg
+    const filteredRequestMessages: RequestMessage[] = []
+    let pendingToolCallIds = new Set<string>()
+
+    for (const msg of requestMessages) {
+      if (msg.role === 'assistant') {
+        const normalizedToolCalls = msg.tool_calls?.filter((toolCall) => {
+          return (
+            typeof toolCall.id === 'string' && toolCall.id.trim().length > 0
+          )
+        })
+
+        pendingToolCallIds = new Set(
+          (normalizedToolCalls ?? []).map((toolCall) => toolCall.id),
+        )
+
+        filteredRequestMessages.push({
+          ...msg,
+          tool_calls:
+            normalizedToolCalls && normalizedToolCalls.length > 0
+              ? normalizedToolCalls
+              : undefined,
+        })
+        continue
+      }
+
+      if (msg.role === 'tool') {
+        const callId = msg.tool_call.id
+        if (!pendingToolCallIds.has(callId)) {
+          continue
         }
-      })
-      .filter((m) => m !== null)
+        pendingToolCallIds.delete(callId)
+        filteredRequestMessages.push(msg)
+        continue
+      }
+
+      pendingToolCallIds = new Set()
+      filteredRequestMessages.push(msg)
+    }
 
     return filteredRequestMessages
   }
@@ -239,9 +239,56 @@ ${message.annotations
           message.content,
           ...(citationContent ? [citationContent] : []),
         ].join('\n'),
-        tool_calls: message.toolCallRequests,
+        tool_calls:
+          message.toolCallRequests
+            ?.map((toolCall) => this.normalizeToolCallRequest(toolCall))
+            .filter((toolCall): toolCall is NonNullable<typeof toolCall> =>
+              Boolean(toolCall),
+            ) ?? undefined,
       },
     ]
+  }
+
+  private normalizeToolCallRequest(
+    toolCall: ToolCallRequest,
+  ): ToolCallRequest | null {
+    const callId =
+      typeof toolCall.id === 'string' ? toolCall.id.trim() : toolCall.id
+    const name =
+      typeof toolCall.name === 'string' ? toolCall.name.trim() : toolCall.name
+    if (!callId || !name) {
+      return null
+    }
+
+    if (!toolCall.arguments || toolCall.arguments.trim().length === 0) {
+      return {
+        ...toolCall,
+        id: callId,
+        name,
+        arguments: '{}',
+      }
+    }
+
+    try {
+      const parsed = JSON.parse(toolCall.arguments)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        return {
+          ...toolCall,
+          id: callId,
+          name,
+          arguments: JSON.stringify(parsed),
+        }
+      }
+    } catch {
+      // fall through
+    }
+
+    return {
+      ...toolCall,
+      id: callId,
+      name,
+      arguments: '{}',
+    }
   }
 
   private parseToolMessage({
