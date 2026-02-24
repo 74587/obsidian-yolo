@@ -108,7 +108,11 @@ export function parseCustomParameterValue(
   }
 
   if (normalizedType === 'number') {
-    const parsed = Number(trimmed)
+    const normalizedNumeric =
+      trimmed.includes(',') && !trimmed.includes('.')
+        ? trimmed.split(',').join('.')
+        : trimmed
+    const parsed = Number(normalizedNumeric)
     return Number.isFinite(parsed) ? parsed : raw
   }
 
