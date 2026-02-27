@@ -2,7 +2,6 @@ import { GoogleGenAI } from '@google/genai'
 import { App, Notice, requestUrl } from 'obsidian'
 import { useEffect, useState } from 'react'
 
-import { DEFAULT_PROVIDERS } from '../../../constants'
 import { useLanguage } from '../../../contexts/language-context'
 import { extractEmbeddingVector } from '../../../core/llm/embedding-utils'
 import { getProviderClient } from '../../../core/llm/manager'
@@ -76,9 +75,8 @@ function AddEmbeddingModelModalComponent({
   const { t } = useLanguage()
   const selectedProvider: LLMProvider | undefined =
     provider ?? plugin.settings.providers[0]
-  const initialProviderId = selectedProvider?.id ?? DEFAULT_PROVIDERS[0].id
-  const initialProviderType =
-    selectedProvider?.type ?? DEFAULT_PROVIDERS[0].type
+  const initialProviderId = selectedProvider?.id ?? ''
+  const initialProviderType = selectedProvider?.type ?? 'openai-compatible'
   const [formData, setFormData] = useState<Omit<EmbeddingModel, 'dimension'>>({
     providerId: initialProviderId,
     providerType: initialProviderType,

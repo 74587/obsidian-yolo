@@ -2,7 +2,6 @@ import { GoogleGenAI } from '@google/genai'
 import { App, Notice, requestUrl } from 'obsidian'
 import { useEffect, useState } from 'react'
 
-import { DEFAULT_PROVIDERS } from '../../../constants'
 import { useLanguage } from '../../../contexts/language-context'
 import SmartComposerPlugin from '../../../main'
 import { ChatModel, chatModelSchema } from '../../../types/chat-model.types'
@@ -171,9 +170,8 @@ function AddChatModelModalComponent({
   const { t } = useLanguage()
   const selectedProvider: LLMProvider | undefined =
     provider ?? plugin.settings.providers[0]
-  const initialProviderId = selectedProvider?.id ?? DEFAULT_PROVIDERS[0].id
-  const initialProviderType =
-    selectedProvider?.type ?? DEFAULT_PROVIDERS[0].type
+  const initialProviderId = selectedProvider?.id ?? ''
+  const initialProviderType = selectedProvider?.type ?? 'openai-compatible'
   const [formData, setFormData] = useState<ChatModel>({
     providerId: initialProviderId,
     providerType: initialProviderType,
