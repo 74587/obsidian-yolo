@@ -499,7 +499,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     conversationAutoAttachRef.current.set(newId, true)
     setAutoAttachCurrentFile(true)
     setConversationOverrides(null)
-    const defaultChatMode = settings.chatOptions.chatMode ?? 'chat'
+    const defaultChatMode = chatMode
     setChatMode(
       !Platform.isDesktop && defaultChatMode === 'agent'
         ? 'chat'
