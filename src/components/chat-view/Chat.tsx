@@ -47,6 +47,7 @@ import {
 } from '../../utils/chat/mentionable'
 import { groupAssistantAndToolMessages } from '../../utils/chat/message-groups'
 import { PromptGenerator } from '../../utils/chat/promptGenerator'
+import { tryApplyStructuredEdits } from '../../utils/chat/structured-edits'
 import { readTFileContent } from '../../utils/obsidian'
 import { AgentModeWarningModal } from '../modals/AgentModeWarningModal'
 import { ErrorModal } from '../modals/ErrorModal'
@@ -738,6 +739,47 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         )
       }
       const activeFileContent = await readTFileContent(activeFile, app.vault)
+
+      const structuredEditResult = tryApplyStructuredEdits({
+        rawEdits: blockToApply,
+        originalContent: activeFileContent,
+      })
+
+      const canApplyStructuredLocally =
+        Boolean(structuredEditResult?.isPureStructuredScript) &&
+        Boolean(structuredEditResult && structuredEditResult.appliedCount > 0)
+
+      const isStructuredMatchFailure = Boolean(
+        structuredEditResult?.isPureStructuredScript &&
+          structuredEditResult.blocks.length > 0 &&
+          structuredEditResult.appliedCount === 0,
+      )
+
+      if (isStructuredMatchFailure && structuredEditResult) {
+        console.error('[Chat Apply] Structured edits did not match file.', {
+          filePath: activeFile.path,
+          blockCount: structuredEditResult.blocks.length,
+          errors: structuredEditResult.errors,
+        })
+        throw new Error(
+          '未匹配到可应用的正文片段，请检查 SEARCH 段是否与当前文档一致。',
+        )
+      }
+
+      if (canApplyStructuredLocally && structuredEditResult) {
+        if (structuredEditResult.errors.length > 0) {
+          console.warn(
+            'Some structured edits failed during apply:',
+            structuredEditResult.errors,
+          )
+        }
+        await plugin.openApplyReview({
+          file: activeFile,
+          originalContent: activeFileContent,
+          newContent: structuredEditResult.newContent,
+        } satisfies ApplyViewState)
+        return
+      }
 
       const { providerClient, model } = getChatModelClient({
         settings,

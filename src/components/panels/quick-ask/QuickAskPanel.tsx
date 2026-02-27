@@ -44,10 +44,7 @@ import {
 import { parseTagContents } from '../../../utils/chat/parse-tag-content'
 import { PromptGenerator } from '../../../utils/chat/promptGenerator'
 import { ResponseGenerator } from '../../../utils/chat/responseGenerator'
-import {
-  applySearchReplaceBlocks,
-  parseSearchReplaceBlocks,
-} from '../../../utils/chat/searchReplace'
+import { tryApplyStructuredEdits } from '../../../utils/chat/structured-edits'
 import { readTFileContent } from '../../../utils/obsidian'
 import AssistantMessageReasoning from '../../chat-view/AssistantMessageReasoning'
 import ChatUserInput from '../../chat-view/chat-input/ChatUserInput'
@@ -817,20 +814,41 @@ export function QuickAskPanel({
           model,
         })
 
-        // Parse SEARCH/REPLACE blocks
-        const blocks = parseSearchReplaceBlocks(response)
-        if (blocks.length === 0) {
+        const structuredEditResult = tryApplyStructuredEdits({
+          rawEdits: response,
+          originalContent: currentContent,
+        })
+        if (!structuredEditResult) {
           new Notice(
             t('quickAsk.editNoChanges', 'No valid changes returned by model'),
           )
           return
         }
 
-        // Apply blocks to original content
-        const { newContent, errors, appliedCount } = applySearchReplaceBlocks(
-          currentContent,
-          blocks,
-        )
+        const { newContent, errors, appliedCount, blocks } =
+          structuredEditResult
+
+        const canApplyStructuredLocally =
+          structuredEditResult.isPureStructuredScript && appliedCount > 0
+
+        if (!canApplyStructuredLocally) {
+          console.error(
+            '[QuickAsk Edit] Structured edits did not match file.',
+            {
+              filePath: activeFile.path,
+              blockCount: blocks.length,
+              appliedCount,
+              errors,
+            },
+          )
+          new Notice(
+            t(
+              'quickAsk.editNoChanges',
+              'No valid structured changes returned by model.',
+            ),
+          )
+          return
+        }
 
         if (appliedCount === 0) {
           new Notice(
@@ -903,20 +921,41 @@ export function QuickAskPanel({
           model,
         })
 
-        // Parse edit blocks
-        const blocks = parseSearchReplaceBlocks(response)
-        if (blocks.length === 0) {
+        const structuredEditResult = tryApplyStructuredEdits({
+          rawEdits: response,
+          originalContent: currentContent,
+        })
+        if (!structuredEditResult) {
           new Notice(
             t('quickAsk.editNoChanges', 'No valid changes returned by model'),
           )
           return
         }
 
-        // Apply blocks to original content
-        const { newContent, errors, appliedCount } = applySearchReplaceBlocks(
-          currentContent,
-          blocks,
-        )
+        const { newContent, errors, appliedCount, blocks } =
+          structuredEditResult
+
+        const canApplyStructuredLocally =
+          structuredEditResult.isPureStructuredScript && appliedCount > 0
+
+        if (!canApplyStructuredLocally) {
+          console.error(
+            '[QuickAsk Edit-Direct] Structured edits did not match file.',
+            {
+              filePath: activeFile.path,
+              blockCount: blocks.length,
+              appliedCount,
+              errors,
+            },
+          )
+          new Notice(
+            t(
+              'quickAsk.editNoChanges',
+              'No valid structured changes returned by model.',
+            ),
+          )
+          return
+        }
 
         if (appliedCount === 0) {
           new Notice(

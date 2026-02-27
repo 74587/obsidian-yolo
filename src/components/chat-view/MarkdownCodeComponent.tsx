@@ -4,6 +4,10 @@ import { PropsWithChildren, useMemo, useState } from 'react'
 import { useApp } from '../../contexts/app-context'
 import { useDarkModeContext } from '../../contexts/dark-mode-context'
 import { useLanguage } from '../../contexts/language-context'
+import {
+  isPureSearchReplaceScript,
+  parseSearchReplaceBlocks,
+} from '../../utils/chat/searchReplace'
 import { openMarkdownFile } from '../../utils/obsidian'
 
 import { ObsidianMarkdown } from './ObsidianMarkdown'
@@ -64,6 +68,24 @@ export default function MarkdownCodeComponent({
     }
     return ''
   }, [children])
+
+  const previewContent = useMemo(() => {
+    if (!filename || !isPureSearchReplaceScript(codeContent)) {
+      return codeContent
+    }
+
+    const blocks = parseSearchReplaceBlocks(codeContent)
+    if (blocks.length === 0) {
+      return codeContent
+    }
+
+    const rendered = blocks
+      .map((block) => block.replace)
+      .filter((text) => text.trim().length > 0)
+      .join('\n\n')
+
+    return rendered || codeContent
+  }, [codeContent, filename])
 
   const handleCopy = async () => {
     try {
@@ -149,7 +171,7 @@ export default function MarkdownCodeComponent({
       </div>
       {isPreviewMode ? (
         <div className="smtcmp-code-block-obsidian-markdown">
-          <ObsidianMarkdown content={codeContent} scale="sm" />
+          <ObsidianMarkdown content={previewContent} scale="sm" />
         </div>
       ) : (
         <MemoizedSyntaxHighlighterWrapper

@@ -38,6 +38,65 @@ export type ApplyResult = {
   appliedCount: number
 }
 
+const escapeRegExp = (value: string): string => {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
+const toLooseCharPattern = (char: string): string => {
+  if (char === '"' || char === '“' || char === '”') {
+    return '["“”]'
+  }
+  if (char === "'" || char === '‘' || char === '’') {
+    return "['‘’]"
+  }
+  if (char === '-' || char === '–' || char === '—') {
+    return '[-–—]'
+  }
+  return escapeRegExp(char)
+}
+
+const createLooseSearchRegex = (searchText: string): RegExp => {
+  const lines = searchText.split(/\r?\n/)
+  const pattern = lines
+    .map((line, index) => {
+      const normalizedLine = line.replace(/[ \t]+$/g, '')
+      const charPattern = Array.from(normalizedLine)
+        .map((char) => toLooseCharPattern(char))
+        .join('')
+      const lineEndPattern = '[ \\t]*'
+      if (index === lines.length - 1) {
+        return `${charPattern}${lineEndPattern}`
+      }
+      return `${charPattern}${lineEndPattern}\\r?\\n`
+    })
+    .join('')
+  return new RegExp(pattern, 'g')
+}
+
+const findSingleLooseMatch = (
+  content: string,
+  searchText: string,
+): { start: number; end: number } | 'multiple' | null => {
+  const regex = createLooseSearchRegex(searchText)
+  const first = regex.exec(content)
+  if (!first || first.index < 0) {
+    return null
+  }
+
+  const second = regex.exec(content)
+  if (second) {
+    return 'multiple'
+  }
+
+  return {
+    start: first.index,
+    end: first.index + first[0].length,
+  }
+}
+
+const STRUCTURED_EDIT_BLOCK_PATTERN =
+  /<<<<<<<\s*(?:CONTINUE|SEARCH|INSERT AFTER)\s*\n[\s\S]*?\n=======\s*\n[\s\S]*?\n>>>>>>>\s*(?:CONTINUE|REPLACE|INSERT)\s*(?=\n|$)/gi
+
 /**
  * Parse edit blocks from model output.
  *
@@ -51,41 +110,48 @@ export function parseSearchReplaceBlocks(
 ): SearchReplaceBlock[] {
   const blocks: SearchReplaceBlock[] = []
 
+  const source = content.replace(/\r\n/g, '\n')
+
   // Match CONTINUE blocks
   // Pattern: <<<<<<< CONTINUE\n=======\n...\n>>>>>>> CONTINUE
   const continuePattern =
-    /<<<<<<< CONTINUE\n=======\n([\s\S]*?)\n>>>>>>> CONTINUE/g
-  let match: RegExpExecArray | null
-  while ((match = continuePattern.exec(content)) !== null) {
+    /^<<<<<<<\s*CONTINUE\s*\n=======\s*\n([\s\S]*?)\n>>>>>>>\s*CONTINUE\s*$/gim
+  let match = continuePattern.exec(source)
+  while (match !== null) {
     blocks.push({
       type: 'continue',
       search: '',
       replace: match[1],
     })
+    match = continuePattern.exec(source)
   }
 
   // Match INSERT AFTER blocks
   // Pattern: <<<<<<< INSERT AFTER\n...\n=======\n...\n>>>>>>> INSERT
   const insertPattern =
-    /<<<<<<< INSERT AFTER\n([\s\S]*?)\n=======\n([\s\S]*?)\n>>>>>>> INSERT/g
-  while ((match = insertPattern.exec(content)) !== null) {
+    /^<<<<<<<\s*INSERT AFTER\s*\n([\s\S]*?)\n=======\s*\n([\s\S]*?)\n>>>>>>>\s*INSERT\s*$/gim
+  match = insertPattern.exec(source)
+  while (match !== null) {
     blocks.push({
       type: 'insert',
       search: match[1],
       replace: match[2],
     })
+    match = insertPattern.exec(source)
   }
 
   // Match SEARCH/REPLACE blocks
   // Pattern: <<<<<<< SEARCH\n...\n=======\n...\n>>>>>>> REPLACE
   const replacePattern =
-    /<<<<<<< SEARCH\n([\s\S]*?)\n=======\n([\s\S]*?)\n>>>>>>> REPLACE/g
-  while ((match = replacePattern.exec(content)) !== null) {
+    /^<<<<<<<\s*SEARCH\s*\n([\s\S]*?)\n=======\s*\n([\s\S]*?)\n>>>>>>>\s*REPLACE\s*$/gim
+  match = replacePattern.exec(source)
+  while (match !== null) {
     blocks.push({
       type: 'replace',
       search: match[1],
       replace: match[2],
     })
+    match = replacePattern.exec(source)
   }
 
   return blocks
@@ -138,30 +204,28 @@ export function applySearchReplaceBlocks(
         )
         appliedCount++
       } else {
-        // Try fuzzy matching by trimming whitespace
-        const trimmedSearch = searchText.trim()
-        const lines = content.split('\n')
-        let found = false
-
-        for (let j = 0; j < lines.length; j++) {
-          if (lines[j].trim() === trimmedSearch) {
-            // Found a trimmed match - insert after this line
-            lines.splice(j + 1, 0, '', block.replace.trim())
-            content = lines.join('\n')
-            appliedCount++
-            found = true
-            break
-          }
-        }
-
-        if (!found) {
+        const looseMatch = findSingleLooseMatch(content, searchText)
+        if (looseMatch && looseMatch !== 'multiple') {
+          content =
+            content.slice(0, looseMatch.end) +
+            '\n\n' +
+            block.replace +
+            content.slice(looseMatch.end)
+          appliedCount++
+        } else {
           const preview =
             searchText.length > 50
               ? searchText.substring(0, 50) + '...'
               : searchText
-          errors.push(
-            `Block ${i + 1} (INSERT): Could not find text to insert after: "${preview}"`,
-          )
+          if (looseMatch === 'multiple') {
+            errors.push(
+              `Block ${i + 1} (INSERT): Found multiple loose matches for: "${preview}"`,
+            )
+          } else {
+            errors.push(
+              `Block ${i + 1} (INSERT): Could not find text to insert after: "${preview}"`,
+            )
+          }
         }
       }
       continue
@@ -174,34 +238,28 @@ export function applySearchReplaceBlocks(
         content = content.replace(searchText, block.replace)
         appliedCount++
       } else {
-        // Try fuzzy matching by trimming whitespace
-        const trimmedSearch = searchText.trim()
-        const lines = content.split('\n')
-        let found = false
-
-        // Try to find a line-by-line match with trimmed content
-        for (let j = 0; j < lines.length; j++) {
-          if (lines[j].trim() === trimmedSearch) {
-            // Found a trimmed match - use original whitespace
-            const originalLine = lines[j]
-            const leadingWhitespace = originalLine.match(/^(\s*)/)?.[1] ?? ''
-            lines[j] = leadingWhitespace + block.replace.trim()
-            content = lines.join('\n')
-            appliedCount++
-            found = true
-            break
-          }
-        }
-
-        if (!found) {
+        const looseMatch = findSingleLooseMatch(content, searchText)
+        if (looseMatch && looseMatch !== 'multiple') {
+          content =
+            content.slice(0, looseMatch.start) +
+            block.replace +
+            content.slice(looseMatch.end)
+          appliedCount++
+        } else {
           // Record error with preview of search text
           const preview =
             searchText.length > 50
               ? searchText.substring(0, 50) + '...'
               : searchText
-          errors.push(
-            `Block ${i + 1} (REPLACE): Could not find text to replace: "${preview}"`,
-          )
+          if (looseMatch === 'multiple') {
+            errors.push(
+              `Block ${i + 1} (REPLACE): Found multiple loose matches for: "${preview}"`,
+            )
+          } else {
+            errors.push(
+              `Block ${i + 1} (REPLACE): Could not find text to replace: "${preview}"`,
+            )
+          }
         }
       }
     }
@@ -222,4 +280,17 @@ export function applySearchReplaceBlocks(
  */
 export function hasValidSearchReplaceBlocks(content: string): boolean {
   return parseSearchReplaceBlocks(content).length > 0
+}
+
+export function isPureSearchReplaceScript(content: string): boolean {
+  const normalized = content.replace(/\r\n/g, '\n').trim()
+  if (!normalized) {
+    return false
+  }
+
+  const withoutBlocks = normalized
+    .replace(STRUCTURED_EDIT_BLOCK_PATTERN, '')
+    .trim()
+
+  return withoutBlocks.length === 0
 }

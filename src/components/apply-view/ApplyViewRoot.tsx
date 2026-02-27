@@ -130,6 +130,7 @@ export default function ApplyViewRoot({
       const contentToWrite = finalContent ?? generateFinalContent('current')
       try {
         await app.vault.modify(state.file, contentToWrite)
+
         persistOnUnmountRef.current = false
       } catch (error) {
         console.error(
