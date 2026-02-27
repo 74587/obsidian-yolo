@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo } from 'react'
+import { Loader2 } from 'lucide-react'
 
+import { useLanguage } from '../../contexts/language-context'
 import { ChatAssistantMessage, ChatMessage } from '../../types/chat'
 import {
   ParsedTagContent,
@@ -18,6 +20,7 @@ export default function AssistantMessageContent({
   isApplying,
   activeApplyRequestKey,
   generationState,
+  toolCallRequests,
 }: {
   content: ChatAssistantMessage['content']
   contextMessages: ChatMessage[]
@@ -30,6 +33,7 @@ export default function AssistantMessageContent({
   isApplying: boolean
   activeApplyRequestKey: string | null
   generationState?: 'streaming' | 'completed' | 'aborted'
+  toolCallRequests?: ChatAssistantMessage['toolCallRequests']
 }) {
   const onApply = useCallback(
     (
@@ -48,6 +52,7 @@ export default function AssistantMessageContent({
       isApplying={isApplying}
       activeApplyRequestKey={activeApplyRequestKey}
       generationState={generationState}
+      toolCallRequests={toolCallRequests}
     >
       {content}
     </AssistantTextRenderer>
@@ -59,6 +64,7 @@ const AssistantTextRenderer = React.memo(function AssistantTextRenderer({
   isApplying,
   activeApplyRequestKey,
   generationState,
+  toolCallRequests,
   children,
 }: {
   onApply: (
@@ -70,36 +76,63 @@ const AssistantTextRenderer = React.memo(function AssistantTextRenderer({
   isApplying: boolean
   activeApplyRequestKey: string | null
   generationState?: 'streaming' | 'completed' | 'aborted'
+  toolCallRequests?: ChatAssistantMessage['toolCallRequests']
 }) {
+  const { t } = useLanguage()
+
   const blocks: ParsedTagContent[] = useMemo(
     () => parseTagContents(children),
     [children],
   )
 
+  const runningToolText = useMemo(() => {
+    if (generationState !== 'streaming' || !toolCallRequests?.length) {
+      return null
+    }
+    const toolNames = toolCallRequests
+      .map((toolCall) => {
+        const rawName = toolCall.name
+        const delimiterIndex = rawName.indexOf('__')
+        return delimiterIndex >= 0 ? rawName.slice(delimiterIndex + 2) : rawName
+      })
+      .filter(
+        (name, index, arr) => name.length > 0 && arr.indexOf(name) === index,
+      )
+    if (toolNames.length === 0) {
+      return t('chat.toolCall.status.running', 'Running')
+    }
+    return `${t('chat.toolCall.status.running', 'Running')}: ${toolNames.join(', ')}`
+  }, [generationState, t, toolCallRequests])
+
   return (
     <>
-      {blocks.map((block, index) =>
-        block.type === 'string' ? (
-          <div key={index}>
+      {blocks.map((block) => {
+        const blockKey =
+          block.type === 'string' || block.type === 'think'
+            ? `${block.type}-${block.content.slice(0, 64)}`
+            : `${block.type}-${block.filename ?? ''}-${block.startLine ?? ''}-${block.endLine ?? ''}-${block.language ?? ''}-${block.content.slice(0, 64)}`
+
+        return block.type === 'string' ? (
+          <div key={blockKey}>
             <ObsidianMarkdown content={block.content} scale="sm" />
           </div>
         ) : block.type === 'think' ? (
           <AssistantMessageReasoning
-            key={index}
+            key={blockKey}
             reasoning={block.content}
             content={children}
             generationState={generationState}
           />
         ) : block.startLine && block.endLine && block.filename ? (
           <MarkdownReferenceBlock
-            key={index}
+            key={blockKey}
             filename={block.filename}
             startLine={block.startLine}
             endLine={block.endLine}
           />
         ) : (
           <MarkdownCodeComponent
-            key={index}
+            key={blockKey}
             onApply={onApply}
             isApplying={isApplying}
             activeApplyRequestKey={activeApplyRequestKey}
@@ -108,7 +141,23 @@ const AssistantTextRenderer = React.memo(function AssistantTextRenderer({
           >
             {block.content}
           </MarkdownCodeComponent>
-        ),
+        )
+      })}
+      {runningToolText && (
+        <div className="smtcmp-toolcall-container smtcmp-assistant-tool-running-preview">
+          <div className="smtcmp-toolcall">
+            <div className="smtcmp-toolcall-header smtcmp-assistant-tool-running-preview-header">
+              <div className="smtcmp-toolcall-header-icon smtcmp-toolcall-header-icon--status-inline">
+                <Loader2 className="smtcmp-spinner" size={14} />
+              </div>
+              <div className="smtcmp-toolcall-header-content">
+                <span className="smtcmp-toolcall-header-tool-name">
+                  {runningToolText}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </>
   )

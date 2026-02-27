@@ -5865,6 +5865,19 @@
   margin-top: var(--size-4-2);
 }
 
+.smtcmp-assistant-tool-running-preview {
+  margin-top: 2px;
+}
+
+.smtcmp-assistant-tool-running-preview-header {
+  cursor: default;
+}
+
+.smtcmp-assistant-tool-running-preview-header:hover {
+  background-color: transparent;
+  color: var(--text-muted);
+}
+
 .smtcmp-llm-inline-info {
   display: flex;
   align-items: center;

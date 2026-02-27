@@ -672,19 +672,7 @@ export class ResponseGenerator {
           : message,
       ),
     )
-    const toolCallRequests: ToolCallRequest[] = Object.values(responseToolCalls)
-      .map((toolCall) => {
-        // filter out invalid tool calls without a name
-        if (!toolCall.function?.name) {
-          return null
-        }
-        return {
-          id: toolCall.id ?? uuidv4(),
-          name: this.normalizeToolCallName(toolCall.function.name),
-          arguments: toolCall.function.arguments,
-        }
-      })
-      .filter((toolCall) => toolCall !== null)
+    const toolCallRequests = this.buildToolCallRequests(responseToolCalls)
 
     if (tools && toolCallRequests.length === 0) {
       console.warn(
@@ -786,6 +774,20 @@ export class ResponseGenerator {
       ),
     )
 
+    const toolCallRequests = this.buildToolCallRequests(updatedToolCalls)
+    if (toolCallRequests.length > 0) {
+      this.updateResponseMessages((messages) =>
+        messages.map((message) =>
+          message.id === responseMessageId && message.role === 'assistant'
+            ? {
+                ...message,
+                toolCallRequests,
+              }
+            : message,
+        ),
+      )
+    }
+
     return {
       updatedToolCalls,
     }
@@ -875,6 +877,25 @@ export class ResponseGenerator {
       typeof reasoning === 'string' && reasoning.trim().length > 0
     const hasAnnotations = Boolean(annotations && annotations.length > 0)
     return hasContent || hasReasoning || hasAnnotations
+  }
+
+  private buildToolCallRequests(
+    responseToolCalls: Record<number, ToolCallDelta>,
+  ): ToolCallRequest[] {
+    return Object.values(responseToolCalls)
+      .map((toolCall) => {
+        if (!toolCall.function?.name) {
+          return null
+        }
+        const base: ToolCallRequest = {
+          id: toolCall.id ?? uuidv4(),
+          name: this.normalizeToolCallName(toolCall.function.name),
+        }
+        return toolCall.function.arguments
+          ? { ...base, arguments: toolCall.function.arguments }
+          : base
+      })
+      .filter((toolCall): toolCall is ToolCallRequest => toolCall !== null)
   }
 
   private shouldRetryToolArgValidationFailure(

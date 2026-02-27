@@ -70,7 +70,11 @@ export default function AssistantToolMessageGroupItem({
     <div className="smtcmp-assistant-tool-message-group">
       {messages.map((message) =>
         message.role === 'assistant' ? (
-          message.reasoning || message.annotations || message.content ? (
+          message.reasoning ||
+          message.annotations ||
+          message.content ||
+          (message.metadata?.generationState === 'streaming' &&
+            Boolean(message.toolCallRequests?.length)) ? (
             <div key={message.id} className="smtcmp-chat-messages-assistant">
               {message.reasoning && (
                 <AssistantMessageReasoning
@@ -100,6 +104,7 @@ export default function AssistantToolMessageGroupItem({
                   isApplying={isApplying}
                   activeApplyRequestKey={activeApplyRequestKey}
                   generationState={message.metadata?.generationState}
+                  toolCallRequests={message.toolCallRequests}
                 />
               )}
             </div>
