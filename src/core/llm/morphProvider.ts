@@ -9,6 +9,7 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import { NoStainlessOpenAI } from './NoStainlessOpenAI'
@@ -23,10 +24,12 @@ export class MorphProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'morph' }>) {
     super(provider)
     this.adapter = new OpenAIMessageAdapter()
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     this.client = new NoStainlessOpenAI({
       baseURL: `${provider.baseUrl ? provider.baseUrl.replace(/\/+$/, '') : 'https://api.morphllm.com'}/v1`,
       apiKey: provider.apiKey ?? '',
       dangerouslyAllowBrowser: true,
+      defaultHeaders,
     })
   }
 

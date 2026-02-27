@@ -298,6 +298,11 @@ export type TranslationKeys = {
       noStainlessHeadersDesc: string
       useObsidianRequestUrl: string
       useObsidianRequestUrlDesc: string
+      customHeaders: string
+      customHeadersDesc: string
+      customHeadersAdd: string
+      customHeadersKeyPlaceholder: string
+      customHeadersValuePlaceholder: string
     }
     models: {
       title: string
@@ -436,6 +441,13 @@ export type TranslationKeys = {
       serverNamePlaceholder?: string
       parametersField?: string
       parametersFieldDesc?: string
+      parametersFieldDescShort?: string
+      parametersFormatHelp?: string
+      parametersTooltipDesc?: string
+      parametersTooltipTitle?: string
+      parametersTooltipPreferred?: string
+      parametersTooltipCompatible?: string
+      parametersTooltipTip?: string
       serverNameRequired?: string
       serverAlreadyExists?: string
       parametersRequired?: string
@@ -568,6 +580,10 @@ export type TranslationKeys = {
       resetAgentsDesc?: string
       resetAgentsConfirm?: string
       resetAgentsSuccess?: string
+      mentionDisplayMode?: string
+      mentionDisplayModeDesc?: string
+      mentionDisplayModeInline?: string
+      mentionDisplayModeBadge?: string
     }
     smartSpace?: {
       quickActionsTitle: string
@@ -687,7 +703,10 @@ export type TranslationKeys = {
       copyText?: string
       textCopied?: string
       apply?: string
+      applyQuick?: string
+      applyPrecise?: string
       applying?: string
+      stopApplying?: string
     }
     customContinuePromptLabel?: string
     customContinuePromptPlaceholder?: string

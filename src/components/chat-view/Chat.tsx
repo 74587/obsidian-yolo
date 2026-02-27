@@ -47,6 +47,7 @@ import {
 } from '../../utils/chat/mentionable'
 import { groupAssistantAndToolMessages } from '../../utils/chat/message-groups'
 import { PromptGenerator } from '../../utils/chat/promptGenerator'
+import { tryApplyStructuredEdits } from '../../utils/chat/structured-edits'
 import { readTFileContent } from '../../utils/obsidian'
 import { AgentModeWarningModal } from '../modals/AgentModeWarningModal'
 import { ErrorModal } from '../modals/ErrorModal'
@@ -59,6 +60,7 @@ import type { ChatMode } from './chat-input/ChatModeSelect'
 import ChatSettingsButton from './chat-input/ChatSettingsButton'
 import ChatUserInput from './chat-input/ChatUserInput'
 import type { ChatUserInputRef } from './chat-input/ChatUserInput'
+import MentionableBadge from './chat-input/MentionableBadge'
 import { getDefaultReasoningLevel } from './chat-input/ReasoningSelect'
 import type { ReasoningLevel } from './chat-input/ReasoningSelect'
 import { editorStateToPlainText } from './chat-input/utils/editor-state-to-plain-text'
@@ -191,6 +193,10 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
   const [editingAssistantMessageId, setEditingAssistantMessageId] = useState<
     string | null
   >(null)
+  const [activeApplyRequestKey, setActiveApplyRequestKey] = useState<
+    string | null
+  >(null)
+  const applyAbortControllerRef = useRef<AbortController | null>(null)
   const [queryProgress, setQueryProgress] = useState<QueryProgressState>({
     type: 'idle',
   })
@@ -493,7 +499,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     conversationAutoAttachRef.current.set(newId, true)
     setAutoAttachCurrentFile(true)
     setConversationOverrides(null)
-    const defaultChatMode = settings.chatOptions.chatMode ?? 'chat'
+    const defaultChatMode = chatMode
     setChatMode(
       !Platform.isDesktop && defaultChatMode === 'agent'
         ? 'chat'
@@ -726,9 +732,13 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     mutationFn: async ({
       blockToApply,
       chatMessages,
+      mode,
+      abortSignal,
     }: {
       blockToApply: string
       chatMessages: ChatMessage[]
+      mode: 'quick' | 'precise'
+      abortSignal?: AbortSignal
     }) => {
       const activeFile = app.workspace.getActiveFile()
       if (!activeFile) {
@@ -737,6 +747,55 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         )
       }
       const activeFileContent = await readTFileContent(activeFile, app.vault)
+
+      if (mode === 'quick') {
+        const structuredEditResult = tryApplyStructuredEdits({
+          rawEdits: blockToApply,
+          originalContent: activeFileContent,
+        })
+
+        const canApplyStructuredLocally =
+          Boolean(structuredEditResult?.isPureStructuredScript) &&
+          Boolean(structuredEditResult && structuredEditResult.appliedCount > 0)
+
+        const isStructuredMatchFailure = Boolean(
+          structuredEditResult?.isPureStructuredScript &&
+            structuredEditResult.blocks.length > 0 &&
+            structuredEditResult.appliedCount === 0,
+        )
+
+        if (isStructuredMatchFailure && structuredEditResult) {
+          console.error('[Chat Apply] Structured edits did not match file.', {
+            filePath: activeFile.path,
+            blockCount: structuredEditResult.blocks.length,
+            errors: structuredEditResult.errors,
+          })
+        }
+
+        if (canApplyStructuredLocally && structuredEditResult) {
+          if (structuredEditResult.errors.length > 0) {
+            console.warn(
+              'Some structured edits failed during apply:',
+              structuredEditResult.errors,
+            )
+          }
+          await plugin.openApplyReview({
+            file: activeFile,
+            originalContent: activeFileContent,
+            newContent: structuredEditResult.newContent,
+          } satisfies ApplyViewState)
+          return
+        }
+
+        console.error('[Chat Apply] Quick apply failed to match file.', {
+          filePath: activeFile.path,
+          blockCount: structuredEditResult?.blocks.length ?? 0,
+          errors: structuredEditResult?.errors ?? [],
+        })
+        throw new Error(
+          '快速应用未匹配到可替换内容，请改用“应用（精准）”或调整 SEARCH 片段。',
+        )
+      }
 
       const { providerClient, model } = getChatModelClient({
         settings,
@@ -750,6 +809,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         chatMessages,
         providerClient,
         model,
+        signal: abortSignal,
       })
       if (!updatedFileContent) {
         throw new Error('Failed to apply changes')
@@ -763,6 +823,12 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     },
     onError: (error) => {
       if (
+        (error instanceof Error && error.name === 'AbortError') ||
+        (error instanceof Error && /abort/i.test(error.message))
+      ) {
+        return
+      }
+      if (
         error instanceof LLMAPIKeyNotSetException ||
         error instanceof LLMAPIKeyInvalidException ||
         error instanceof LLMBaseUrlNotSetException
@@ -775,13 +841,39 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         console.error('Failed to apply changes', error)
       }
     },
+    onSettled: () => {
+      applyAbortControllerRef.current = null
+      setActiveApplyRequestKey(null)
+    },
   })
 
   const handleApply = useCallback(
-    (blockToApply: string, chatMessages: ChatMessage[]) => {
-      applyMutation.mutate({ blockToApply, chatMessages })
+    (
+      blockToApply: string,
+      chatMessages: ChatMessage[],
+      mode: 'quick' | 'precise',
+      applyRequestKey: string,
+    ) => {
+      if (applyMutation.isPending) {
+        if (activeApplyRequestKey === applyRequestKey) {
+          applyAbortControllerRef.current?.abort()
+          applyAbortControllerRef.current = null
+          setActiveApplyRequestKey(null)
+        }
+        return
+      }
+
+      const abortController = new AbortController()
+      applyAbortControllerRef.current = abortController
+      setActiveApplyRequestKey(applyRequestKey)
+      applyMutation.mutate({
+        blockToApply,
+        chatMessages,
+        mode,
+        abortSignal: abortController.signal,
+      })
     },
-    [applyMutation],
+    [activeApplyRequestKey, applyMutation],
   )
 
   const handleToolMessageUpdate = useCallback(
@@ -1472,17 +1564,19 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     )
   }
 
+  const showEmptyState =
+    groupedChatMessages.length === 0 && !submitChatMutation.isPending
+
   return (
     <div className="smtcmp-chat-container">
       {header}
-      <div className="smtcmp-chat-messages" ref={chatMessagesRef}>
-        {groupedChatMessages.length === 0 && !submitChatMutation.isPending && (
+      {showEmptyState && (
+        <div className="smtcmp-chat-empty-state-overlay" aria-hidden="true">
           <div className="smtcmp-chat-empty-state">
             <div
               key={chatMode}
               className="smtcmp-chat-empty-state-icon"
               data-mode={chatMode}
-              aria-hidden="true"
             >
               {chatMode === 'agent' ? (
                 <Bot size={18} strokeWidth={2} />
@@ -1507,7 +1601,9 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                   )}
             </div>
           </div>
-        )}
+        </div>
+      )}
+      <div className="smtcmp-chat-messages" ref={chatMessagesRef}>
         {groupedChatMessages.map((messageOrGroup, index) => {
           if (Array.isArray(messageOrGroup)) {
             return (
@@ -1523,6 +1619,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                   )}
                 conversationId={currentConversationId}
                 isApplying={applyMutation.isPending}
+                activeApplyRequestKey={activeApplyRequestKey}
                 onApply={handleApply}
                 onToolMessageUpdate={handleToolMessageUpdate}
                 editingAssistantMessageId={editingAssistantMessageId}
@@ -1576,7 +1673,12 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                 )
               }}
               onSubmit={(content, useVaultSearch) => {
-                if (editorStateToPlainText(content).trim() === '') return
+                if (
+                  editorStateToPlainText(content).trim() === '' &&
+                  messageOrGroup.mentionables.length === 0
+                ) {
+                  return
+                }
                 // Use the model mapping for this message if exists, otherwise current conversation model
                 const modelForThisMessage =
                   messageModelMap.get(messageOrGroup.id) ?? conversationModelId
@@ -1709,6 +1811,24 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           </button>
         )}
       </div>
+      {(settings.chatOptions.mentionDisplayMode ?? 'inline') === 'badge' &&
+        displayMentionablesForInput.length > 0 && (
+          <div className="smtcmp-chat-user-input-files">
+            {displayMentionablesForInput.map((mentionable) => {
+              const mentionableKey = getMentionableKey(
+                serializeMentionable(mentionable),
+              )
+              return (
+                <MentionableBadge
+                  key={mentionableKey}
+                  mentionable={mentionable}
+                  onDelete={() => handleMentionableDeleteFromAll(mentionable)}
+                  onClick={() => {}}
+                />
+              )
+            })}
+          </div>
+        )}
       <div className="smtcmp-chat-input-wrapper">
         <div className="smtcmp-chat-input-settings-outer">
           <ChatSettingsButton
@@ -1743,7 +1863,12 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             }))
           }}
           onSubmit={(content, useVaultSearch) => {
-            if (editorStateToPlainText(content).trim() === '') return
+            if (
+              editorStateToPlainText(content).trim() === '' &&
+              inputMessage.mentionables.length === 0
+            ) {
+              return
+            }
             const messageForSubmit = buildInputMessageForSubmit(content)
             void handleUserMessageSubmit({
               inputChatMessages: [...chatMessages, messageForSubmit],
@@ -1809,6 +1934,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             )
           }}
           showConversationSettingsButton={false}
+          hideBadgeMentionables
           displayMentionables={displayMentionablesForInput}
           onDeleteFromAll={handleMentionableDeleteFromAll}
         />

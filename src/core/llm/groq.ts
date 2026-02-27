@@ -11,6 +11,7 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import { OpenAIMessageAdapter } from './openaiMessageAdapter'
@@ -24,12 +25,14 @@ export class GroqProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'groq' }>) {
     super(provider)
     this.adapter = new OpenAIMessageAdapter()
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     this.client = new OpenAI({
       apiKey: provider.apiKey ?? '',
       baseURL: provider.baseUrl
         ? provider.baseUrl?.replace(/\/+$/, '')
         : 'https://api.groq.com/openai/v1',
       dangerouslyAllowBrowser: true,
+      defaultHeaders,
     })
   }
 

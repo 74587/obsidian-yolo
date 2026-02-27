@@ -407,6 +407,12 @@ export const en: TranslationKeys = {
       useObsidianRequestUrl: 'Use Obsidian requestUrl',
       useObsidianRequestUrlDesc:
         'Use Obsidian requestUrl to bypass cross-origin restrictions. Streaming responses are buffered.',
+      customHeaders: 'Custom headers',
+      customHeadersDesc:
+        'Attach extra HTTP headers to all requests sent through this provider.',
+      customHeadersAdd: 'Add header',
+      customHeadersKeyPlaceholder: 'Header name',
+      customHeadersValuePlaceholder: 'Header value',
     },
     models: {
       title: 'Models',
@@ -568,7 +574,17 @@ export const en: TranslationKeys = {
       serverNamePlaceholder: "e.g. 'github'",
       parametersField: 'Parameters',
       parametersFieldDesc:
-        'JSON configuration that defines how to run the MCP server. Format must include:\n- "command": The executable name (e.g., "npx", "node")\n- "args": (Optional) Array of command-line arguments\n- "env": (Optional) Key-value pairs of environment variables',
+        'JSON config for MCP server transport. Supported formats:\n- stdio: {"transport":"stdio","command":"npx","args":[...],"env":{...}}\n- http: {"transport":"http","url":"https://...","headers":{...}}\n- sse: {"transport":"sse","url":"https://...","headers":{...}}\n- ws: {"transport":"ws","url":"wss://..."}\nAlso supports wrapper formats: {"mcpServers": {"name": {...}}} and {"id":"name","parameters": {...}}',
+      parametersFieldDescShort:
+        'JSON config for the MCP server. Supports stdio, http, sse, ws transports.',
+      parametersFormatHelp: 'Format help',
+      parametersTooltipDesc:
+        'Preferred:\n- stdio: {"transport":"stdio","command":"npx",...}\n- http/sse/ws: {"transport":"http|sse|ws","url":"..."}\n\nCompatible wrappers:\n- {"mcpServers": {"name": {...}}}\n- {"id":"name","parameters": {...}}\n\nTip: if mcpServers contains one server, Name will auto-fill.',
+      parametersTooltipTitle: 'Format examples',
+      parametersTooltipPreferred: 'Preferred',
+      parametersTooltipCompatible: 'Compatible',
+      parametersTooltipTip:
+        'Tip: if mcpServers contains one server, Name will auto-fill.',
       serverNameRequired: 'Name is required',
       serverAlreadyExists: 'Server with same name already exists',
       parametersRequired: 'Parameters are required',
@@ -738,6 +754,11 @@ export const en: TranslationKeys = {
       resetAgentsConfirm:
         'Are you sure you want to reset agent configuration? This will remove custom agents and reset the current selection.',
       resetAgentsSuccess: 'Agent configuration has been reset to defaults',
+      mentionDisplayMode: 'Mention display position',
+      mentionDisplayModeDesc:
+        'Choose whether @-selected files are shown inline in the editor or as badges above the input box.',
+      mentionDisplayModeInline: 'Inside input box',
+      mentionDisplayModeBadge: 'Top badges',
     },
   },
 
@@ -771,7 +792,10 @@ export const en: TranslationKeys = {
       copyText: 'Copy text',
       textCopied: 'Text copied',
       apply: 'Apply',
+      applyQuick: 'Apply (fast)',
+      applyPrecise: 'Apply (precise)',
       applying: 'Applying...',
+      stopApplying: 'Stop apply',
     },
     customContinuePromptLabel: 'Continuation instruction',
     customContinuePromptPlaceholder: 'Ask AI (@ to attach files)',

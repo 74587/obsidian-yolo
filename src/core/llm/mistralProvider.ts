@@ -9,6 +9,7 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import { MistralMessageAdapter } from './mistralMessageAdapter'
@@ -23,12 +24,14 @@ export class MistralProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'mistral' }>) {
     super(provider)
     this.adapter = new MistralMessageAdapter()
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     this.client = new NoStainlessOpenAI({
       apiKey: provider.apiKey ?? '',
       baseURL: provider.baseUrl
         ? provider.baseUrl.replace(/\/+$/, '')
         : 'https://api.mistral.ai/v1',
       dangerouslyAllowBrowser: true,
+      defaultHeaders,
     })
   }
 

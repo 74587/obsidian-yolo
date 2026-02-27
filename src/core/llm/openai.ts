@@ -12,6 +12,7 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import { extractEmbeddingVector } from './embedding-utils'
@@ -30,12 +31,14 @@ export class OpenAIAuthenticatedProvider extends BaseLLMProvider<
 
   constructor(provider: Extract<LLMProvider, { type: 'openai' }>) {
     super(provider)
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     this.client = new OpenAI({
       apiKey: provider.apiKey ?? '',
       baseURL: provider.baseUrl
         ? provider.baseUrl.replace(/\/+$/, '')
         : undefined, // use default
       dangerouslyAllowBrowser: true,
+      defaultHeaders,
     })
     this.adapter = new OpenAIMessageAdapter()
   }

@@ -1,12 +1,6 @@
 import { z } from 'zod'
 
-import {
-  DEFAULT_APPLY_MODEL_ID,
-  DEFAULT_CHAT_MODELS,
-  DEFAULT_CHAT_MODEL_ID,
-  DEFAULT_EMBEDDING_MODELS,
-  DEFAULT_PROVIDERS,
-} from '../../constants'
+import { DEFAULT_APPLY_MODEL_ID, DEFAULT_CHAT_MODELS } from '../../constants'
 import { assistantSchema } from '../../types/assistant.types'
 import { chatModelSchema } from '../../types/chat-model.types'
 import { embeddingModelSchema } from '../../types/embedding-model.types'
@@ -214,27 +208,15 @@ export const smartComposerSettingsSchema = z.object({
   // Version
   version: z.literal(SETTINGS_SCHEMA_VERSION).catch(SETTINGS_SCHEMA_VERSION),
 
-  providers: z.array(llmProviderSchema).catch([...DEFAULT_PROVIDERS]),
+  providers: z.array(llmProviderSchema).catch([]),
 
-  chatModels: z.array(chatModelSchema).catch([...DEFAULT_CHAT_MODELS]),
+  chatModels: z.array(chatModelSchema).catch([]),
 
-  embeddingModels: z
-    .array(embeddingModelSchema)
-    .catch([...DEFAULT_EMBEDDING_MODELS]),
+  embeddingModels: z.array(embeddingModelSchema).catch([]),
 
-  chatModelId: z
-    .string()
-    .catch(
-      DEFAULT_CHAT_MODELS.find((v) => v.id === DEFAULT_CHAT_MODEL_ID)?.id ??
-        DEFAULT_CHAT_MODELS[0].id,
-    ), // model for default chat feature
-  applyModelId: z
-    .string()
-    .catch(
-      DEFAULT_CHAT_MODELS.find((v) => v.id === DEFAULT_APPLY_MODEL_ID)?.id ??
-        DEFAULT_CHAT_MODELS[0].id,
-    ), // model for apply feature
-  embeddingModelId: z.string().catch(DEFAULT_EMBEDDING_MODELS[0].id), // model for embedding
+  chatModelId: z.string().catch(''), // model for default chat feature
+  applyModelId: z.string().catch(''), // model for apply feature
+  embeddingModelId: z.string().catch(''), // model for embedding
 
   // System Prompt
   systemPrompt: z.string().catch(''),
@@ -277,6 +259,7 @@ export const smartComposerSettingsSchema = z.object({
   chatOptions: z
     .object({
       includeCurrentFileContent: z.boolean(),
+      mentionDisplayMode: z.enum(['inline', 'badge']).optional(),
       chatTitlePrompt: z.string().optional(),
       baseModelSpecialPrompt: z.string().optional(),
       // Chat mode (chat/agent)
@@ -286,6 +269,7 @@ export const smartComposerSettingsSchema = z.object({
     })
     .catch({
       includeCurrentFileContent: true,
+      mentionDisplayMode: 'inline',
       chatTitlePrompt: '',
       baseModelSpecialPrompt: '',
       chatMode: 'chat',
@@ -385,7 +369,7 @@ export const smartComposerSettingsSchema = z.object({
     .catch({
       continuationModelId:
         DEFAULT_CHAT_MODELS.find((v) => v.id === DEFAULT_APPLY_MODEL_ID)?.id ??
-        DEFAULT_CHAT_MODELS[0].id,
+        '',
       enableSmartSpace: true,
       enableSelectionChat: true,
       manualContextEnabled: false,
@@ -398,7 +382,7 @@ export const smartComposerSettingsSchema = z.object({
       enableTabCompletion: false,
       tabCompletionModelId:
         DEFAULT_CHAT_MODELS.find((v) => v.id === DEFAULT_APPLY_MODEL_ID)?.id ??
-        DEFAULT_CHAT_MODELS[0].id,
+        '',
       tabCompletionOptions: { ...DEFAULT_TAB_COMPLETION_OPTIONS },
       tabCompletionTriggers: [...DEFAULT_TAB_COMPLETION_TRIGGERS],
       tabCompletionSystemPrompt: DEFAULT_TAB_COMPLETION_SYSTEM_PROMPT,

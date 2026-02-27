@@ -2,7 +2,6 @@ import { GoogleGenAI } from '@google/genai'
 import { App, Notice, requestUrl } from 'obsidian'
 import { useEffect, useState } from 'react'
 
-import { DEFAULT_PROVIDERS } from '../../../constants'
 import { useLanguage } from '../../../contexts/language-context'
 import { extractEmbeddingVector } from '../../../core/llm/embedding-utils'
 import { getProviderClient } from '../../../core/llm/manager'
@@ -17,6 +16,7 @@ import {
   ensureUniqueModelId,
   generateModelId,
 } from '../../../utils/model-id-utils'
+import { toProviderHeadersRecord } from '../../../utils/llm/provider-headers'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ObsidianTextInput } from '../../common/ObsidianTextInput'
@@ -75,9 +75,8 @@ function AddEmbeddingModelModalComponent({
   const { t } = useLanguage()
   const selectedProvider: LLMProvider | undefined =
     provider ?? plugin.settings.providers[0]
-  const initialProviderId = selectedProvider?.id ?? DEFAULT_PROVIDERS[0].id
-  const initialProviderType =
-    selectedProvider?.type ?? DEFAULT_PROVIDERS[0].type
+  const initialProviderId = selectedProvider?.id ?? ''
+  const initialProviderType = selectedProvider?.type ?? 'openai-compatible'
   const [formData, setFormData] = useState<Omit<EmbeddingModel, 'dimension'>>({
     providerId: initialProviderId,
     providerType: initialProviderType,
@@ -129,6 +128,9 @@ function AddEmbeddingModelModalComponent({
       setLoadingModels(true)
       setLoadError(null)
       try {
+        const providerHeaders = toProviderHeadersRecord(
+          selectedProvider.customHeaders,
+        )
         const isOpenAIStyle =
           selectedProvider.type === 'openai' ||
           selectedProvider.type === 'openai-compatible' ||
@@ -175,6 +177,7 @@ function AddEmbeddingModelModalComponent({
                       ? { Authorization: `Bearer ${selectedProvider.apiKey}` }
                       : {}),
                     Accept: 'application/json',
+                    ...(providerHeaders ?? {}),
                   },
                 })
                 if (response.status < 200 || response.status >= 300) {
@@ -220,7 +223,12 @@ function AddEmbeddingModelModalComponent({
         }
 
         if (selectedProvider.type === 'gemini') {
-          const ai = new GoogleGenAI({ apiKey: selectedProvider.apiKey ?? '' })
+          const ai = new GoogleGenAI({
+            apiKey: selectedProvider.apiKey ?? '',
+            httpOptions: providerHeaders
+              ? { headers: providerHeaders }
+              : undefined,
+          })
           const pager = await ai.models.list()
           const names: string[] = []
           for await (const entry of pager) {

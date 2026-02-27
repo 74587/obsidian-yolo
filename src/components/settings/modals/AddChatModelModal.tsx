@@ -1,8 +1,7 @@
 import { GoogleGenAI } from '@google/genai'
 import { App, Notice, requestUrl } from 'obsidian'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
-import { DEFAULT_PROVIDERS } from '../../../constants'
 import { useLanguage } from '../../../contexts/language-context'
 import SmartComposerPlugin from '../../../main'
 import { ChatModel, chatModelSchema } from '../../../types/chat-model.types'
@@ -17,6 +16,7 @@ import {
   ensureUniqueModelId,
   generateModelId,
 } from '../../../utils/model-id-utils'
+import { toProviderHeadersRecord } from '../../../utils/llm/provider-headers'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
@@ -28,6 +28,10 @@ import { SearchableDropdown } from '../../common/SearchableDropdown'
 type AddChatModelModalComponentProps = {
   plugin: SmartComposerPlugin
   provider?: LLMProvider
+}
+
+type CustomParameterFormEntry = CustomParameter & {
+  uid: string
 }
 
 const MODEL_IDENTIFIER_KEYS = ['id', 'name', 'model'] as const
@@ -170,9 +174,8 @@ function AddChatModelModalComponent({
   const { t } = useLanguage()
   const selectedProvider: LLMProvider | undefined =
     provider ?? plugin.settings.providers[0]
-  const initialProviderId = selectedProvider?.id ?? DEFAULT_PROVIDERS[0].id
-  const initialProviderType =
-    selectedProvider?.type ?? DEFAULT_PROVIDERS[0].type
+  const initialProviderId = selectedProvider?.id ?? ''
+  const initialProviderType = selectedProvider?.type ?? 'openai-compatible'
   const [formData, setFormData] = useState<ChatModel>({
     providerId: initialProviderId,
     providerType: initialProviderType,
@@ -204,9 +207,14 @@ function AddChatModelModalComponent({
     topP: MODEL_SAMPLING_DEFAULTS.topP,
     maxOutputTokens: MODEL_SAMPLING_DEFAULTS.maxOutputTokens,
   }))
-  const [customParameters, setCustomParameters] = useState<CustomParameter[]>(
-    [],
-  )
+  const customParameterUidRef = useRef(0)
+  const createCustomParameterUid = (): string => {
+    customParameterUidRef.current += 1
+    return `custom-param-${customParameterUidRef.current}`
+  }
+  const [customParameters, setCustomParameters] = useState<
+    CustomParameterFormEntry[]
+  >([])
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -227,6 +235,9 @@ function AddChatModelModalComponent({
       setLoadingModels(true)
       setLoadError(null)
       try {
+        const providerHeaders = toProviderHeadersRecord(
+          selectedProvider.customHeaders,
+        )
         const isOpenAIStyle =
           selectedProvider.type === 'openai' ||
           selectedProvider.type === 'openai-compatible' ||
@@ -273,6 +284,7 @@ function AddChatModelModalComponent({
                       ? { Authorization: `Bearer ${selectedProvider.apiKey}` }
                       : {}),
                     Accept: 'application/json',
+                    ...(providerHeaders ?? {}),
                   },
                 })
                 if (response.status < 200 || response.status >= 300) {
@@ -320,7 +332,13 @@ function AddChatModelModalComponent({
           const baseUrl = normalizeGeminiBaseUrl(selectedProvider.baseUrl)
           const ai = new GoogleGenAI({
             apiKey: selectedProvider.apiKey ?? '',
-            httpOptions: baseUrl ? { baseUrl } : undefined,
+            httpOptions:
+              baseUrl || providerHeaders
+                ? {
+                    ...(baseUrl ? { baseUrl } : {}),
+                    ...(providerHeaders ? { headers: providerHeaders } : {}),
+                  }
+                : undefined,
           })
           const pager = await ai.models.list()
           const names: string[] = []
@@ -827,6 +845,7 @@ function AddChatModelModalComponent({
             setCustomParameters((prev) => [
               ...prev,
               {
+                uid: createCustomParameterUid(),
                 key: '',
                 value: '',
                 type: 'text',
@@ -838,7 +857,7 @@ function AddChatModelModalComponent({
 
       {customParameters.map((param, index) => (
         <ObsidianSetting
-          key={`${param.key}-${param.type ?? 'text'}-${param.value}`}
+          key={param.uid}
           className="smtcmp-settings-kv-entry smtcmp-settings-kv-entry--inline"
         >
           <ObsidianTextInput

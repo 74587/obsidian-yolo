@@ -29,6 +29,7 @@ import {
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
 import { parseImageDataUrl } from '../../utils/llm/image'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import {
@@ -45,13 +46,16 @@ export class AnthropicProvider extends BaseLLMProvider<
 
   constructor(provider: Extract<LLMProvider, { type: 'anthropic' }>) {
     super(provider)
-    this.client = new Anthropic({
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
+    const clientOptions = {
       apiKey: provider.apiKey,
       baseURL: provider.baseUrl
         ? provider.baseUrl.replace(/\/+$/, '')
         : undefined, // use default
       dangerouslyAllowBrowser: true,
-    })
+      ...(defaultHeaders ? { defaultHeaders } : {}),
+    }
+    this.client = new Anthropic(clientOptions)
   }
 
   async generateResponse(

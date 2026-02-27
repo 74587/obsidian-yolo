@@ -372,6 +372,11 @@ export const zh: TranslationKeys = {
       useObsidianRequestUrl: '使用 Obsidian requestUrl',
       useObsidianRequestUrlDesc:
         '使用 Obsidian requestUrl 绕过 CORS 限制。流式响应将会被缓冲后再返回。',
+      customHeaders: '自定义请求头',
+      customHeadersDesc: '为此提供商发出的所有请求附加额外的 HTTP Header。',
+      customHeadersAdd: '添加请求头',
+      customHeadersKeyPlaceholder: '请求头名称',
+      customHeadersValuePlaceholder: '请求头值',
     },
     models: {
       title: '模型',
@@ -526,7 +531,17 @@ export const zh: TranslationKeys = {
       serverNamePlaceholder: "例如：'github'",
       parametersField: '参数',
       parametersFieldDesc:
-        '用于定义 MCP 服务器运行方式的 JSON 配置，格式必须包含：\n- "command"：可执行命令名（例如 "npx"、"node"）\n- "args"：（可选）命令行参数数组\n- "env"：（可选）环境变量键值对',
+        '用于定义 MCP 服务器传输方式的 JSON 配置。支持格式：\n- stdio：{"transport":"stdio","command":"npx","args":[...],"env":{...}}\n- http：{"transport":"http","url":"https://...","headers":{...}}\n- sse：{"transport":"sse","url":"https://...","headers":{...}}\n- ws：{"transport":"ws","url":"wss://..."}\n同时兼容包装格式：{"mcpServers":{"name":{...}}} 与 {"id":"name","parameters":{...}}',
+      parametersFieldDescShort:
+        'MCP 服务器的 JSON 配置，支持 stdio、http、sse、ws 传输方式。',
+      parametersFormatHelp: '格式说明',
+      parametersTooltipDesc:
+        '推荐格式：\n- stdio：{"transport":"stdio","command":"npx",...}\n- http/sse/ws：{"transport":"http|sse|ws","url":"..."}\n\n兼容包装格式：\n- {"mcpServers":{"name":{...}}}\n- {"id":"name","parameters":{...}}\n\n提示：当 mcpServers 只有一个服务时，名称会自动回填。',
+      parametersTooltipTitle: '格式示例',
+      parametersTooltipPreferred: '推荐',
+      parametersTooltipCompatible: '兼容',
+      parametersTooltipTip:
+        '提示：当 mcpServers 只有一个服务时，名称会自动回填。',
       serverNameRequired: '名称不能为空',
       serverAlreadyExists: '同名服务器已存在',
       parametersRequired: '参数不能为空',
@@ -678,6 +693,11 @@ export const zh: TranslationKeys = {
       resetAgentsConfirm:
         '确定要重置 Agent 配置吗？此操作将删除自定义 Agent 并重置当前选择。',
       resetAgentsSuccess: 'Agent 配置已重置为默认',
+      mentionDisplayMode: '引用文件显示位置',
+      mentionDisplayModeDesc:
+        '选择 @ 添加文件后是在输入框内显示，还是在输入框顶部以徽章显示。',
+      mentionDisplayModeInline: '输入框内',
+      mentionDisplayModeBadge: '顶部徽章',
     },
   },
 
@@ -726,7 +746,10 @@ export const zh: TranslationKeys = {
       copyText: '复制文本',
       textCopied: '文本已复制',
       apply: '应用',
+      applyQuick: '应用（快速）',
+      applyPrecise: '应用（精准）',
       applying: '应用中...',
+      stopApplying: '终止应用',
     },
     customContinuePromptLabel: '续写指令',
     customContinuePromptPlaceholder: '询问 AI（输入 @ 可附加文件）',

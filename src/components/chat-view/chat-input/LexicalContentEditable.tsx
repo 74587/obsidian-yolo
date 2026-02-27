@@ -10,10 +10,10 @@ import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin'
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin'
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin'
 import { $getRoot, LexicalEditor, SerializedEditorState } from 'lexical'
-import { RefObject, useCallback, useEffect, useMemo, useState } from 'react'
+import { RefObject, useCallback, useEffect, useState } from 'react'
 
 import { useApp } from '../../../contexts/app-context'
-import { MentionableImage } from '../../../types/mentionable'
+import { Mentionable, MentionableImage } from '../../../types/mentionable'
 import { SearchableMentionable, fuzzySearch } from '../../../utils/fuzzy-search'
 
 import DragDropPaste from './plugins/image/DragDropPastePlugin'
@@ -45,6 +45,8 @@ export type LexicalContentEditableProps = {
   onMentionMenuToggle?: (isOpen: boolean) => void
   mentionMenuContainerRef?: RefObject<HTMLElement>
   mentionMenuPlacement?: 'top' | 'bottom'
+  mentionDisplayMode?: 'inline' | 'badge'
+  onSelectMentionable?: (mentionable: Mentionable) => void
   plugins?: {
     onEnter?: {
       onVaultChat: () => void
@@ -70,6 +72,8 @@ export default function LexicalContentEditable({
   onMentionMenuToggle,
   mentionMenuContainerRef,
   mentionMenuPlacement = 'top',
+  mentionDisplayMode = 'inline',
+  onSelectMentionable,
   plugins,
 }: LexicalContentEditableProps) {
   const app = useApp()
@@ -95,10 +99,14 @@ export default function LexicalContentEditable({
     [app],
   )
 
-  const resolvedSearch = useMemo(() => {
-    const searchFn = searchResultByQuery ?? defaultSearch
-    return (query: string) => searchFn(query)
-  }, [defaultSearch, searchResultByQuery, activeFilePath])
+  const resolvedSearch = useCallback(
+    (query: string) => {
+      void activeFilePath
+      const searchFn = searchResultByQuery ?? defaultSearch
+      return searchFn(query)
+    },
+    [activeFilePath, defaultSearch, searchResultByQuery],
+  )
 
   /*
    * Using requestAnimationFrame for autoFocus instead of using editor.focus()
@@ -153,6 +161,8 @@ export default function LexicalContentEditable({
         onMenuOpenChange={onMentionMenuToggle}
         menuContainerRef={mentionMenuContainerRef}
         placement={mentionMenuPlacement}
+        mentionDisplayMode={mentionDisplayMode}
+        onSelectMentionable={onSelectMentionable}
       />
       <OnChangePlugin
         onChange={(editorState, _editor) => {

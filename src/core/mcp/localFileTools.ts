@@ -555,16 +555,32 @@ const escapeRegExp = (value: string): string => {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+const toLooseCharPattern = (char: string): string => {
+  if (char === '"' || char === '\u201c' || char === '\u201d') {
+    return '["\u201c\u201d]'
+  }
+  if (char === "'" || char === '\u2018' || char === '\u2019') {
+    return "['\u2018\u2019]"
+  }
+  if (char === '-' || char === '\u2013' || char === '\u2014') {
+    return '[-\u2013\u2014]'
+  }
+  return escapeRegExp(char)
+}
+
 const createLooseEditRegex = (oldText: string): RegExp => {
   const lines = oldText.split(/\r?\n/)
   const pattern = lines
     .map((line, index) => {
-      const escapedLine = escapeRegExp(line.replace(/[ \t]+$/g, ''))
+      const normalizedLine = line.replace(/[ \t]+$/g, '')
+      const looseLinePattern = Array.from(normalizedLine)
+        .map((char) => toLooseCharPattern(char))
+        .join('')
       const endWhitespace = '[ \\t]*'
       if (index === lines.length - 1) {
-        return `${escapedLine}${endWhitespace}`
+        return `${looseLinePattern}${endWhitespace}`
       }
-      return `${escapedLine}${endWhitespace}\\r?\\n`
+      return `${looseLinePattern}${endWhitespace}\\r?\\n`
     })
     .join('')
   return new RegExp(pattern, 'g')

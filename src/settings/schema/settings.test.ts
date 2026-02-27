@@ -12,28 +12,14 @@ describe('parseSmartComposerSettings', () => {
     const result = parseSmartComposerSettings({})
     expect(result.version).toBe(SETTINGS_SCHEMA_VERSION)
 
-    expect(result.providers.length).toBeGreaterThan(0)
-    expect(result.providers).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ type: 'openai' }),
-        expect.objectContaining({ type: 'anthropic' }),
-      ]),
-    )
+    expect(result.providers).toEqual([])
 
-    expect(result.chatModels.length).toBeGreaterThan(0)
-    expect(
-      result.chatModels.some((model) => model.id === result.chatModelId),
-    ).toBe(true)
-    expect(
-      result.chatModels.some((model) => model.id === result.applyModelId),
-    ).toBe(true)
+    expect(result.chatModels).toEqual([])
+    expect(result.chatModelId).toBe('')
+    expect(result.applyModelId).toBe('')
 
-    expect(result.embeddingModels.length).toBeGreaterThan(0)
-    expect(
-      result.embeddingModels.some(
-        (model) => model.id === result.embeddingModelId,
-      ),
-    ).toBe(true)
+    expect(result.embeddingModels).toEqual([])
+    expect(result.embeddingModelId).toBe('')
 
     expect(result.systemPrompt).toBe('')
 
@@ -52,9 +38,9 @@ describe('parseSmartComposerSettings', () => {
 
     expect(result.chatOptions).toMatchObject({
       includeCurrentFileContent: true,
-      enableTools: true,
-      maxAutoIterations: 1,
-      maxContextMessages: 32,
+      mentionDisplayMode: 'inline',
+      chatMode: 'chat',
+      agentModeWarningConfirmed: false,
     })
 
     expect(result.continuationOptions).toMatchObject({

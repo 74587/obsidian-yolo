@@ -31,6 +31,16 @@ export function parseSmartComposerSettings(
   data: unknown,
 ): SmartComposerSettings {
   try {
+    if (
+      !data ||
+      (typeof data === 'object' &&
+        data !== null &&
+        Object.keys(data as Record<string, unknown>).length === 0)
+    ) {
+      const parsed = smartComposerSettingsSchema.parse({})
+      return { ...parsed, version: SETTINGS_SCHEMA_VERSION }
+    }
+
     const migratedData = migrateSettings(data as Record<string, unknown>)
     const parsed = smartComposerSettingsSchema.parse(migratedData)
     return { ...parsed, version: SETTINGS_SCHEMA_VERSION }

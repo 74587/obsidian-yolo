@@ -30,6 +30,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
   const [toggleWidth, setToggleWidth] = useState<number | null>(null)
   const toggleRef = useRef<HTMLDivElement | null>(null)
   const clickOpenBlockTimeoutRef = useRef<number | null>(null)
+  const hoverCloseTimeoutRef = useRef<number | null>(null)
 
   const chatLabel = t('sidebar.tabs.chat', 'Chat')
   const agentLabel = t('chatMode.agent', 'Agent')
@@ -60,9 +61,22 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
 
   useEffect(() => {
     if (activeView !== 'chat') {
+      if (hoverCloseTimeoutRef.current !== null) {
+        window.clearTimeout(hoverCloseTimeoutRef.current)
+        hoverCloseTimeoutRef.current = null
+      }
       setIsModeMenuOpen(false)
     }
   }, [activeView])
+
+  useEffect(() => {
+    return () => {
+      if (hoverCloseTimeoutRef.current !== null) {
+        window.clearTimeout(hoverCloseTimeoutRef.current)
+        hoverCloseTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (!isModeClickOpenBlocked) {
@@ -106,6 +120,27 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
     }
   }, [])
 
+  const clearHoverCloseTimeout = () => {
+    if (hoverCloseTimeoutRef.current !== null) {
+      window.clearTimeout(hoverCloseTimeoutRef.current)
+      hoverCloseTimeoutRef.current = null
+    }
+  }
+
+  const openModeMenuOnHover = () => {
+    if (disabled || activeView !== 'chat') return
+    clearHoverCloseTimeout()
+    setIsModeMenuOpen(true)
+  }
+
+  const closeModeMenuWithDelay = () => {
+    clearHoverCloseTimeout()
+    hoverCloseTimeoutRef.current = window.setTimeout(() => {
+      setIsModeMenuOpen(false)
+      hoverCloseTimeoutRef.current = null
+    }, 150)
+  }
+
   return (
     <div
       ref={toggleRef}
@@ -124,6 +159,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
         }}
         open={isModeMenuOpen}
         onOpenChange={(open) => {
+          clearHoverCloseTimeout()
           if (disabled || activeView !== 'chat') {
             setIsModeMenuOpen(false)
             return
@@ -143,6 +179,7 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
           if (value !== 'chat' && value !== 'agent') return
           onChangeChatMode(value)
           onChangeView('chat')
+          clearHoverCloseTimeout()
           setIsModeMenuOpen(false)
         }}
         disabled={disabled}
@@ -165,13 +202,25 @@ const ViewToggle: React.FC<ViewToggleProps> = ({
         onTriggerMouseEnter={() => {
           if (disabled) return
           setHoveredView('chat')
+          openModeMenuOnHover()
         }}
         onTriggerMouseLeave={() => {
           setHoveredView(null)
+          closeModeMenuWithDelay()
+        }}
+        onContentMouseEnter={() => {
+          if (disabled) return
+          setHoveredView('chat')
+          clearHoverCloseTimeout()
+        }}
+        onContentMouseLeave={() => {
+          setHoveredView(null)
+          closeModeMenuWithDelay()
         }}
         contentClassName="smtcmp-smart-space-popover smtcmp-chat-sidebar-popover smtcmp-view-toggle-mode-popover"
       />
       <button
+        type="button"
         className={`smtcmp-view-toggle-button ${
           activeView === 'composer' ? 'smtcmp-view-toggle-button--active' : ''
         } ${

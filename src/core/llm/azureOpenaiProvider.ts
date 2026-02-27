@@ -11,6 +11,7 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import { OpenAIMessageAdapter } from './openaiMessageAdapter'
@@ -24,12 +25,14 @@ export class AzureOpenAIProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'azure-openai' }>) {
     super(provider)
     this.adapter = new OpenAIMessageAdapter()
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     this.client = new AzureOpenAI({
       apiKey: provider.apiKey ?? '',
       endpoint: provider.baseUrl ?? '',
       apiVersion: provider.additionalSettings.apiVersion,
       deployment: provider.additionalSettings.deployment,
       dangerouslyAllowBrowser: true,
+      defaultHeaders,
     })
   }
 

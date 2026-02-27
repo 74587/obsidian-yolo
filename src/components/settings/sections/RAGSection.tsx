@@ -144,9 +144,19 @@ export function RAGSection({ app, plugin }: RAGSectionProps) {
   const parseFloatInput = (value: string) => {
     const trimmed = value.trim()
     if (trimmed.length === 0) return null
-    if (!/^\d*(?:\.\d*)?$/.test(trimmed)) return null
-    if (trimmed === '.' || trimmed.endsWith('.')) return null
-    const parsed = Number(trimmed)
+    if (!/^\d*(?:[.,]\d*)?$/.test(trimmed)) return null
+    if (
+      trimmed === '.' ||
+      trimmed === ',' ||
+      trimmed.endsWith('.') ||
+      trimmed.endsWith(',')
+    ) {
+      return null
+    }
+    const normalized = trimmed.includes(',')
+      ? trimmed.split(',').join('.')
+      : trimmed
+    const parsed = Number(normalized)
     return Number.isFinite(parsed) ? parsed : null
   }
 

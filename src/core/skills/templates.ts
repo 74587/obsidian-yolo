@@ -37,20 +37,37 @@ When generating new markdown content, use:
 
 ## Editing Existing Files
 
-When proposing edits to an existing markdown file:
+When proposing edits to an existing markdown file, choose one of these two formats.
 
-1. Include \`filename\` and \`language\` attributes.
-2. Restate the relevant section heading to anchor where changes belong.
-3. Show only changed parts. Use HTML comments to skip unchanged content.
+### Preferred (for one-click Apply)
+
+Use structured edit blocks so the app can apply changes locally without extra model round-trips.
+
+Wrap them in \`<smtcmp_block>\` and output ONLY edit blocks inside:
 
 ~~~xml
-<smtcmp_block filename="path/to/file.md" language="markdown">
-<!-- ... existing content ... -->
-## Section Title
-{{ edit }}
-<!-- ... existing content ... -->
+<smtcmp_block language="text" filename="path/to/file.md">
+<<<<<<< SEARCH
+exact old text
+=======
+new text
+>>>>>>> REPLACE
 </smtcmp_block>
 ~~~
+
+Allowed edit block types:
+
+1. \`SEARCH/REPLACE\` for replacement
+2. \`INSERT AFTER/INSERT\` for insertion
+3. \`CONTINUE/CONTINUE\` for appending
+
+Rules:
+
+- Keep SEARCH text minimal but uniquely matchable.
+- Preserve exact whitespace and punctuation in SEARCH.
+- For deletion, keep REPLACE section empty.
+- Multiple edit blocks are allowed when needed.
+
 
 The user already has full file access, so do not dump the full file unless explicitly requested.
 

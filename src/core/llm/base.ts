@@ -52,7 +52,7 @@ export abstract class BaseLLMProvider<P extends LLMProvider> {
       if (rawValue.trim().length === 0) {
         continue
       }
-      next[key] = parseCustomParameterValue(rawValue, entry.type)
+      next[key] = parseCustomParameterValue(rawValue, entry.type, key)
     }
     return next as T
   }

@@ -26,6 +26,10 @@ type EditChatModelModalComponentProps = {
   model: ChatModel
 }
 
+type CustomParameterFormEntry = CustomParameter & {
+  uid: string
+}
+
 type EditableChatModel = ChatModel & {
   reasoning?: {
     enabled: boolean
@@ -172,13 +176,22 @@ function EditChatModelModalComponent({
   const [maxOutputTokens, setMaxOutputTokens] = useState<number | undefined>(
     editableModel.maxOutputTokens,
   )
-  const [customParameters, setCustomParameters] = useState<CustomParameter[]>(
-    () =>
-      Array.isArray(editableModel.customParameters)
-        ? editableModel.customParameters.filter(
-            (entry) => !isReservedCustomParameterKey(entry.key),
-          )
-        : [],
+  const customParameterUidRef = React.useRef(0)
+  const createCustomParameterUid = (): string => {
+    customParameterUidRef.current += 1
+    return `custom-param-${customParameterUidRef.current}`
+  }
+  const [customParameters, setCustomParameters] = useState<
+    CustomParameterFormEntry[]
+  >(() =>
+    Array.isArray(editableModel.customParameters)
+      ? editableModel.customParameters
+          .filter((entry) => !isReservedCustomParameterKey(entry.key))
+          .map((entry) => ({
+            ...entry,
+            uid: createCustomParameterUid(),
+          }))
+      : [],
   )
 
   const resetModelParams = () => {
@@ -607,6 +620,7 @@ function EditChatModelModalComponent({
             setCustomParameters((prev) => [
               ...prev,
               {
+                uid: createCustomParameterUid(),
                 key: '',
                 value: '',
                 type: 'text',
@@ -618,7 +632,7 @@ function EditChatModelModalComponent({
 
       {customParameters.map((param, index) => (
         <ObsidianSetting
-          key={`${param.key}-${param.type ?? 'text'}-${param.value}`}
+          key={param.uid}
           className="smtcmp-settings-kv-entry smtcmp-settings-kv-entry--inline"
         >
           <ObsidianTextInput

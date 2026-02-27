@@ -5,6 +5,31 @@ import {
 
 export const DEFAULT_CUSTOM_PARAMETER_TYPE: CustomParameterType = 'text'
 
+const LEGACY_NUMERIC_PARAMETER_KEYS = new Set([
+  'temperature',
+  'top_p',
+  'max_tokens',
+  'max_output_tokens',
+])
+
+function shouldUseLegacyNumericType(
+  key: string | undefined,
+  type?: string,
+): boolean {
+  const normalizedType = typeof type === 'string' ? type.trim() : undefined
+  if (
+    normalizedType === 'text' ||
+    normalizedType === 'number' ||
+    normalizedType === 'boolean' ||
+    normalizedType === 'json'
+  ) {
+    return false
+  }
+
+  const normalizedKey = typeof key === 'string' ? key.trim().toLowerCase() : ''
+  return LEGACY_NUMERIC_PARAMETER_KEYS.has(normalizedKey)
+}
+
 export function normalizeCustomParameterType(
   value: string | undefined,
 ): CustomParameterType {
@@ -62,8 +87,16 @@ export function mergeCustomParameters(
   return [...merged.values()]
 }
 
-export function parseCustomParameterValue(raw: string, type?: string): unknown {
-  const normalizedType = normalizeCustomParameterType(type)
+export function parseCustomParameterValue(
+  raw: string,
+  type?: string,
+  key?: string,
+): unknown {
+  const normalizedType = shouldUseLegacyNumericType(key, type)
+    ? 'number'
+    : normalizeCustomParameterType(
+        typeof type === 'string' ? type.trim() : type,
+      )
   const trimmed = raw.trim()
 
   if (normalizedType === 'text') {
@@ -75,7 +108,11 @@ export function parseCustomParameterValue(raw: string, type?: string): unknown {
   }
 
   if (normalizedType === 'number') {
-    const parsed = Number(trimmed)
+    const normalizedNumeric =
+      trimmed.includes(',') && !trimmed.includes('.')
+        ? trimmed.split(',').join('.')
+        : trimmed
+    const parsed = Number(normalizedNumeric)
     return Number.isFinite(parsed) ? parsed : raw
   }
 

@@ -27,6 +27,9 @@ import {
   validateServerName,
 } from './tool-name-utils'
 
+export const INVALID_TOOL_ARGUMENTS_JSON_ERROR =
+  'Tool arguments must be valid JSON. Please escape quotes/newlines inside string values and retry.'
+
 export class McpManager {
   static readonly TOOL_NAME_DELIMITER = '__' // Delimiter for tool name construction (serverName__toolName)
 
@@ -270,21 +273,11 @@ export class McpManager {
     }
 
     const { Client } = await import('@modelcontextprotocol/sdk/client/index.js')
-    const { StdioClientTransport } = await import(
-      '@modelcontextprotocol/sdk/client/stdio.js'
-    )
     const client = new Client({ name, version: '1.0.0' })
 
     try {
-      await client.connect(
-        new StdioClientTransport({
-          ...serverParams,
-          env: {
-            ...this.defaultEnv,
-            ...(serverParams.env ?? {}),
-          },
-        }),
-      )
+      const transport = await this.createClientTransport(serverParams)
+      await client.connect(transport)
     } catch (error) {
       console.error(
         `[Smart Composer] Failed to connect to MCP server "${name}":`,
@@ -321,6 +314,62 @@ export class McpManager {
         error: new Error(
           `Failed to list tools for MCP server ${name}: ${error instanceof Error ? error.message : String(error)}`,
         ),
+      }
+    }
+  }
+
+  private async createClientTransport(
+    serverParams: McpServerConfig['parameters'],
+  ) {
+    switch (serverParams.transport) {
+      case 'stdio': {
+        const { StdioClientTransport } = await import(
+          '@modelcontextprotocol/sdk/client/stdio.js'
+        )
+        return new StdioClientTransport({
+          command: serverParams.command,
+          args: serverParams.args,
+          cwd: serverParams.cwd,
+          env: {
+            ...this.defaultEnv,
+            ...(serverParams.env ?? {}),
+          },
+        })
+      }
+      case 'http': {
+        const { StreamableHTTPClientTransport } = await import(
+          '@modelcontextprotocol/sdk/client/streamableHttp.js'
+        )
+        return new StreamableHTTPClientTransport(new URL(serverParams.url), {
+          requestInit: serverParams.headers
+            ? { headers: serverParams.headers }
+            : undefined,
+        })
+      }
+      case 'sse': {
+        const { SSEClientTransport } = await import(
+          '@modelcontextprotocol/sdk/client/sse.js'
+        )
+        return new SSEClientTransport(new URL(serverParams.url), {
+          eventSourceInit: serverParams.headers
+            ? ({ headers: serverParams.headers } as never)
+            : undefined,
+          requestInit: serverParams.headers
+            ? { headers: serverParams.headers }
+            : undefined,
+        })
+      }
+      case 'ws': {
+        const { WebSocketClientTransport } = await import(
+          '@modelcontextprotocol/sdk/client/websocket.js'
+        )
+        return new WebSocketClientTransport(new URL(serverParams.url))
+      }
+      default: {
+        const exhaustiveCheck: never = serverParams
+        throw new Error(
+          `Unsupported MCP transport: ${JSON.stringify(exhaustiveCheck)}`,
+        )
       }
     }
   }
@@ -490,7 +539,27 @@ export class McpManager {
     try {
       const { serverName, toolName } = parseToolName(name)
       const parsedArgs: Record<string, unknown> | undefined =
-        typeof args === 'string' ? (args === '' ? {} : JSON.parse(args)) : args
+        typeof args === 'string'
+          ? (() => {
+              const trimmedArgs = args.trim()
+              if (trimmedArgs.length === 0) {
+                return {}
+              }
+              try {
+                const parsed = JSON.parse(trimmedArgs)
+                if (
+                  parsed &&
+                  typeof parsed === 'object' &&
+                  !Array.isArray(parsed)
+                ) {
+                  return parsed as Record<string, unknown>
+                }
+                throw new Error('Tool arguments must be a JSON object.')
+              } catch {
+                throw new Error(INVALID_TOOL_ARGUMENTS_JSON_ERROR)
+              }
+            })()
+          : args
 
       if (serverName === getLocalFileToolServerName()) {
         if (!this.isLocalToolEnabled(toolName)) {

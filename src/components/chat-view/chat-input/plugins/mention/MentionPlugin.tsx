@@ -132,6 +132,11 @@ class MentionTypeaheadOption extends MenuOption {
         this.name = 'Vault'
         this.mentionable = result
         break
+      default:
+        super('unknown')
+        this.name = ''
+        this.mentionable = result as Mentionable
+        break
     }
   }
 }
@@ -198,11 +203,15 @@ export default function NewMentionsPlugin({
   onMenuOpenChange,
   menuContainerRef,
   placement = 'top',
+  mentionDisplayMode = 'inline',
+  onSelectMentionable,
 }: {
   searchResultByQuery: (query: string) => SearchableMentionable[]
   onMenuOpenChange?: (isOpen: boolean) => void
   menuContainerRef?: RefObject<HTMLElement>
   placement?: 'top' | 'bottom'
+  mentionDisplayMode?: 'inline' | 'badge'
+  onSelectMentionable?: (mentionable: Mentionable) => void
 }): ReactJSX.Element | null {
   const [editor] = useLexicalComposerContext()
 
@@ -243,6 +252,17 @@ export default function NewMentionsPlugin({
       closeMenu: () => void,
     ) => {
       editor.update(() => {
+        if (mentionDisplayMode === 'badge') {
+          if (nodeToReplace) {
+            const emptyNode = $createTextNode('')
+            nodeToReplace.replace(emptyNode)
+            emptyNode.select()
+          }
+          onSelectMentionable?.(selectedOption.mentionable)
+          closeMenu()
+          return
+        }
+
         const mentionNode = $createMentionNode(
           getMentionableName(selectedOption.mentionable, {
             unitLabel: mentionableUnitLabel,
@@ -260,7 +280,7 @@ export default function NewMentionsPlugin({
         closeMenu()
       })
     },
-    [editor],
+    [editor, mentionDisplayMode, mentionableUnitLabel, onSelectMentionable],
   )
 
   const checkForMentionMatch = useCallback(

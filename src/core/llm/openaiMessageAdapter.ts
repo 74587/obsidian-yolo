@@ -30,6 +30,29 @@ function hasObjectProperty<T extends object, K extends PropertyKey>(
   return Object.prototype.hasOwnProperty.call(value, key)
 }
 
+const RESERVED_REQUEST_KEYS = new Set([
+  'model',
+  'tools',
+  'tool_choice',
+  'reasoning_effort',
+  'web_search_options',
+  'messages',
+  'max_tokens',
+  'temperature',
+  'top_p',
+  'frequency_penalty',
+  'presence_penalty',
+  'logit_bias',
+  'prediction',
+  'stream',
+  'stream_options',
+  'thinking',
+  'thinking_config',
+  'thinkingConfig',
+  'reasoning',
+  'extra_body',
+])
+
 function extractReasoningContent(source: unknown): string | undefined {
   if (
     typeof source === 'object' &&
@@ -95,6 +118,24 @@ function normalizeFunctionArguments(value: unknown): string | undefined {
   } catch {
     return undefined
   }
+}
+
+function normalizeRequestToolCallArguments(value: unknown): string {
+  const argumentsText = normalizeFunctionArguments(value)
+  if (!argumentsText || argumentsText.trim().length === 0) {
+    return '{}'
+  }
+
+  try {
+    const parsed = JSON.parse(argumentsText)
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return JSON.stringify(parsed)
+    }
+  } catch {
+    // fallback below
+  }
+
+  return '{}'
 }
 
 function normalizeToolCalls(source: unknown): ToolCall[] | undefined {
@@ -413,6 +454,20 @@ export class OpenAIMessageAdapter {
       }
     }
 
+    const requestRecord = request as Record<string, unknown>
+    for (const [key, value] of Object.entries(requestRecord)) {
+      if (RESERVED_REQUEST_KEYS.has(key)) {
+        continue
+      }
+      if (value === undefined) {
+        continue
+      }
+      if (Object.prototype.hasOwnProperty.call(mutable, key)) {
+        continue
+      }
+      mutable[key] = value
+    }
+
     return params
   }
 
@@ -445,7 +500,7 @@ export class OpenAIMessageAdapter {
           tool_calls: message.tool_calls?.map((toolCall) => ({
             id: toolCall.id,
             function: {
-              arguments: toolCall.arguments ?? '{}',
+              arguments: normalizeRequestToolCallArguments(toolCall.arguments),
               name: toolCall.name,
             },
             type: 'function',
