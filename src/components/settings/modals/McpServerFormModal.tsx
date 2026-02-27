@@ -1,3 +1,5 @@
+import * as Tooltip from '@radix-ui/react-tooltip'
+import { Info } from 'lucide-react'
 import { App, Notice } from 'obsidian'
 import { useCallback, useEffect, useState } from 'react'
 import TextareaAutosize from 'react-textarea-autosize'
@@ -8,7 +10,9 @@ import { validateServerName } from '../../../core/mcp/tool-name-utils'
 import SmartComposerPlugin from '../../../main'
 import {
   McpServerParameters,
+  getMcpServerNamesFromInput,
   mcpServerParametersSchema,
+  normalizeMcpServerParameters,
 } from '../../../types/mcp.types'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
@@ -59,6 +63,9 @@ function McpServerFormComponent({
     : undefined
 
   const [name, setName] = useState(existingServer?.id ?? '')
+  const [isNameManuallyEdited, setIsNameManuallyEdited] = useState(
+    existingServer !== undefined,
+  )
   const [parameters, setParameters] = useState(
     existingServer ? JSON.stringify(existingServer.parameters, null, 2) : '',
   )
@@ -66,6 +73,7 @@ function McpServerFormComponent({
 
   const PARAMETERS_PLACEHOLDER = JSON.stringify(
     {
+      transport: 'stdio',
       command: 'npx',
       args: ['-y', '@modelcontextprotocol/server-github'],
       env: {
@@ -116,9 +124,11 @@ function McpServerFormComponent({
           ),
         )
       }
-      const validatedParameters: McpServerParameters = mcpServerParametersSchema
-        .strict()
-        .parse(parsedParameters)
+      const validatedParameters: McpServerParameters =
+        normalizeMcpServerParameters({
+          value: parsedParameters,
+          serverName,
+        })
 
       const newSettings = {
         ...plugin.settings,
@@ -171,7 +181,12 @@ function McpServerFormComponent({
           return
         }
         const parsedParameters = JSON.parse(parameters)
-        mcpServerParametersSchema.strict().parse(parsedParameters)
+        mcpServerParametersSchema.parse(
+          normalizeMcpServerParameters({
+            value: parsedParameters,
+            serverName: name.trim(),
+          }),
+        )
         setValidationError(null)
       } catch (error) {
         if (error instanceof SyntaxError) {
@@ -197,12 +212,28 @@ function McpServerFormComponent({
         }
       }
     },
-    [t],
+    [name, t],
   )
 
   useEffect(() => {
     validateParameters(parameters)
   }, [parameters, validateParameters])
+
+  useEffect(() => {
+    if (serverId !== undefined || isNameManuallyEdited) {
+      return
+    }
+
+    try {
+      const parsedParameters = JSON.parse(parameters)
+      const serverNames = getMcpServerNamesFromInput(parsedParameters)
+      if (serverNames.length === 1 && name !== serverNames[0]) {
+        setName(serverNames[0])
+      }
+    } catch {
+      // ignore JSON parse failures here; validation handles display errors
+    }
+  }, [isNameManuallyEdited, name, parameters, serverId])
 
   return (
     <>
@@ -216,20 +247,111 @@ function McpServerFormComponent({
       >
         <ObsidianTextInput
           value={name}
-          onChange={(value: string) => setName(value)}
+          onChange={(value: string) => {
+            setIsNameManuallyEdited(true)
+            setName(value)
+          }}
           placeholder={t('settings.mcp.serverNamePlaceholder', "e.g. 'github'")}
         />
       </ObsidianSetting>
 
-      <ObsidianSetting
-        name={t('settings.mcp.parametersField', 'Parameters')}
-        desc={t(
-          'settings.mcp.parametersFieldDesc',
-          'JSON configuration that defines how to run the MCP server. Format must include:\n- "command": The executable name (e.g., "npx", "node")\n- "args": (Optional) Array of command-line arguments\n- "env": (Optional) Key-value pairs of environment variables',
-        )}
-        className="smtcmp-settings-textarea-header smtcmp-settings-description-preserve-whitespace"
-        required
-      />
+      <div className="setting-item smtcmp-settings-textarea-header smtcmp-mcp-parameters-header">
+        <div className="setting-item-info">
+          <div className="smtcmp-mcp-parameters-title-row">
+            <div className="setting-item-name">
+              {t('settings.mcp.parametersField', 'Parameters')}
+            </div>
+            <Tooltip.Provider delayDuration={0} skipDelayDuration={0}>
+              <Tooltip.Root>
+                <Tooltip.Trigger asChild>
+                  <button
+                    className="smtcmp-mcp-parameters-info-icon"
+                    type="button"
+                  >
+                    <Info size={16} />
+                    <span className="smtcmp-mcp-sr-only">
+                      {t('settings.mcp.parametersFormatHelp', 'Format help')}
+                    </span>
+                  </button>
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Content
+                    className="smtcmp-tooltip-content smtcmp-tooltip-content--wide"
+                    side="bottom"
+                    align="start"
+                    sideOffset={6}
+                    collisionPadding={12}
+                  >
+                    <div className="smtcmp-mcp-parameters-tooltip">
+                      <div className="smtcmp-mcp-parameters-tooltip-title">
+                        {t(
+                          'settings.mcp.parametersTooltipTitle',
+                          'Format examples',
+                        )}
+                      </div>
+
+                      <div className="smtcmp-mcp-parameters-tooltip-line">
+                        <span className="smtcmp-mcp-parameters-tooltip-keyword">
+                          {t(
+                            'settings.mcp.parametersTooltipPreferred',
+                            'Preferred',
+                          )}
+                        </span>
+                        {' stdio: {"transport":"stdio","command":"npx",...}'}
+                      </div>
+
+                      <div className="smtcmp-mcp-parameters-tooltip-line">
+                        <span className="smtcmp-mcp-parameters-tooltip-keyword">
+                          {t(
+                            'settings.mcp.parametersTooltipPreferred',
+                            'Preferred',
+                          )}
+                        </span>
+                        {
+                          ' http/sse/ws: {"transport":"http|sse|ws","url":"..."}'
+                        }
+                      </div>
+
+                      <div className="smtcmp-mcp-parameters-tooltip-line">
+                        <span className="smtcmp-mcp-parameters-tooltip-keyword">
+                          {t(
+                            'settings.mcp.parametersTooltipCompatible',
+                            'Compatible',
+                          )}
+                        </span>
+                        {' {"mcpServers":{"name":{...}}}'}
+                      </div>
+
+                      <div className="smtcmp-mcp-parameters-tooltip-line">
+                        <span className="smtcmp-mcp-parameters-tooltip-keyword">
+                          {t(
+                            'settings.mcp.parametersTooltipCompatible',
+                            'Compatible',
+                          )}
+                        </span>
+                        {' {"id":"name","parameters":{...}}'}
+                      </div>
+
+                      <div className="smtcmp-mcp-parameters-tooltip-tip">
+                        {t(
+                          'settings.mcp.parametersTooltipTip',
+                          'Tip: if mcpServers contains one server, Name will auto-fill.',
+                        )}
+                      </div>
+                    </div>
+                  </Tooltip.Content>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+            </Tooltip.Provider>
+          </div>
+          <div className="setting-item-description">
+            {t(
+              'settings.mcp.parametersFieldDescShort',
+              'JSON config for the MCP server. Supports stdio, http, sse, ws transports.',
+            )}
+          </div>
+        </div>
+      </div>
       <TextareaAutosize
         value={parameters}
         placeholder={PARAMETERS_PLACEHOLDER}

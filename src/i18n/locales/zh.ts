@@ -526,7 +526,17 @@ export const zh: TranslationKeys = {
       serverNamePlaceholder: "例如：'github'",
       parametersField: '参数',
       parametersFieldDesc:
-        '用于定义 MCP 服务器运行方式的 JSON 配置，格式必须包含：\n- "command"：可执行命令名（例如 "npx"、"node"）\n- "args"：（可选）命令行参数数组\n- "env"：（可选）环境变量键值对',
+        '用于定义 MCP 服务器传输方式的 JSON 配置。支持格式：\n- stdio：{"transport":"stdio","command":"npx","args":[...],"env":{...}}\n- http：{"transport":"http","url":"https://...","headers":{...}}\n- sse：{"transport":"sse","url":"https://...","headers":{...}}\n- ws：{"transport":"ws","url":"wss://..."}\n同时兼容包装格式：{"mcpServers":{"name":{...}}} 与 {"id":"name","parameters":{...}}',
+      parametersFieldDescShort:
+        'MCP 服务器的 JSON 配置，支持 stdio、http、sse、ws 传输方式。',
+      parametersFormatHelp: '格式说明',
+      parametersTooltipDesc:
+        '推荐格式：\n- stdio：{"transport":"stdio","command":"npx",...}\n- http/sse/ws：{"transport":"http|sse|ws","url":"..."}\n\n兼容包装格式：\n- {"mcpServers":{"name":{...}}}\n- {"id":"name","parameters":{...}}\n\n提示：当 mcpServers 只有一个服务时，名称会自动回填。',
+      parametersTooltipTitle: '格式示例',
+      parametersTooltipPreferred: '推荐',
+      parametersTooltipCompatible: '兼容',
+      parametersTooltipTip:
+        '提示：当 mcpServers 只有一个服务时，名称会自动回填。',
       serverNameRequired: '名称不能为空',
       serverAlreadyExists: '同名服务器已存在',
       parametersRequired: '参数不能为空',

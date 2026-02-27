@@ -568,7 +568,17 @@ export const en: TranslationKeys = {
       serverNamePlaceholder: "e.g. 'github'",
       parametersField: 'Parameters',
       parametersFieldDesc:
-        'JSON configuration that defines how to run the MCP server. Format must include:\n- "command": The executable name (e.g., "npx", "node")\n- "args": (Optional) Array of command-line arguments\n- "env": (Optional) Key-value pairs of environment variables',
+        'JSON config for MCP server transport. Supported formats:\n- stdio: {"transport":"stdio","command":"npx","args":[...],"env":{...}}\n- http: {"transport":"http","url":"https://...","headers":{...}}\n- sse: {"transport":"sse","url":"https://...","headers":{...}}\n- ws: {"transport":"ws","url":"wss://..."}\nAlso supports wrapper formats: {"mcpServers": {"name": {...}}} and {"id":"name","parameters": {...}}',
+      parametersFieldDescShort:
+        'JSON config for the MCP server. Supports stdio, http, sse, ws transports.',
+      parametersFormatHelp: 'Format help',
+      parametersTooltipDesc:
+        'Preferred:\n- stdio: {"transport":"stdio","command":"npx",...}\n- http/sse/ws: {"transport":"http|sse|ws","url":"..."}\n\nCompatible wrappers:\n- {"mcpServers": {"name": {...}}}\n- {"id":"name","parameters": {...}}\n\nTip: if mcpServers contains one server, Name will auto-fill.',
+      parametersTooltipTitle: 'Format examples',
+      parametersTooltipPreferred: 'Preferred',
+      parametersTooltipCompatible: 'Compatible',
+      parametersTooltipTip:
+        'Tip: if mcpServers contains one server, Name will auto-fill.',
       serverNameRequired: 'Name is required',
       serverAlreadyExists: 'Server with same name already exists',
       parametersRequired: 'Parameters are required',

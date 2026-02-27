@@ -436,6 +436,13 @@ export type TranslationKeys = {
       serverNamePlaceholder?: string
       parametersField?: string
       parametersFieldDesc?: string
+      parametersFieldDescShort?: string
+      parametersFormatHelp?: string
+      parametersTooltipDesc?: string
+      parametersTooltipTitle?: string
+      parametersTooltipPreferred?: string
+      parametersTooltipCompatible?: string
+      parametersTooltipTip?: string
       serverNameRequired?: string
       serverAlreadyExists?: string
       parametersRequired?: string
