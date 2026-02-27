@@ -1,6 +1,6 @@
 import { GoogleGenAI } from '@google/genai'
 import { App, Notice, requestUrl } from 'obsidian'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { useLanguage } from '../../../contexts/language-context'
 import SmartComposerPlugin from '../../../main'
@@ -28,6 +28,10 @@ import { SearchableDropdown } from '../../common/SearchableDropdown'
 type AddChatModelModalComponentProps = {
   plugin: SmartComposerPlugin
   provider?: LLMProvider
+}
+
+type CustomParameterFormEntry = CustomParameter & {
+  uid: string
 }
 
 const MODEL_IDENTIFIER_KEYS = ['id', 'name', 'model'] as const
@@ -203,9 +207,14 @@ function AddChatModelModalComponent({
     topP: MODEL_SAMPLING_DEFAULTS.topP,
     maxOutputTokens: MODEL_SAMPLING_DEFAULTS.maxOutputTokens,
   }))
-  const [customParameters, setCustomParameters] = useState<CustomParameter[]>(
-    [],
-  )
+  const customParameterUidRef = useRef(0)
+  const createCustomParameterUid = (): string => {
+    customParameterUidRef.current += 1
+    return `custom-param-${customParameterUidRef.current}`
+  }
+  const [customParameters, setCustomParameters] = useState<
+    CustomParameterFormEntry[]
+  >([])
 
   useEffect(() => {
     const fetchModels = async () => {
@@ -836,6 +845,7 @@ function AddChatModelModalComponent({
             setCustomParameters((prev) => [
               ...prev,
               {
+                uid: createCustomParameterUid(),
                 key: '',
                 value: '',
                 type: 'text',
@@ -847,7 +857,7 @@ function AddChatModelModalComponent({
 
       {customParameters.map((param, index) => (
         <ObsidianSetting
-          key={`${param.key}-${param.type ?? 'text'}-${param.value}`}
+          key={param.uid}
           className="smtcmp-settings-kv-entry smtcmp-settings-kv-entry--inline"
         >
           <ObsidianTextInput

@@ -30,6 +30,29 @@ function hasObjectProperty<T extends object, K extends PropertyKey>(
   return Object.prototype.hasOwnProperty.call(value, key)
 }
 
+const RESERVED_REQUEST_KEYS = new Set([
+  'model',
+  'tools',
+  'tool_choice',
+  'reasoning_effort',
+  'web_search_options',
+  'messages',
+  'max_tokens',
+  'temperature',
+  'top_p',
+  'frequency_penalty',
+  'presence_penalty',
+  'logit_bias',
+  'prediction',
+  'stream',
+  'stream_options',
+  'thinking',
+  'thinking_config',
+  'thinkingConfig',
+  'reasoning',
+  'extra_body',
+])
+
 function extractReasoningContent(source: unknown): string | undefined {
   if (
     typeof source === 'object' &&
@@ -429,6 +452,20 @@ export class OpenAIMessageAdapter {
       if (Object.keys(otherExtraBody).length > 0) {
         mutable.extra_body = otherExtraBody
       }
+    }
+
+    const requestRecord = request as Record<string, unknown>
+    for (const [key, value] of Object.entries(requestRecord)) {
+      if (RESERVED_REQUEST_KEYS.has(key)) {
+        continue
+      }
+      if (value === undefined) {
+        continue
+      }
+      if (Object.prototype.hasOwnProperty.call(mutable, key)) {
+        continue
+      }
+      mutable[key] = value
     }
 
     return params

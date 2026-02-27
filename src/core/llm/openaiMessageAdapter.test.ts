@@ -1,10 +1,16 @@
-import { RequestMessage } from '../../types/llm/request'
+import { LLMRequestNonStreaming, RequestMessage } from '../../types/llm/request'
 
 import { OpenAIMessageAdapter } from './openaiMessageAdapter'
 
 class TestableOpenAIMessageAdapter extends OpenAIMessageAdapter {
   public parseRequestMessageForTest(message: RequestMessage) {
     return this.parseRequestMessage(message)
+  }
+
+  public buildChatCompletionCreateParamsForTest(
+    request: LLMRequestNonStreaming,
+  ) {
+    return this.buildChatCompletionCreateParams({ request, stream: false })
   }
 }
 
@@ -57,5 +63,33 @@ describe('OpenAIMessageAdapter', () => {
       oldText: 'foo',
       newText: 'bar',
     })
+  })
+
+  it('passes through unknown request fields for OpenAI-compatible extensions', () => {
+    const adapter = new TestableOpenAIMessageAdapter()
+    const request = {
+      model: 'qwen3-max',
+      messages: [{ role: 'user', content: '你好' }],
+      enable_thinking: true,
+    } as LLMRequestNonStreaming & Record<string, unknown>
+
+    const params = adapter.buildChatCompletionCreateParamsForTest(request)
+    const record = params as unknown as Record<string, unknown>
+
+    expect(record.enable_thinking).toBe(true)
+  })
+
+  it('does not include unknown fields when value is undefined', () => {
+    const adapter = new TestableOpenAIMessageAdapter()
+    const request = {
+      model: 'qwen3-max',
+      messages: [{ role: 'user', content: 'hello' }],
+      enable_thinking: undefined,
+    } as LLMRequestNonStreaming & Record<string, unknown>
+
+    const params = adapter.buildChatCompletionCreateParamsForTest(request)
+    const record = params as unknown as Record<string, unknown>
+
+    expect(record).not.toHaveProperty('enable_thinking')
   })
 })
