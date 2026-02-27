@@ -16,17 +16,28 @@ export default function AssistantMessageContent({
   contextMessages,
   handleApply,
   isApplying,
+  activeApplyRequestKey,
   generationState,
 }: {
   content: ChatAssistantMessage['content']
   contextMessages: ChatMessage[]
-  handleApply: (blockToApply: string, chatMessages: ChatMessage[]) => void
+  handleApply: (
+    blockToApply: string,
+    chatMessages: ChatMessage[],
+    mode: 'quick' | 'precise',
+    applyRequestKey: string,
+  ) => void
   isApplying: boolean
+  activeApplyRequestKey: string | null
   generationState?: 'streaming' | 'completed' | 'aborted'
 }) {
   const onApply = useCallback(
-    (blockToApply: string) => {
-      handleApply(blockToApply, contextMessages)
+    (
+      blockToApply: string,
+      mode: 'quick' | 'precise',
+      applyRequestKey: string,
+    ) => {
+      handleApply(blockToApply, contextMessages, mode, applyRequestKey)
     },
     [handleApply, contextMessages],
   )
@@ -35,6 +46,7 @@ export default function AssistantMessageContent({
     <AssistantTextRenderer
       onApply={onApply}
       isApplying={isApplying}
+      activeApplyRequestKey={activeApplyRequestKey}
       generationState={generationState}
     >
       {content}
@@ -45,12 +57,18 @@ export default function AssistantMessageContent({
 const AssistantTextRenderer = React.memo(function AssistantTextRenderer({
   onApply,
   isApplying,
+  activeApplyRequestKey,
   generationState,
   children,
 }: {
-  onApply: (blockToApply: string) => void
+  onApply: (
+    blockToApply: string,
+    mode: 'quick' | 'precise',
+    applyRequestKey: string,
+  ) => void
   children: string
   isApplying: boolean
+  activeApplyRequestKey: string | null
   generationState?: 'streaming' | 'completed' | 'aborted'
 }) {
   const blocks: ParsedTagContent[] = useMemo(
@@ -84,6 +102,7 @@ const AssistantTextRenderer = React.memo(function AssistantTextRenderer({
             key={index}
             onApply={onApply}
             isApplying={isApplying}
+            activeApplyRequestKey={activeApplyRequestKey}
             language={block.language}
             filename={block.filename}
           >

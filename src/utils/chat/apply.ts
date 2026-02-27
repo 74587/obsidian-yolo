@@ -114,6 +114,7 @@ export const applyChangesToFile = async ({
   chatMessages,
   providerClient,
   model,
+  signal,
 }: {
   blockToApply: string
   currentFile: TFile
@@ -121,6 +122,7 @@ export const applyChangesToFile = async ({
   chatMessages: ChatMessage[]
   providerClient: BaseLLMProvider<LLMProvider>
   model: ChatModel
+  signal?: AbortSignal
 }): Promise<string | null> => {
   const isBaseModel = Boolean(model.isBaseModel)
   const requestMessages: RequestMessage[] = []
@@ -142,28 +144,32 @@ export const applyChangesToFile = async ({
     ),
   })
 
-  const response = await providerClient.generateResponse(model, {
-    model: model.model,
-    messages: requestMessages,
-    stream: false,
+  const response = await providerClient.generateResponse(
+    model,
+    {
+      model: model.model,
+      messages: requestMessages,
+      stream: false,
 
-    // prediction is only available for official OpenAI API
-    ...(model.providerType === 'openai' && {
-      prediction: {
-        type: 'content',
-        content: [
-          {
-            type: 'text',
-            text: currentFileContent,
-          },
-          {
-            type: 'text',
-            text: blockToApply,
-          },
-        ],
-      },
-    }),
-  })
+      // prediction is only available for official OpenAI API
+      ...(model.providerType === 'openai' && {
+        prediction: {
+          type: 'content',
+          content: [
+            {
+              type: 'text',
+              text: currentFileContent,
+            },
+            {
+              type: 'text',
+              text: blockToApply,
+            },
+          ],
+        },
+      }),
+    },
+    { signal },
+  )
 
   const responseContent = response.choices[0].message.content
   return responseContent ? extractApplyResponseContent(responseContent) : null

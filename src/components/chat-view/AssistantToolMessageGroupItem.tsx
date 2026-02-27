@@ -18,7 +18,13 @@ export type AssistantToolMessageGroupItemProps = {
   contextMessages: ChatMessage[]
   conversationId: string
   isApplying: boolean // TODO: isApplying should be a boolean for each assistant message
-  onApply: (blockToApply: string, chatMessages: ChatMessage[]) => void
+  activeApplyRequestKey: string | null
+  onApply: (
+    blockToApply: string,
+    chatMessages: ChatMessage[],
+    mode: 'quick' | 'precise',
+    applyRequestKey: string,
+  ) => void
   onToolMessageUpdate: (message: ChatToolMessage) => void
   editingAssistantMessageId?: string | null
   onEditStart: (messageId: string) => void
@@ -32,6 +38,7 @@ export default function AssistantToolMessageGroupItem({
   contextMessages,
   conversationId,
   isApplying,
+  activeApplyRequestKey,
   onApply,
   onToolMessageUpdate,
   editingAssistantMessageId,
@@ -91,6 +98,7 @@ export default function AssistantToolMessageGroupItem({
                   contextMessages={contextMessages}
                   handleApply={onApply}
                   isApplying={isApplying}
+                  activeApplyRequestKey={activeApplyRequestKey}
                   generationState={message.metadata?.generationState}
                 />
               )}

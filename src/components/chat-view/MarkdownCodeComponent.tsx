@@ -1,8 +1,7 @@
-import { Check, CopyIcon, Eye, Loader2, Play } from 'lucide-react'
-import { PropsWithChildren, useMemo, useState } from 'react'
+import { Check, CopyIcon, Loader2, Play } from 'lucide-react'
+import { PropsWithChildren, useId, useMemo, useState } from 'react'
 
 import { useApp } from '../../contexts/app-context'
-import { useDarkModeContext } from '../../contexts/dark-mode-context'
 import { useLanguage } from '../../contexts/language-context'
 import {
   isPureSearchReplaceScript,
@@ -11,30 +10,36 @@ import {
 import { openMarkdownFile } from '../../utils/obsidian'
 
 import { ObsidianMarkdown } from './ObsidianMarkdown'
-import { MemoizedSyntaxHighlighterWrapper } from './SyntaxHighlighterWrapper'
 
 export default function MarkdownCodeComponent({
   onApply,
   isApplying,
+  activeApplyRequestKey,
   language,
   filename,
   children,
 }: PropsWithChildren<{
-  onApply: (blockToApply: string) => void
+  onApply: (
+    blockToApply: string,
+    mode: 'quick' | 'precise',
+    applyRequestKey: string,
+  ) => void
   isApplying: boolean
+  activeApplyRequestKey: string | null
   language?: string
   filename?: string
 }>) {
   const app = useApp()
-  const { isDarkMode } = useDarkModeContext()
   const { t } = useLanguage()
+  const applyRequestKeyBase = useId()
 
-  const [isPreviewMode, setIsPreviewMode] = useState(true)
   const [copied, setCopied] = useState(false)
-
-  const wrapLines = useMemo(() => {
-    return !language || ['markdown'].includes(language)
-  }, [language])
+  const quickApplyRequestKey = `${applyRequestKeyBase}:quick`
+  const preciseApplyRequestKey = `${applyRequestKeyBase}:precise`
+  const isQuickApplying =
+    isApplying && activeApplyRequestKey === quickApplyRequestKey
+  const isPreciseApplying =
+    isApplying && activeApplyRequestKey === preciseApplyRequestKey
 
   const codeContent = useMemo(() => {
     if (typeof children === 'string') {
@@ -116,17 +121,7 @@ export default function MarkdownCodeComponent({
         )}
         <div className="smtcmp-code-block-header-button-container">
           <button
-            className="clickable-icon smtcmp-code-block-header-button"
-            onClick={() => {
-              setIsPreviewMode(!isPreviewMode)
-            }}
-          >
-            <Eye size={12} />
-            {isPreviewMode
-              ? t('chat.codeBlock.showRawText', 'Show raw text')
-              : t('chat.codeBlock.showFormattedText', 'Show formatted text')}
-          </button>
-          <button
+            type="button"
             className="clickable-icon smtcmp-code-block-header-button"
             onClick={() => {
               void handleCopy()
@@ -145,44 +140,60 @@ export default function MarkdownCodeComponent({
             )}
           </button>
           <button
+            type="button"
             className="clickable-icon smtcmp-code-block-header-button"
             onClick={
-              isApplying
+              isApplying && !isQuickApplying
                 ? undefined
                 : () => {
-                    onApply(codeContent)
+                    onApply(codeContent, 'quick', quickApplyRequestKey)
                   }
             }
-            aria-disabled={isApplying}
+            aria-disabled={isApplying && !isQuickApplying}
           >
-            {isApplying ? (
+            {isQuickApplying ? (
               <>
                 <Loader2 className="smtcmp-spinner" size={14} />
-                <span>{t('chat.codeBlock.applying', 'Applying...')}</span>
+                <span>{t('chat.codeBlock.stopApplying', 'Stop apply')}</span>
               </>
             ) : (
               <>
                 <Play size={10} />
-                <span>{t('chat.codeBlock.apply', 'Apply')}</span>
+                <span>{t('chat.codeBlock.applyQuick', 'Apply (fast)')}</span>
+              </>
+            )}
+          </button>
+          <button
+            type="button"
+            className="clickable-icon smtcmp-code-block-header-button"
+            onClick={
+              isApplying && !isPreciseApplying
+                ? undefined
+                : () => {
+                    onApply(codeContent, 'precise', preciseApplyRequestKey)
+                  }
+            }
+            aria-disabled={isApplying && !isPreciseApplying}
+          >
+            {isPreciseApplying ? (
+              <>
+                <Loader2 className="smtcmp-spinner" size={14} />
+                <span>{t('chat.codeBlock.stopApplying', 'Stop apply')}</span>
+              </>
+            ) : (
+              <>
+                <Play size={10} />
+                <span>
+                  {t('chat.codeBlock.applyPrecise', 'Apply (precise)')}
+                </span>
               </>
             )}
           </button>
         </div>
       </div>
-      {isPreviewMode ? (
-        <div className="smtcmp-code-block-obsidian-markdown">
-          <ObsidianMarkdown content={previewContent} scale="sm" />
-        </div>
-      ) : (
-        <MemoizedSyntaxHighlighterWrapper
-          isDarkMode={isDarkMode}
-          language={language}
-          hasFilename={!!filename}
-          wrapLines={wrapLines}
-        >
-          {codeContent}
-        </MemoizedSyntaxHighlighterWrapper>
-      )}
+      <div className="smtcmp-code-block-obsidian-markdown">
+        <ObsidianMarkdown content={previewContent} scale="sm" />
+      </div>
     </div>
   )
 }

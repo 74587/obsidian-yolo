@@ -193,6 +193,10 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
   const [editingAssistantMessageId, setEditingAssistantMessageId] = useState<
     string | null
   >(null)
+  const [activeApplyRequestKey, setActiveApplyRequestKey] = useState<
+    string | null
+  >(null)
+  const applyAbortControllerRef = useRef<AbortController | null>(null)
   const [queryProgress, setQueryProgress] = useState<QueryProgressState>({
     type: 'idle',
   })
@@ -728,9 +732,13 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     mutationFn: async ({
       blockToApply,
       chatMessages,
+      mode,
+      abortSignal,
     }: {
       blockToApply: string
       chatMessages: ChatMessage[]
+      mode: 'quick' | 'precise'
+      abortSignal?: AbortSignal
     }) => {
       const activeFile = app.workspace.getActiveFile()
       if (!activeFile) {
@@ -740,45 +748,53 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
       }
       const activeFileContent = await readTFileContent(activeFile, app.vault)
 
-      const structuredEditResult = tryApplyStructuredEdits({
-        rawEdits: blockToApply,
-        originalContent: activeFileContent,
-      })
+      if (mode === 'quick') {
+        const structuredEditResult = tryApplyStructuredEdits({
+          rawEdits: blockToApply,
+          originalContent: activeFileContent,
+        })
 
-      const canApplyStructuredLocally =
-        Boolean(structuredEditResult?.isPureStructuredScript) &&
-        Boolean(structuredEditResult && structuredEditResult.appliedCount > 0)
+        const canApplyStructuredLocally =
+          Boolean(structuredEditResult?.isPureStructuredScript) &&
+          Boolean(structuredEditResult && structuredEditResult.appliedCount > 0)
 
-      const isStructuredMatchFailure = Boolean(
-        structuredEditResult?.isPureStructuredScript &&
-          structuredEditResult.blocks.length > 0 &&
-          structuredEditResult.appliedCount === 0,
-      )
+        const isStructuredMatchFailure = Boolean(
+          structuredEditResult?.isPureStructuredScript &&
+            structuredEditResult.blocks.length > 0 &&
+            structuredEditResult.appliedCount === 0,
+        )
 
-      if (isStructuredMatchFailure && structuredEditResult) {
-        console.error('[Chat Apply] Structured edits did not match file.', {
+        if (isStructuredMatchFailure && structuredEditResult) {
+          console.error('[Chat Apply] Structured edits did not match file.', {
+            filePath: activeFile.path,
+            blockCount: structuredEditResult.blocks.length,
+            errors: structuredEditResult.errors,
+          })
+        }
+
+        if (canApplyStructuredLocally && structuredEditResult) {
+          if (structuredEditResult.errors.length > 0) {
+            console.warn(
+              'Some structured edits failed during apply:',
+              structuredEditResult.errors,
+            )
+          }
+          await plugin.openApplyReview({
+            file: activeFile,
+            originalContent: activeFileContent,
+            newContent: structuredEditResult.newContent,
+          } satisfies ApplyViewState)
+          return
+        }
+
+        console.error('[Chat Apply] Quick apply failed to match file.', {
           filePath: activeFile.path,
-          blockCount: structuredEditResult.blocks.length,
-          errors: structuredEditResult.errors,
+          blockCount: structuredEditResult?.blocks.length ?? 0,
+          errors: structuredEditResult?.errors ?? [],
         })
         throw new Error(
-          '未匹配到可应用的正文片段，请检查 SEARCH 段是否与当前文档一致。',
+          '快速应用未匹配到可替换内容，请改用“应用（精准）”或调整 SEARCH 片段。',
         )
-      }
-
-      if (canApplyStructuredLocally && structuredEditResult) {
-        if (structuredEditResult.errors.length > 0) {
-          console.warn(
-            'Some structured edits failed during apply:',
-            structuredEditResult.errors,
-          )
-        }
-        await plugin.openApplyReview({
-          file: activeFile,
-          originalContent: activeFileContent,
-          newContent: structuredEditResult.newContent,
-        } satisfies ApplyViewState)
-        return
       }
 
       const { providerClient, model } = getChatModelClient({
@@ -793,6 +809,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         chatMessages,
         providerClient,
         model,
+        signal: abortSignal,
       })
       if (!updatedFileContent) {
         throw new Error('Failed to apply changes')
@@ -806,6 +823,12 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     },
     onError: (error) => {
       if (
+        (error instanceof Error && error.name === 'AbortError') ||
+        (error instanceof Error && /abort/i.test(error.message))
+      ) {
+        return
+      }
+      if (
         error instanceof LLMAPIKeyNotSetException ||
         error instanceof LLMAPIKeyInvalidException ||
         error instanceof LLMBaseUrlNotSetException
@@ -818,13 +841,39 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
         console.error('Failed to apply changes', error)
       }
     },
+    onSettled: () => {
+      applyAbortControllerRef.current = null
+      setActiveApplyRequestKey(null)
+    },
   })
 
   const handleApply = useCallback(
-    (blockToApply: string, chatMessages: ChatMessage[]) => {
-      applyMutation.mutate({ blockToApply, chatMessages })
+    (
+      blockToApply: string,
+      chatMessages: ChatMessage[],
+      mode: 'quick' | 'precise',
+      applyRequestKey: string,
+    ) => {
+      if (applyMutation.isPending) {
+        if (activeApplyRequestKey === applyRequestKey) {
+          applyAbortControllerRef.current?.abort()
+          applyAbortControllerRef.current = null
+          setActiveApplyRequestKey(null)
+        }
+        return
+      }
+
+      const abortController = new AbortController()
+      applyAbortControllerRef.current = abortController
+      setActiveApplyRequestKey(applyRequestKey)
+      applyMutation.mutate({
+        blockToApply,
+        chatMessages,
+        mode,
+        abortSignal: abortController.signal,
+      })
     },
-    [applyMutation],
+    [activeApplyRequestKey, applyMutation],
   )
 
   const handleToolMessageUpdate = useCallback(
@@ -1570,6 +1619,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                   )}
                 conversationId={currentConversationId}
                 isApplying={applyMutation.isPending}
+                activeApplyRequestKey={activeApplyRequestKey}
                 onApply={handleApply}
                 onToolMessageUpdate={handleToolMessageUpdate}
                 editingAssistantMessageId={editingAssistantMessageId}
