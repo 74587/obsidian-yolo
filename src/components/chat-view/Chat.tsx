@@ -59,6 +59,7 @@ import type { ChatMode } from './chat-input/ChatModeSelect'
 import ChatSettingsButton from './chat-input/ChatSettingsButton'
 import ChatUserInput from './chat-input/ChatUserInput'
 import type { ChatUserInputRef } from './chat-input/ChatUserInput'
+import MentionableBadge from './chat-input/MentionableBadge'
 import { getDefaultReasoningLevel } from './chat-input/ReasoningSelect'
 import type { ReasoningLevel } from './chat-input/ReasoningSelect'
 import { editorStateToPlainText } from './chat-input/utils/editor-state-to-plain-text'
@@ -1576,7 +1577,12 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                 )
               }}
               onSubmit={(content, useVaultSearch) => {
-                if (editorStateToPlainText(content).trim() === '') return
+                if (
+                  editorStateToPlainText(content).trim() === '' &&
+                  messageOrGroup.mentionables.length === 0
+                ) {
+                  return
+                }
                 // Use the model mapping for this message if exists, otherwise current conversation model
                 const modelForThisMessage =
                   messageModelMap.get(messageOrGroup.id) ?? conversationModelId
@@ -1709,6 +1715,24 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
           </button>
         )}
       </div>
+      {(settings.chatOptions.mentionDisplayMode ?? 'inline') === 'badge' &&
+        displayMentionablesForInput.length > 0 && (
+          <div className="smtcmp-chat-user-input-files">
+            {displayMentionablesForInput.map((mentionable) => {
+              const mentionableKey = getMentionableKey(
+                serializeMentionable(mentionable),
+              )
+              return (
+                <MentionableBadge
+                  key={mentionableKey}
+                  mentionable={mentionable}
+                  onDelete={() => handleMentionableDeleteFromAll(mentionable)}
+                  onClick={() => {}}
+                />
+              )
+            })}
+          </div>
+        )}
       <div className="smtcmp-chat-input-wrapper">
         <div className="smtcmp-chat-input-settings-outer">
           <ChatSettingsButton
@@ -1743,7 +1767,12 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             }))
           }}
           onSubmit={(content, useVaultSearch) => {
-            if (editorStateToPlainText(content).trim() === '') return
+            if (
+              editorStateToPlainText(content).trim() === '' &&
+              inputMessage.mentionables.length === 0
+            ) {
+              return
+            }
             const messageForSubmit = buildInputMessageForSubmit(content)
             void handleUserMessageSubmit({
               inputChatMessages: [...chatMessages, messageForSubmit],
@@ -1809,6 +1838,7 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
             )
           }}
           showConversationSettingsButton={false}
+          hideBadgeMentionables
           displayMentionables={displayMentionablesForInput}
           onDeleteFromAll={handleMentionableDeleteFromAll}
         />

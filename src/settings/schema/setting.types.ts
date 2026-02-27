@@ -259,6 +259,7 @@ export const smartComposerSettingsSchema = z.object({
   chatOptions: z
     .object({
       includeCurrentFileContent: z.boolean(),
+      mentionDisplayMode: z.enum(['inline', 'badge']).optional(),
       chatTitlePrompt: z.string().optional(),
       baseModelSpecialPrompt: z.string().optional(),
       // Chat mode (chat/agent)
@@ -268,6 +269,7 @@ export const smartComposerSettingsSchema = z.object({
     })
     .catch({
       includeCurrentFileContent: true,
+      mentionDisplayMode: 'inline',
       chatTitlePrompt: '',
       baseModelSpecialPrompt: '',
       chatMode: 'chat',

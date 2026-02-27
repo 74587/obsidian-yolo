@@ -754,6 +754,11 @@ export const en: TranslationKeys = {
       resetAgentsConfirm:
         'Are you sure you want to reset agent configuration? This will remove custom agents and reset the current selection.',
       resetAgentsSuccess: 'Agent configuration has been reset to defaults',
+      mentionDisplayMode: 'Mention display position',
+      mentionDisplayModeDesc:
+        'Choose whether @-selected files are shown inline in the editor or as badges above the input box.',
+      mentionDisplayModeInline: 'Inside input box',
+      mentionDisplayModeBadge: 'Top badges',
     },
   },
 

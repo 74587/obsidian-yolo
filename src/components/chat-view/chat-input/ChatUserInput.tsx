@@ -42,6 +42,7 @@ import {
 } from '../../../utils/chat/mentionable'
 
 import LexicalContentEditable from './LexicalContentEditable'
+import MentionableBadge from './MentionableBadge'
 import { ModelSelect } from './ModelSelect'
 import {
   $createMentionNode,
@@ -87,6 +88,7 @@ export type ChatUserInputProps = {
   onReasoningChange?: (level: ReasoningLevel) => void
   // Compact mode: hide controls for historical messages
   compact?: boolean
+  hideBadgeMentionables?: boolean
   onToggleCompact?: () => void
   onBlur?: () => void
 }
@@ -94,6 +96,8 @@ export type ChatUserInputProps = {
 type ChatSubmitOptions = {
   useVaultSearch?: boolean
 }
+
+const INLINE_MENTIONABLE_TYPES = ['file', 'folder', 'current-file', 'block']
 
 const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
   (
@@ -115,6 +119,7 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
       reasoningLevel,
       onReasoningChange,
       compact = false,
+      hideBadgeMentionables = false,
       onToggleCompact,
       onBlur,
     },
@@ -127,6 +132,8 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
       [t],
     )
     const { settings } = useSettings()
+    const mentionDisplayMode =
+      settings.chatOptions.mentionDisplayMode ?? 'inline'
 
     // Get current model for reasoning support check
     const currentModel: ChatModel | null = useMemo(() => {
@@ -138,6 +145,7 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
     const contentEditableRef = useRef<HTMLDivElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [isEditorReady, setIsEditorReady] = useState(false)
+    const suppressedDestroyedMentionableKeysRef = useRef<Set<string>>(new Set())
     const [inputText, setInputText] = useState('')
 
     const effectiveMentionables = useMemo(
@@ -187,7 +195,7 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
       editorRef.current.getEditorState().read(() => {
         setInputText($getRoot().getTextContent())
       })
-    }, [isEditorReady, initialSerializedEditorState])
+    }, [isEditorReady])
 
     useImperativeHandle(ref, () => ({
       focus: () => {
@@ -226,6 +234,13 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
         const mentionableKey = getMentionableKey(mentionable)
 
         if (mutation.mutation === 'destroyed') {
+          if (
+            suppressedDestroyedMentionableKeysRef.current.has(mentionableKey)
+          ) {
+            suppressedDestroyedMentionableKeysRef.current.delete(mentionableKey)
+            return
+          }
+
           const nodeWithSameMentionable = editorRef.current?.read(() =>
             $nodesOfType(MentionNode).find(
               (node) =>
@@ -290,7 +305,8 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
       const editor = editorRef.current
       if (!editor || !isEditorReady) return
 
-      const mirrorTypes = ['file', 'folder', 'current-file', 'block']
+      const mirrorTypes =
+        mentionDisplayMode === 'inline' ? INLINE_MENTIONABLE_TYPES : []
       const mentionablesToMirror = effectiveMentionables.filter((m) =>
         mirrorTypes.includes(m.type),
       )
@@ -305,13 +321,14 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
         contentEditableRef.current === document.activeElement
 
       editor.update(() => {
-        const mirrorTypeSet = new Set(mirrorTypes)
+        const mirrorTypeSet = new Set(INLINE_MENTIONABLE_TYPES)
         $nodesOfType(MentionNode).forEach((node) => {
           const mentionable = node.getMentionable()
           if (!mirrorTypeSet.has(mentionable.type)) return
           const mentionableKey = getMentionableKey(mentionable)
           const desiredMentionable = mentionablesByKey.get(mentionableKey)
           if (!desiredMentionable) {
+            suppressedDestroyedMentionableKeysRef.current.add(mentionableKey)
             const prevSibling = node.getPreviousSibling()
             if (
               prevSibling &&
@@ -412,7 +429,12 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
         if (!didInsert && !hasMentionables) return
         paragraph.selectEnd()
       })
-    }, [effectiveMentionables, isEditorReady])
+    }, [
+      effectiveMentionables,
+      isEditorReady,
+      mentionDisplayMode,
+      mentionableUnitLabel,
+    ])
 
     const handleCreateImageMentionables = useCallback(
       (mentionableImages: MentionableImage[]) => {
@@ -454,13 +476,54 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
               paragraphNode = created
             }
             const paragraph = paragraphNode as ParagraphNode
-            nodesToInsert.forEach((node) => paragraph.append(node))
+            nodesToInsert.forEach((node) => {
+              paragraph.append(node)
+            })
           })
         }
         setMentionables([...mentionables, ...newMentionableImages])
         // 默认保持收起状态，不自动展开新添加的徽章
       },
-      [mentionables, setMentionables],
+      [mentionableUnitLabel, mentionables, setMentionables],
+    )
+
+    const handleSelectMentionableForBadge = useCallback(
+      (mentionable: Mentionable) => {
+        if (mentionDisplayMode !== 'badge') return
+        const mentionableKey = getMentionableKey(
+          serializeMentionable(mentionable),
+        )
+        if (
+          mentionables.some(
+            (existing) =>
+              getMentionableKey(serializeMentionable(existing)) ===
+              mentionableKey,
+          )
+        ) {
+          return
+        }
+        setMentionables([...mentionables, mentionable])
+      },
+      [mentionDisplayMode, mentionables, setMentionables],
+    )
+
+    const handleDeleteMentionableFromBadge = useCallback(
+      (mentionable: Mentionable) => {
+        if (onDeleteFromAll) {
+          onDeleteFromAll(mentionable)
+          return
+        }
+        const mentionableKey = getMentionableKey(
+          serializeMentionable(mentionable),
+        )
+        setMentionables(
+          mentionables.filter(
+            (item) =>
+              getMentionableKey(serializeMentionable(item)) !== mentionableKey,
+          ),
+        )
+      },
+      [mentionables, onDeleteFromAll, setMentionables],
     )
 
     const handleSubmit = (options: ChatSubmitOptions = {}) => {
@@ -498,6 +561,27 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
         className={`smtcmp-chat-user-input-wrapper${compact ? ' smtcmp-chat-user-input-wrapper--compact' : ''}`}
         onBlur={handleBlur}
       >
+        {!hideBadgeMentionables &&
+          mentionDisplayMode === 'badge' &&
+          effectiveMentionables.length > 0 && (
+            <div className="smtcmp-chat-user-input-files">
+              {effectiveMentionables.map((mentionable) => {
+                const mentionableKey = getMentionableKey(
+                  serializeMentionable(mentionable),
+                )
+                return (
+                  <MentionableBadge
+                    key={mentionableKey}
+                    mentionable={mentionable}
+                    onDelete={() =>
+                      handleDeleteMentionableFromBadge(mentionable)
+                    }
+                    onClick={() => {}}
+                  />
+                )
+              })}
+            </div>
+          )}
         <div
           className="smtcmp-chat-user-input-container"
           ref={containerRef}
@@ -537,6 +621,8 @@ const ChatUserInput = forwardRef<ChatUserInputRef, ChatUserInputProps>(
               onFocus={onFocus}
               onMentionNodeMutation={handleMentionNodeMutation}
               onCreateImageMentionables={handleCreateImageMentionables}
+              mentionDisplayMode={mentionDisplayMode}
+              onSelectMentionable={handleSelectMentionableForBadge}
               autoFocus={autoFocus}
               plugins={{
                 onEnter: {

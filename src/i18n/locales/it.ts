@@ -746,6 +746,11 @@ export const it: TranslationKeys = {
         'Sei sicuro di voler ripristinare la configurazione degli agent? Questa azione rimuoverà gli agent personalizzati e reimposterà la selezione corrente.',
       resetAgentsSuccess:
         'La configurazione degli agent è stata ripristinata ai valori predefiniti.',
+      mentionDisplayMode: 'Posizione visualizzazione mention',
+      mentionDisplayModeDesc:
+        "Scegli se mostrare i file selezionati con @ nel testo dell'input o come badge sopra la casella.",
+      mentionDisplayModeInline: 'Dentro la casella',
+      mentionDisplayModeBadge: 'Badge in alto',
     },
   },
 

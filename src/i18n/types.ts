@@ -580,6 +580,10 @@ export type TranslationKeys = {
       resetAgentsDesc?: string
       resetAgentsConfirm?: string
       resetAgentsSuccess?: string
+      mentionDisplayMode?: string
+      mentionDisplayModeDesc?: string
+      mentionDisplayModeInline?: string
+      mentionDisplayModeBadge?: string
     }
     smartSpace?: {
       quickActionsTitle: string

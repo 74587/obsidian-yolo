@@ -693,6 +693,11 @@ export const zh: TranslationKeys = {
       resetAgentsConfirm:
         '确定要重置 Agent 配置吗？此操作将删除自定义 Agent 并重置当前选择。',
       resetAgentsSuccess: 'Agent 配置已重置为默认',
+      mentionDisplayMode: '引用文件显示位置',
+      mentionDisplayModeDesc:
+        '选择 @ 添加文件后是在输入框内显示，还是在输入框顶部以徽章显示。',
+      mentionDisplayModeInline: '输入框内',
+      mentionDisplayModeBadge: '顶部徽章',
     },
   },
 

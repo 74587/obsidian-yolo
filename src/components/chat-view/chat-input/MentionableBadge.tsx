@@ -1,5 +1,5 @@
 import cx from 'clsx'
-import { ChevronRight, ChevronUp, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { PropsWithChildren } from 'react'
 
 import { useApp } from '../../../contexts/app-context'
@@ -48,9 +48,7 @@ function BadgeBase({
             evt.stopPropagation()
             onToggleExpand?.()
           }}
-        >
-          {isExpanded ? <ChevronUp size={12} /> : <ChevronRight size={12} />}
-        </div>
+        />
       )}
       {children}
       {showDeleteButton && (
@@ -93,7 +91,7 @@ function FileBadge({
       isFocused={isFocused}
       isExpanded={isExpanded}
       onToggleExpand={onToggleExpand}
-      showExpandButton={true}
+      showExpandButton={false}
       showDeleteButton={showDeleteButton}
     >
       <div className="smtcmp-chat-user-input-file-badge-name">
@@ -206,7 +204,7 @@ function CurrentFileBadge({
       isFocused={isFocused}
       isExpanded={isExpanded}
       onToggleExpand={onToggleExpand}
-      showExpandButton={true}
+      showExpandButton={false}
       showDeleteButton={showDeleteButton}
     >
       <div className="smtcmp-chat-user-input-file-badge-name">
@@ -262,7 +260,7 @@ function BlockBadge({
       isFocused={isFocused}
       isExpanded={isExpanded}
       onToggleExpand={onToggleExpand}
-      showExpandButton={true}
+      showExpandButton={false}
       showDeleteButton={showDeleteButton}
     >
       <div className="smtcmp-chat-user-input-file-badge-name">
@@ -341,7 +339,7 @@ function ImageBadge({
       isFocused={isFocused}
       isExpanded={isExpanded}
       onToggleExpand={onToggleExpand}
-      showExpandButton={true}
+      showExpandButton={false}
       showDeleteButton={showDeleteButton}
     >
       <div className="smtcmp-chat-user-input-file-badge-name">
