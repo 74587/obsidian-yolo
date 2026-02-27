@@ -1473,17 +1473,19 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
     )
   }
 
+  const showEmptyState =
+    groupedChatMessages.length === 0 && !submitChatMutation.isPending
+
   return (
     <div className="smtcmp-chat-container">
       {header}
-      <div className="smtcmp-chat-messages" ref={chatMessagesRef}>
-        {groupedChatMessages.length === 0 && !submitChatMutation.isPending && (
+      {showEmptyState && (
+        <div className="smtcmp-chat-empty-state-overlay" aria-hidden="true">
           <div className="smtcmp-chat-empty-state">
             <div
               key={chatMode}
               className="smtcmp-chat-empty-state-icon"
               data-mode={chatMode}
-              aria-hidden="true"
             >
               {chatMode === 'agent' ? (
                 <Bot size={18} strokeWidth={2} />
@@ -1508,7 +1510,9 @@ const Chat = forwardRef<ChatRef, ChatProps>((props, ref) => {
                   )}
             </div>
           </div>
-        )}
+        </div>
+      )}
+      <div className="smtcmp-chat-messages" ref={chatMessagesRef}>
         {groupedChatMessages.map((messageOrGroup, index) => {
           if (Array.isArray(messageOrGroup)) {
             return (
