@@ -13,7 +13,6 @@ import { ChatManager } from '../../../database/json/chat/ChatManager'
 import SmartComposerPlugin from '../../../main'
 import { smartComposerSettingsSchema } from '../../../settings/schema/setting.types'
 import { ObsidianButton } from '../../common/ObsidianButton'
-import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
 import { ConfirmModal } from '../../modals/ConfirmModal'
 
@@ -25,23 +24,6 @@ type EtcSectionProps = {
 export function EtcSection({ app }: EtcSectionProps) {
   const { settings, setSettings } = useSettings()
   const { t } = useLanguage()
-
-  const handleMentionDisplayModeChange = (value: string) => {
-    if (value !== 'inline' && value !== 'badge') return
-    void (async () => {
-      try {
-        await setSettings({
-          ...settings,
-          chatOptions: {
-            ...settings.chatOptions,
-            mentionDisplayMode: value,
-          },
-        })
-      } catch (error: unknown) {
-        console.error('Failed to update mention display mode', error)
-      }
-    })()
-  }
 
   const handleResetSettings = () => {
     new ConfirmModal(app, {
@@ -151,23 +133,6 @@ export function EtcSection({ app }: EtcSectionProps) {
           text={t('common.clear')}
           warning
           onClick={handleClearChatHistory}
-        />
-      </ObsidianSetting>
-
-      <ObsidianSetting
-        name={t('settings.etc.mentionDisplayMode', '引用文件显示位置')}
-        desc={t(
-          'settings.etc.mentionDisplayModeDesc',
-          '选择 @ 添加文件后是在输入框内显示，还是在输入框顶部以徽章显示。',
-        )}
-      >
-        <ObsidianDropdown
-          value={settings.chatOptions.mentionDisplayMode ?? 'inline'}
-          options={{
-            inline: t('settings.etc.mentionDisplayModeInline', '输入框内'),
-            badge: t('settings.etc.mentionDisplayModeBadge', '顶部徽章'),
-          }}
-          onChange={handleMentionDisplayModeChange}
         />
       </ObsidianSetting>
 
