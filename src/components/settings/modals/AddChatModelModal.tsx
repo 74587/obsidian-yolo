@@ -17,6 +17,7 @@ import {
   ensureUniqueModelId,
   generateModelId,
 } from '../../../utils/model-id-utils'
+import { toProviderHeadersRecord } from '../../../utils/llm/provider-headers'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
@@ -227,6 +228,9 @@ function AddChatModelModalComponent({
       setLoadingModels(true)
       setLoadError(null)
       try {
+        const providerHeaders = toProviderHeadersRecord(
+          selectedProvider.customHeaders,
+        )
         const isOpenAIStyle =
           selectedProvider.type === 'openai' ||
           selectedProvider.type === 'openai-compatible' ||
@@ -273,6 +277,7 @@ function AddChatModelModalComponent({
                       ? { Authorization: `Bearer ${selectedProvider.apiKey}` }
                       : {}),
                     Accept: 'application/json',
+                    ...(providerHeaders ?? {}),
                   },
                 })
                 if (response.status < 200 || response.status >= 300) {
@@ -320,7 +325,13 @@ function AddChatModelModalComponent({
           const baseUrl = normalizeGeminiBaseUrl(selectedProvider.baseUrl)
           const ai = new GoogleGenAI({
             apiKey: selectedProvider.apiKey ?? '',
-            httpOptions: baseUrl ? { baseUrl } : undefined,
+            httpOptions:
+              baseUrl || providerHeaders
+                ? {
+                    ...(baseUrl ? { baseUrl } : {}),
+                    ...(providerHeaders ? { headers: providerHeaders } : {}),
+                  }
+                : undefined,
           })
           const pager = await ai.models.list()
           const names: string[] = []

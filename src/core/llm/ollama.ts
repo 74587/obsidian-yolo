@@ -14,6 +14,7 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import { NoStainlessOpenAI } from './NoStainlessOpenAI'
@@ -28,10 +29,12 @@ export class OllamaProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'ollama' }>) {
     super(provider)
     this.adapter = new OpenAIMessageAdapter()
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     this.client = new NoStainlessOpenAI({
       baseURL: `${provider.baseUrl ? provider.baseUrl.replace(/\/+$/, '') : 'http://127.0.0.1:11434'}/v1`,
       apiKey: provider.apiKey ?? '',
       dangerouslyAllowBrowser: true,
+      defaultHeaders,
     })
   }
 

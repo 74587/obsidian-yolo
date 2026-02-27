@@ -215,3 +215,15 @@
   .setting-item-description {
   margin-top: 6px;
 }
+
+.smtcmp-provider-form .setting-item:not(.smtcmp-settings-kv-entry) {
+  align-items: center;
+  padding-top: var(--size-4-2) !important;
+  padding-bottom: var(--size-4-2) !important;
+}
+
+.smtcmp-provider-form
+  .setting-item:not(.smtcmp-settings-kv-entry)
+  .setting-item-description {
+  margin-top: 6px;
+}

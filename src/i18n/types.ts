@@ -298,6 +298,11 @@ export type TranslationKeys = {
       noStainlessHeadersDesc: string
       useObsidianRequestUrl: string
       useObsidianRequestUrlDesc: string
+      customHeaders: string
+      customHeadersDesc: string
+      customHeadersAdd: string
+      customHeadersKeyPlaceholder: string
+      customHeadersValuePlaceholder: string
     }
     models: {
       title: string

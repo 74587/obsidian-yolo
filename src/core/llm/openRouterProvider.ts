@@ -12,6 +12,7 @@ import {
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
 import { detectReasoningTypeFromModelId } from '../../utils/model-id-utils'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import { extractEmbeddingVector } from './embedding-utils'
@@ -26,12 +27,14 @@ export class OpenRouterProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'openrouter' }>) {
     super(provider)
     this.adapter = new OpenAIMessageAdapter()
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     this.client = new OpenAI({
       apiKey: provider.apiKey ?? '',
       baseURL: provider.baseUrl
         ? provider.baseUrl?.replace(/\/+$/, '')
         : 'https://openrouter.ai/api/v1',
       dangerouslyAllowBrowser: true,
+      defaultHeaders,
     })
   }
 

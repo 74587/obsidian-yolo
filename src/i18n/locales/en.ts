@@ -407,6 +407,12 @@ export const en: TranslationKeys = {
       useObsidianRequestUrl: 'Use Obsidian requestUrl',
       useObsidianRequestUrlDesc:
         'Use Obsidian requestUrl to bypass cross-origin restrictions. Streaming responses are buffered.',
+      customHeaders: 'Custom headers',
+      customHeadersDesc:
+        'Attach extra HTTP headers to all requests sent through this provider.',
+      customHeadersAdd: 'Add header',
+      customHeadersKeyPlaceholder: 'Header name',
+      customHeadersValuePlaceholder: 'Header value',
     },
     models: {
       title: 'Models',

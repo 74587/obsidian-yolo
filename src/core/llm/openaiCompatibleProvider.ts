@@ -14,6 +14,7 @@ import {
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
 import { createObsidianFetch } from '../../utils/llm/obsidian-fetch'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 import { formatMessages } from '../../utils/llm/request'
 
 import { BaseLLMProvider } from './base'
@@ -53,6 +54,7 @@ export class OpenAICompatibleProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'openai-compatible' }>) {
     super(provider)
     this.adapter = new OpenAIMessageAdapter()
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     const useObsidianRequestUrl =
       provider.additionalSettings?.useObsidianRequestUrl
     // Prefer standard OpenAI SDK; allow opting into NoStainless to bypass headers/validation when needed
@@ -63,6 +65,7 @@ export class OpenAICompatibleProvider extends BaseLLMProvider<
       baseURL: provider.baseUrl ? provider.baseUrl?.replace(/\/+$/, '') : '',
       dangerouslyAllowBrowser: true,
       fetch: useObsidianRequestUrl ? createObsidianFetch() : undefined,
+      defaultHeaders,
     })
   }
 

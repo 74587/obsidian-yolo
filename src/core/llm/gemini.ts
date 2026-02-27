@@ -26,6 +26,7 @@ import {
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
 import { parseImageDataUrl } from '../../utils/llm/image'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 
 import { BaseLLMProvider } from './base'
 import {
@@ -78,10 +79,18 @@ export class GeminiProvider extends BaseLLMProvider<
     const baseUrl = provider.baseUrl
       ? GeminiProvider.normalizeBaseUrl(provider.baseUrl)
       : undefined
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
+    const httpOptions =
+      baseUrl || defaultHeaders
+        ? {
+            ...(baseUrl ? { baseUrl } : {}),
+            ...(defaultHeaders ? { headers: defaultHeaders } : {}),
+          }
+        : undefined
 
     this.client = new GoogleGenAI({
       apiKey: provider.apiKey ?? '',
-      httpOptions: baseUrl ? { baseUrl } : undefined,
+      httpOptions,
     })
     this.apiKey = provider.apiKey ?? ''
   }

@@ -266,6 +266,28 @@
   flex: 1 1 420px;
 }
 
+.smtcmp-provider-headers-entry .setting-item-control > :nth-child(1) {
+  flex: 0 0 180px;
+}
+
+.smtcmp-provider-headers-entry .setting-item-control > :nth-child(2) {
+  flex: 1 1 320px;
+}
+
+.smtcmp-provider-headers-entry .setting-item-control > :nth-child(3) {
+  flex: 0 0 auto;
+}
+
+.smtcmp-provider-headers-entry .setting-item-control .setting-item-button {
+  white-space: nowrap;
+}
+
+.smtcmp-provider-headers-entry.setting-item {
+  align-items: center;
+  padding-top: var(--size-4-2) !important;
+  padding-bottom: var(--size-4-2) !important;
+}
+
 @media (max-width: 900px) {
   .smtcmp-settings-kv-entry--inline.setting-item .setting-item-control {
     flex-wrap: wrap;
@@ -281,6 +303,10 @@
   .smtcmp-settings-kv-entry--inline .setting-item-control > :nth-child(2),
   .smtcmp-settings-kv-entry--inline .setting-item-control > :nth-child(3) {
     flex: 1 1 160px;
+  }
+
+  .smtcmp-provider-headers-entry .setting-item-control > :nth-child(3) {
+    flex: 0 0 auto;
   }
 }
 
@@ -1248,6 +1274,18 @@
 }
 
 .smtcmp-chat-model-modal-form
+  .setting-item:not(.smtcmp-settings-kv-entry)
+  .setting-item-description {
+  margin-top: 6px;
+}
+
+.smtcmp-provider-form .setting-item:not(.smtcmp-settings-kv-entry) {
+  align-items: center;
+  padding-top: var(--size-4-2) !important;
+  padding-bottom: var(--size-4-2) !important;
+}
+
+.smtcmp-provider-form
   .setting-item:not(.smtcmp-settings-kv-entry)
   .setting-item-description {
   margin-top: 6px;

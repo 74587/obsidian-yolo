@@ -6,7 +6,12 @@ import { useLanguage } from '../../../contexts/language-context'
 import SmartComposerPlugin from '../../../main'
 import { chatModelSchema } from '../../../types/chat-model.types'
 import { embeddingModelSchema } from '../../../types/embedding-model.types'
-import { LLMProvider, llmProviderSchema } from '../../../types/provider.types'
+import {
+  LLMProvider,
+  ProviderHeader,
+  llmProviderSchema,
+} from '../../../types/provider.types'
+import { sanitizeProviderHeaders } from '../../../utils/llm/provider-headers'
 import { ObsidianButton } from '../../common/ObsidianButton'
 import { ObsidianDropdown } from '../../common/ObsidianDropdown'
 import { ObsidianSetting } from '../../common/ObsidianSetting'
@@ -71,6 +76,16 @@ function ProviderFormComponent({
   )
   const handleSubmit = () => {
     const execute = async () => {
+      const sanitizedCustomHeaders = sanitizeProviderHeaders(
+        formData.customHeaders,
+      )
+      const normalizedFormData: LLMProvider = {
+        ...formData,
+        ...(sanitizedCustomHeaders.length > 0
+          ? { customHeaders: sanitizedCustomHeaders }
+          : { customHeaders: undefined }),
+      }
+
       if (provider) {
         if (
           plugin.settings.providers.some(
@@ -83,7 +98,7 @@ function ProviderFormComponent({
           return
         }
 
-        const validationResult = llmProviderSchema.safeParse(formData)
+        const validationResult = llmProviderSchema.safeParse(normalizedFormData)
         if (!validationResult.success) {
           new Notice(
             validationResult.error.issues.map((v) => v.message).join('\n'),
@@ -167,7 +182,7 @@ function ProviderFormComponent({
           return
         }
 
-        const validationResult = llmProviderSchema.safeParse(formData)
+        const validationResult = llmProviderSchema.safeParse(normalizedFormData)
         if (!validationResult.success) {
           new Notice(
             validationResult.error.issues.map((v) => v.message).join('\n'),
@@ -194,7 +209,7 @@ function ProviderFormComponent({
   const providerTypeInfo = PROVIDER_TYPES_INFO[formData.type]
 
   return (
-    <>
+    <div className="smtcmp-provider-form">
       <ObsidianSetting
         name={t('settings.providers.providerId', 'ID')}
         desc={t(
@@ -332,6 +347,71 @@ function ProviderFormComponent({
         )
       })}
 
+      <ObsidianSetting
+        name={t('settings.providers.customHeaders')}
+        desc={t('settings.providers.customHeadersDesc')}
+      >
+        <ObsidianButton
+          text={t('settings.providers.customHeadersAdd')}
+          onClick={() =>
+            setFormData((prev) => ({
+              ...prev,
+              customHeaders: [
+                ...(prev.customHeaders ?? []),
+                { key: '', value: '' } as ProviderHeader,
+              ],
+            }))
+          }
+        />
+      </ObsidianSetting>
+
+      {(formData.customHeaders ?? []).map((header, index) => (
+        <ObsidianSetting
+          key={`${header.key}-${header.value}-${index}`}
+          className="smtcmp-settings-kv-entry smtcmp-settings-kv-entry--inline smtcmp-provider-headers-entry"
+        >
+          <ObsidianTextInput
+            value={header.key}
+            placeholder={t('settings.providers.customHeadersKeyPlaceholder')}
+            onChange={(value: string) =>
+              setFormData((prev) => {
+                const nextHeaders = [...(prev.customHeaders ?? [])]
+                nextHeaders[index] = { ...nextHeaders[index], key: value }
+                return {
+                  ...prev,
+                  customHeaders: nextHeaders,
+                }
+              })
+            }
+          />
+          <ObsidianTextInput
+            value={header.value}
+            placeholder={t('settings.providers.customHeadersValuePlaceholder')}
+            onChange={(value: string) =>
+              setFormData((prev) => {
+                const nextHeaders = [...(prev.customHeaders ?? [])]
+                nextHeaders[index] = { ...nextHeaders[index], value }
+                return {
+                  ...prev,
+                  customHeaders: nextHeaders,
+                }
+              })
+            }
+          />
+          <ObsidianButton
+            text={t('common.remove')}
+            onClick={() =>
+              setFormData((prev) => ({
+                ...prev,
+                customHeaders: (prev.customHeaders ?? []).filter(
+                  (_, removeIndex) => removeIndex !== index,
+                ),
+              }))
+            }
+          />
+        </ObsidianSetting>
+      ))}
+
       <ObsidianSetting>
         <ObsidianButton
           text={provider ? t('common.save') : t('common.add')}
@@ -340,6 +420,6 @@ function ProviderFormComponent({
         />
         <ObsidianButton text={t('common.cancel')} onClick={onClose} />
       </ObsidianSetting>
-    </>
+    </div>
   )
 }

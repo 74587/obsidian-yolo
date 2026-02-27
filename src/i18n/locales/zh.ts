@@ -372,6 +372,11 @@ export const zh: TranslationKeys = {
       useObsidianRequestUrl: '使用 Obsidian requestUrl',
       useObsidianRequestUrlDesc:
         '使用 Obsidian requestUrl 绕过 CORS 限制。流式响应将会被缓冲后再返回。',
+      customHeaders: '自定义请求头',
+      customHeadersDesc: '为此提供商发出的所有请求附加额外的 HTTP Header。',
+      customHeadersAdd: '添加请求头',
+      customHeadersKeyPlaceholder: '请求头名称',
+      customHeadersValuePlaceholder: '请求头值',
     },
     models: {
       title: '模型',

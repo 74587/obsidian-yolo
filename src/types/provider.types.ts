@@ -1,10 +1,20 @@
 import { z } from 'zod'
 
+const providerHeaderSchema = z.object({
+  key: z
+    .string({
+      required_error: 'header key is required',
+    })
+    .min(1, 'header key is required'),
+  value: z.string().default(''),
+})
+
 export const baseLlmProviderSchema = z.object({
   id: z.string().min(1, 'id is required'),
   baseUrl: z.string().optional(),
   apiKey: z.string().optional(),
   additionalSettings: z.record(z.string(), z.string()).optional(),
+  customHeaders: z.array(providerHeaderSchema).optional(),
 })
 
 /**
@@ -94,3 +104,4 @@ export const llmProviderSchema = z.discriminatedUnion('type', [
 
 export type LLMProvider = z.infer<typeof llmProviderSchema>
 export type LLMProviderType = LLMProvider['type']
+export type ProviderHeader = z.infer<typeof providerHeaderSchema>

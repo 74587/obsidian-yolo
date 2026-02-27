@@ -9,6 +9,7 @@ import {
   LLMResponseStreaming,
 } from '../../types/llm/response'
 import { LLMProvider } from '../../types/provider.types'
+import { toProviderHeadersRecord } from '../../utils/llm/provider-headers'
 import { formatMessages } from '../../utils/llm/request'
 
 import { BaseLLMProvider } from './base'
@@ -25,12 +26,14 @@ export class PerplexityProvider extends BaseLLMProvider<
   constructor(provider: Extract<LLMProvider, { type: 'perplexity' }>) {
     super(provider)
     this.adapter = new PerplexityMessageAdapter()
+    const defaultHeaders = toProviderHeadersRecord(provider.customHeaders)
     this.client = new NoStainlessOpenAI({
       apiKey: provider.apiKey ?? '',
       baseURL: provider.baseUrl
         ? provider.baseUrl.replace(/\/+$/, '')
         : 'https://api.perplexity.ai',
       dangerouslyAllowBrowser: true,
+      defaultHeaders,
     })
   }
 
