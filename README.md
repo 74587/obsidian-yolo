@@ -23,8 +23,6 @@
   <b>English</b> | <a href="./README_zh-CN.md">简体中文</a> | <a href="./README_it.md">Italiano</a>
 </p>
 
----
-
 ## Highlights
 
 ### 🤖 Agent Mode
@@ -36,24 +34,12 @@ YOLO's Agent mode lets LLMs go beyond just "Q&A machines" — they can actually 
 | ![Agent Tools](./assets/agenttools.gif) | ![Agent Skills](./assets/agentskills.gif) |
 | Freely configure toolchains so Agents can read, write, edit, and organize your files directly | Encapsulate experience and SOPs into reusable skills, invoke with a single sentence — let the Agent work your way |
 
-### 🧠 Knowledge Base Q&A
+### 🧠 Knowledge Base Q&A + ✍️ Smart Space & Quick Ask
 
-![RAG Vault](./assets/ragvault.gif)
-
-Turn your entire Vault into the AI's knowledge base. Based on RAG (Retrieval-Augmented Generation), YOLO understands your note context and provides answers truly relevant to your knowledge system — not generic outputs.
-
-### ✍️ Smart Space & Quick Ask
-
-![Smart Space](./assets/Smartspace.gif)
-
-![Quick Ask](./assets/Quickask.gif)
-
-Two lightweight but powerful writing assistance modes:
-
-- **Smart Space**: Summon anywhere, freely continue your creative flow, enjoy smooth content generation
-- **Quick Ask**: Trigger via character (default `@`) for an inline assistant, supporting Q&A, editing, and continuation — seamless document editing
-
----
+| Knowledge Base Q&A | Smart Space | Quick Ask |
+|:--:|:--:|:--:|
+| ![RAG Vault](./assets/ragvault.gif) | ![Smart Space](./assets/Smartspace.gif) | ![Quick Ask](./assets/Quickask.gif) |
+| Turn your entire Vault into the AI's knowledge base, powered by RAG to answer with context from your notes instead of generic output | Summon anywhere to freely continue your creative flow with smooth content generation | Trigger with a character (default `@`) to open an inline assistant for Q&A, editing, and continuation, making document editing seamless |
 
 ## Features
 
@@ -68,8 +54,6 @@ Beyond the core capabilities above, YOLO also provides:
 | 🌍 i18n | Native multi-language support |
 | 🧩 Experimental Features | Learning Mode, sub-Agents, explore personalized workflows |
 
----
-
 ## Quick Start
 
 1. Open Obsidian Settings → Community Plugins → Browse → Search **"YOLO"**
@@ -77,8 +61,6 @@ Beyond the core capabilities above, YOLO also provides:
 3. Configure your API key in plugin settings:
    - [OpenAI](https://platform.openai.com/api-keys) / [Anthropic](https://console.anthropic.com/settings/keys) / [Gemini](https://aistudio.google.com/apikey) / [Groq](https://console.groq.com/keys)
 4. Open the sidebar to start chatting — or try Quick Ask by typing `@` in the editor
-
----
 
 ## Installation
 
@@ -95,8 +77,6 @@ See Quick Start above.
 > [!WARNING]
 > YOLO cannot coexist with [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer). Please disable or uninstall Smart Composer before using YOLO.
 
----
-
 ## Roadmap
 
 - [ ] Better and stronger Vault AI search
@@ -106,15 +86,11 @@ See Quick Start above.
 - [ ] Learning Mode
 - [ ] Better AI whiteboard
 
----
-
 ## Contributing
 
 All forms of contribution are welcome — bug reports, documentation improvements, feature enhancements.
 
 **Please open an issue first to discuss feasibility and implementation for major features.**
-
----
 
 ## Acknowledgments
 
@@ -127,8 +103,6 @@ Special thanks to [Kilo Code](https://kilo.ai) for their sponsorship. Kilo is an
     <img src="https://img.shields.io/badge/Sponsored_by-Kilo_Code-FF6B6B?style=for-the-badge" alt="Sponsored by Kilo Code" height="30">
   </a>
 </p>
-
----
 
 ## Support
 
@@ -146,13 +120,9 @@ If you find YOLO valuable, consider supporting the project:
 
 Development logs are regularly updated on the [blog](https://www.lapis.cafe).
 
----
-
 ## License
 
 [MIT License](LICENSE)
-
----
 
 ## Star History
 
