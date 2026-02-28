@@ -32,38 +32,7 @@ import {
 
 import { fetchAnnotationTitles } from './fetch-annotation-titles'
 import { PromptGenerator } from './promptGenerator'
-
-const mergeToolCallArguments = ({
-  existingArgs,
-  newArgs,
-}: {
-  existingArgs?: string
-  newArgs?: string
-}): string | undefined => {
-  if (!existingArgs && !newArgs) {
-    return undefined
-  }
-  if (!existingArgs) {
-    return newArgs
-  }
-  if (!newArgs) {
-    return existingArgs
-  }
-  if (existingArgs === newArgs) {
-    return existingArgs
-  }
-
-  // Some providers stream cumulative JSON chunks, while others stream deltas.
-  // Prefer cumulative payload when one chunk is the prefix of the other.
-  if (newArgs.startsWith(existingArgs)) {
-    return newArgs
-  }
-  if (existingArgs.startsWith(newArgs)) {
-    return existingArgs
-  }
-
-  return `${existingArgs}${newArgs}`
-}
+import { mergeStreamingToolArguments } from './tool-arguments'
 
 export type ResponseGeneratorParams = {
   providerClient: BaseLLMProvider<LLMProvider>
@@ -832,7 +801,7 @@ export class ResponseGenerator {
 
         mergedToolCall.function = {
           name: merged[index].function?.name ?? toolCall.function?.name,
-          arguments: mergeToolCallArguments({ existingArgs, newArgs }),
+          arguments: mergeStreamingToolArguments({ existingArgs, newArgs }),
         }
       }
 
