@@ -27,8 +27,6 @@
   QQ 群: <code>793057867</code>
 </p>
 
----
-
 ## Highlights
 
 ### 🤖 Agent 模式
@@ -40,25 +38,13 @@ YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正
 | ![Agent Tools](./assets/agenttools.gif) | ![Agent Tools](./assets/agentskills.gif) |
 | 自由配置工具链，让 Agent 直接读写、编辑、整理你的文件 | 将经验与 SOP 封装为可复用技能，一句话调用，让 Agent 按你的方式工作 |
 
-### 🧠 知识库问答
+### 🧠 知识库问答 + ✍️ Smart Space & Quick Ask
 
-![RAG Vault](./assets/ragvault.gif)
+| 知识库问答 | Smart Space | Quick Ask |
+|:-:|:-:|:-:|
+| ![RAG Vault](./assets/ragvault.gif) | ![Smart Space](./assets/Smartspace.gif) | ![Quick Ask](./assets/Quickask.gif) |
+| 将整个 Vault 变成 AI 知识库，基于 RAG 检索增强生成，回答更贴合你的笔记上下文与知识体系 | 随时随地召唤，自由接力你的创意，享受流畅的内容生成体验 | 通过触发字符（默认 `@`）唤起内联助手，支持问答、编辑、续写三种模式，让文档编辑无缝高效 |
 
-将你的整个 Vault 变成 AI 的知识库。基于 RAG 检索增强生成，YOLO 能够理解你的笔记上下文，给出真正与你的知识体系相关的回答——而不是泛泛而谈的通用输出。
-
-### ✍️ Smart Space & Quick Ask
-
-![Smart Space](./assets/Smartspace.gif)
-
-![Quick Ask](./assets/Quickask.gif)
-
-
-两种轻量但强大的写作辅助模式：
-
-- **Smart Space**：随时随地召唤，自由接力你的创意，享受流畅的内容生成体验
-- **Quick Ask**：通过触发字符（默认 `@`）唤起内联助手，支持问答、编辑、续写三种模式，让文档编辑无缝高效
-
----
 
 ## Features
 
@@ -73,7 +59,6 @@ YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正
 | 🌍 i18n 国际化 | 原生多语言支持 |
 | 🧩 实验性特性 | Learning Mode、子 Agent 等，探索个性化工作流 |
 
----
 
 ## Quick Start
 
@@ -83,7 +68,6 @@ YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正
    - [OpenAI](https://platform.openai.com/api-keys) / [Anthropic](https://console.anthropic.com/settings/keys) / [Gemini](https://aistudio.google.com/apikey) / [Groq](https://console.groq.com/keys)
 4. 打开侧边栏，开始对话——或者在编辑器里输入 `@` 试试 Quick Ask
 
----
 
 ## Installation
 
@@ -100,7 +84,6 @@ YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正
 > [!WARNING]
 > YOLO 无法与 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer) 共存，请在使用前禁用或卸载 Smart Composer。
 
----
 
 ## Roadmap
 
@@ -111,7 +94,6 @@ YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正
 - [ ] 学习模式
 - [ ] 更好的 AI 白板
 
----
 
 ## Contributing
 
@@ -119,7 +101,6 @@ YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正
 
 **重大功能请先开 issue 讨论可行性和实现方案。**
 
----
 
 ## Acknowledgments
 
@@ -133,7 +114,6 @@ YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正
   </a>
 </p>
 
----
 
 ## Support
 
@@ -151,13 +131,11 @@ YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正
 
 开发日志会定期更新在[博客](https://www.lapis.cafe)上。
 
----
 
 ## License
 
 [MIT License](LICENSE)
 
----
 
 ## Star History
 
