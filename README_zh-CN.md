@@ -1,4 +1,23 @@
 <h1 align="center">YOLO</h1>
+<p align="center"><b>You Orchestrate, LLM Operates.</b></p>
+
+<p align="center">
+  Agent-native AI assistant for Obsidian — 对话、写作、知识库、编排，一站式搞定。
+</p>
+
+<p align="center"><a href="https://github.com/Lapis0x0/obsidian-yolo/stargazers">
+    <img src="https://img.shields.io/github/stars/Lapis0x0/obsidian-yolo?style=flat-square&color=6c5ce7" alt="GitHub Stars">
+  </a>
+  <a href="https://github.com/Lapis0x0/obsidian-yolo/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Lapis0x0/obsidian-yolo?style=flat-square&color=00b894" alt="Latest Release">
+  </a>
+  <a href="https://github.com/Lapis0x0/obsidian-yolo/releases">
+    <img src="https://img.shields.io/github/downloads/Lapis0x0/obsidian-yolo/total?style=flat-square&color=0984e3" alt="Downloads">
+  </a>
+  <a href="https://github.com/Lapis0x0/obsidian-yolo/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/Lapis0x0/obsidian-yolo?style=flat-square&color=636e72" alt="License">
+  </a>
+</p>
 
 <p align="center">
   <a href="./README.md">English</a> | <b>简体中文</b> | <a href="./README_it.md">Italiano</a>
@@ -8,144 +27,138 @@
   QQ 群: <code>793057867</code>
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/🎉_现已上架_Obsidian_社区插件商店-6c5ce7?style=for-the-badge" alt="Now Available on Obsidian" height="35">
-</p>
+---
 
-<p align="center">
-  <a href="https://kilo.ai" target="_blank">
-    <img src="https://img.shields.io/badge/赞助商-Kilo_Code-FF6B6B?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMiAyMkgyMkwxMiAyWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+" alt="Sponsored by Kilo Code" height="35">
-  </a>
-</p>
+## Highlights
 
-> [!NOTE]
-> **可能是目前最灵活、易用、智能的 Obsidian AI 助手？**  
+### 🤖 Agent 模式
 
-**YOLO（You Orchestrate, LLM Operates）** 是一款为 Obsidian 打造的面向 Agent 时代的智能助手。
+YOLO 的 Agent 模式让大模型不再只是"问答机器"——它可以真正操作你的 Vault。
 
-你可以用 YOLO：
+| 工具调用 + MCP | 自定义 Skills |
+|:-:|:-:|
+| ![Agent Tools](./assets/agenttools.gif) | ![Agent Tools](./assets/agentskills.gif) |
+| 自由配置工具链，让 Agent 直接读写、编辑、整理你的文件 | 将经验与 SOP 封装为可复用技能，一句话调用，让 Agent 按你的方式工作 |
 
-- 💬 在侧边栏和 LLM 进行对话讨论
-- 📚 将你的整个 Vault 作为 AI 的知识库
-- ✍️ 使用「Smart Space」来自由接力你的创意
-- ⚡ 使用 Quick Ask 获得即时的内联 AI 助手和智能编辑
-- ⌨️ 使用 Tab 补全获得流畅的 AI 写作体验
-- 🧩 开启 Learning Mode、子 Agent 等实验性特性，探索个性化工作流
-- 🎨 更多、更好的用户体验优化与 UI 改善
+### 🧠 知识库问答
 
-未来，YOLO 将在 Agent 编排、长程任务管理、多模型协同等方向持续演进，目标是成为你在大模型时代的**严肃学习助手与知识合作伙伴**。
+![RAG Vault](./assets/ragvault.gif)
 
-## 特性预览
-以下是 YOLO 的部分核心能力展示，更多细节欢迎在插件中自行探索：
+将你的整个 Vault 变成 AI 的知识库。基于 RAG 检索增强生成，YOLO 能够理解你的笔记上下文，给出真正与你的知识体系相关的回答——而不是泛泛而谈的通用输出。
 
-## **💬 侧边栏对话**
+### ✍️ Smart Space & Quick Ask
 
-https://github.com/user-attachments/assets/90bbd4f5-b73a-41b4-bf7d-85a5f44659ec
+![Smart Space](./assets/Smartspace.gif)
 
-与大模型无缝对话，支持上下文注入、预设 prompt、自定义 provider，以及对 Markdown 内容的智能解析与生成。
+![Quick Ask](./assets/Quickask.gif)
 
-## **🧠 知识库问答**
 
-https://github.com/user-attachments/assets/cffbada7-4314-4709-bef4-9867b43d6484
+两种轻量但强大的写作辅助模式：
 
-## **✍️ Smart Space**
+- **Smart Space**：随时随地召唤，自由接力你的创意，享受流畅的内容生成体验
+- **Quick Ask**：通过触发字符（默认 `@`）唤起内联助手，支持问答、编辑、续写三种模式，让文档编辑无缝高效
 
-https://github.com/user-attachments/assets/fa2d32dc-51fb-4f19-a3c3-44c2ea7a5fd9
+---
 
-在任何地方召唤出 Smart Space，享受自然流畅高效的内容生成
+## Features
 
-## **⚡ Quick Ask**
-> 该功能的编辑模式对于模型的工具调用能力有一定需求，推荐使用目前的主流推理模型
+除了上述核心能力，YOLO 还提供：
 
-https://github.com/user-attachments/assets/5a23e55e-482d-4e03-b564-7eac6814584e
+| 特性 | 说明 |
+|------|------|
+| 💬 侧边栏对话 | 与大模型无缝对话，支持上下文注入、预设 prompt、Markdown 智能解析 |
+| 🪡 Cursor Chat | 一键添加上下文，触手可得的对话体验 |
+| ⌨️ Tab 补全 | 实时 AI 智能补全，让写作更加流畅自然 |
+| 🎛️ 多模型支持 | OpenAI、Claude、Gemini、DeepSeek 等主流模型，自由切换 |
+| 🌍 i18n 国际化 | 原生多语言支持 |
+| 🧩 实验性特性 | Learning Mode、子 Agent 等，探索个性化工作流 |
 
-Quick Ask 是一个轻量级的内联助手，你可以在任何地方通过触发字符（默认：`@`）召唤它。它提供三种强大的模式：
+---
 
-- **问答模式** 💬：进行多轮对话，获取即时回答
-- **编辑模式** ✏️：生成结构化编辑，预览后应用
-- **编辑（完全访问）** ⚡：直接应用 AI 生成的编辑，无需确认
+## Quick Start
 
-Quick Ask 支持三种编辑操作类型：
+1. 打开 Obsidian 设置 → 社区插件 → 浏览 → 搜索 **"YOLO"**
+2. 安装并启用
+3. 在插件设置中配置你的 API Key：
+   - [OpenAI](https://platform.openai.com/api-keys) / [Anthropic](https://console.anthropic.com/settings/keys) / [Gemini](https://aistudio.google.com/apikey) / [Groq](https://console.groq.com/keys)
+4. 打开侧边栏，开始对话——或者在编辑器里输入 `@` 试试 Quick Ask
 
-- **CONTINUE（续写）**：在文档末尾追加内容
-- **REPLACE（替换）**：将现有文本替换为改进版本
-- **INSERT AFTER（插入）**：在指定文本后插入新内容
+---
 
-AI 会根据你的指令智能选择合适的格式，让文档编辑无缝高效。
+## Installation
 
-## **🪡 Cursor Chat**
+### 社区插件商店（推荐）
 
-https://github.com/user-attachments/assets/21b775d7-b427-4da2-b20c-f2ede85c2b69
-
-一键添加，触手可得
-
-## **⌨️ Tab 补全**
-
-https://github.com/user-attachments/assets/d19b17c8-92ac-408d-8e98-4403d5341540
-
-实时获得 AI 智能补全建议，让写作更加流畅自然。
-
-## **🎛️ 模型多路支持 + i18n 国际化**
-
-支持多模型配置（OpenAI、Claude、Gemini、DeepSeek 等），并原生支持i18n 语言切换切换。
-
-## 开始使用
-
-> [!WARNING]
-> YOLO 无法与 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer) 共存，请在使用 YOLO 前禁用或卸载 Smart Composer。
-
-### 从社区插件商店安装(推荐)
-
-1. 打开 Obsidian 设置 → 社区插件
-2. 点击"浏览"并搜索"YOLO"
-3. 点击"安装"然后点击"启用"
-4. 在插件设置中配置你的 API 密钥
-   - OpenAI : [ChatGPT API 密钥](https://platform.openai.com/api-keys)
-   - Anthropic : [Claude API 密钥](https://console.anthropic.com/settings/keys)
-   - Gemini : [Gemini API 密钥](https://aistudio.google.com/apikey)
-   - Groq : [Groq API 密钥](https://console.groq.com/keys)
+见上方 Quick Start。
 
 ### 手动安装
 
-你也可以手动安装 YOLO：
+1. 前往 [Releases](https://github.com/Lapis0x0/obsidian-yolo/releases) 下载最新版本的 `main.js`、`manifest.json`、`styles.css`
+2. 在 Vault 插件目录下创建文件夹：`<vault>/.obsidian/plugins/obsidian-yolo/`
+3. 将文件复制到该文件夹，然后在 Obsidian 设置中启用插件
 
-1. 前往 [Releases](https://github.com/Lapis0x0/obsidian-yolo/releases) 页面
-2. 下载最新版本的 `main.js`、`manifest.json` 和 `styles.css`
-3. 在你的 Vault 插件目录下创建文件夹：`<vault>/.obsidian/plugins/obsidian-yolo/`
-4. 将下载的文件复制到该文件夹中
-5. 打开 Obsidian 设置 → 社区插件
-6. 在插件列表中启用 "YOLO"
-7. 在插件设置中配置你的 API 密钥
+> [!WARNING]
+> YOLO 无法与 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer) 共存，请在使用前禁用或卸载 Smart Composer。
 
-其余详细内容请参考[文档](./DOC/DOC_zhCN/01-基本介绍.md)
+---
 
-## 贡献
+## Roadmap
 
-我们欢迎对 YOLO 的各种贡献，包括错误报告、bug 修复、文档改进和功能增强。
+- [ ] 更好，更强的 Vault AI 搜索 
+- [ ] 后台 Agent（长程任务自动执行）
+- [ ] Cron 定时任务
+- [ ] 多 Agent 协同编排
+- [ ] 学习模式
+- [ ] 更好的 AI 白板
 
-**对于主要的功能想法，请首先创建一个 issue 来讨论可行性和实现方法。**
+---
 
-## 致敬
+## Contributing
 
-感谢原本的 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer) 团队，没有他们就没有 YOLO。
+欢迎各种形式的贡献——Bug 报告、文档改进、功能增强都可以。
 
-特别感谢 [Kilo Code](https://kilo.ai) 的赞助支持。Kilo 是一个开源的 AI 编程助手平台，支持 500+ AI 模型，帮助开发者在 VS Code、JetBrains、CLI 等环境中更快地构建、发布和迭代。
+**重大功能请先开 issue 讨论可行性和实现方案。**
 
-## 许可证
+---
 
-该项目根据 [MIT 许可证](LICENSE) 授权。
+## Acknowledgments
 
-## 支持项目
+感谢 [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer) 团队的原始工作，没有他们就没有 YOLO。
 
-如果您觉得 YOLO很有价值，请考虑支持其发展：
+特别感谢 [Kilo Code](https://kilo.ai) 的赞助支持。Kilo 是一个开源 AI 编程助手平台，支持 500+ AI 模型，帮助开发者更快地构建与迭代。
 
-<p align="center"> <a href="https://afdian.com/a/lapis0x0" target="_blank"> <img src="https://img.shields.io/badge/爱发电-支持开发者-fd6c9e?style=for-the-badge&logo=afdian" alt="爱发电"> </a> &nbsp; <a href="https://github.com/Lapis0x0/obsidian-yolo/blob/main/donation-qr.jpg" target="_blank"> <img src="https://img.shields.io/badge/微信/支付宝-赞赏码-00D924?style=for-the-badge" alt="微信/支付宝赞赏码"> </a> </p>
+<p align="center">
+  <a href="https://kilo.ai" target="_blank">
+    <img src="https://img.shields.io/badge/Sponsored_by-Kilo_Code-FF6B6B?style=for-the-badge" alt="Sponsored by Kilo Code" height="30">
+  </a>
+</p>
 
+---
 
-我也会定期在自己的[博客](https://www.lapis.cafe)中更新一些开发日志。
+## Support
 
-您的支持有助于维护和改进这个插件。每一份贡献都受到赞赏并能带来改变。感谢您的支持！
+如果觉得 YOLO 有价值，欢迎支持项目发展：
 
-## Star 历史
+<p align="center">
+  <a href="https://afdian.com/a/lapis0x0" target="_blank">
+    <img src="https://img.shields.io/badge/爱发电-支持开发者-fd6c9e?style=for-the-badge" alt="爱发电">
+  </a>
+  &nbsp;
+  <a href="https://github.com/Lapis0x0/obsidian-yolo/blob/main/donation-qr.jpg" target="_blank">
+    <img src="https://img.shields.io/badge/微信/支付宝-赞赏码-00D924?style=for-the-badge" alt="微信/支付宝赞赏码">
+  </a>
+</p>
+
+开发日志会定期更新在[博客](https://www.lapis.cafe)上。
+
+---
+
+## License
+
+[MIT License](LICENSE)
+
+---
+
+## Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=Lapis0x0/obsidian-yolo&type=Date)](https://star-history.com/#Lapis0x0/obsidian-yolo&Date)

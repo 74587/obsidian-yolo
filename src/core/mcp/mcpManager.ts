@@ -13,6 +13,10 @@ import {
   ToolCallResponse,
   ToolCallResponseStatus,
 } from '../../types/tool-call.types'
+import {
+  extractTopLevelJsonObjects,
+  parseJsonObjectText,
+} from '../../utils/chat/tool-arguments'
 
 import { InvalidToolNameException, McpNotAvailableException } from './exception'
 import {
@@ -29,6 +33,9 @@ import {
 
 export const INVALID_TOOL_ARGUMENTS_JSON_ERROR =
   'Tool arguments must be valid JSON. Please escape quotes/newlines inside string values and retry.'
+
+const FS_WRITE_MULTI_ACTION_HINT =
+  'Detected concatenated fs_write payloads with mixed actions. Send one valid JSON object per tool call, and keep exactly one action value per call.'
 
 export class McpManager {
   static readonly TOOL_NAME_DELIMITER = '__' // Delimiter for tool name construction (serverName__toolName)
@@ -545,19 +552,29 @@ export class McpManager {
               if (trimmedArgs.length === 0) {
                 return {}
               }
-              try {
-                const parsed = JSON.parse(trimmedArgs)
-                if (
-                  parsed &&
-                  typeof parsed === 'object' &&
-                  !Array.isArray(parsed)
-                ) {
-                  return parsed as Record<string, unknown>
-                }
-                throw new Error('Tool arguments must be a JSON object.')
-              } catch {
-                throw new Error(INVALID_TOOL_ARGUMENTS_JSON_ERROR)
+              const directParsed = parseJsonObjectText(trimmedArgs)
+              if (directParsed) {
+                return directParsed
               }
+
+              const recoveredObjects = extractTopLevelJsonObjects(trimmedArgs)
+              if (recoveredObjects.length === 1) {
+                return recoveredObjects[0]
+              }
+
+              if (toolName === 'fs_write' && recoveredObjects.length > 1) {
+                const mergedFsWriteArgs =
+                  this.tryMergeRecoveredFsWriteArgs(recoveredObjects)
+                if (mergedFsWriteArgs) {
+                  return mergedFsWriteArgs
+                }
+
+                throw new Error(
+                  `${INVALID_TOOL_ARGUMENTS_JSON_ERROR} ${FS_WRITE_MULTI_ACTION_HINT}`,
+                )
+              }
+
+              throw new Error(INVALID_TOOL_ARGUMENTS_JSON_ERROR)
             })()
           : args
 
@@ -649,6 +666,52 @@ export class McpManager {
       if (id !== undefined) {
         this.activeToolCalls.delete(id)
       }
+    }
+  }
+
+  private tryMergeRecoveredFsWriteArgs(
+    recoveredObjects: Record<string, unknown>[],
+  ): Record<string, unknown> | null {
+    let action: string | null = null
+    const mergedItems: Record<string, unknown>[] = []
+    let dryRun: boolean | undefined
+
+    for (const recovered of recoveredObjects) {
+      const currentAction = recovered.action
+      if (typeof currentAction !== 'string' || currentAction.length === 0) {
+        return null
+      }
+      if (action === null) {
+        action = currentAction
+      } else if (action !== currentAction) {
+        return null
+      }
+
+      const currentItems = recovered.items
+      if (!Array.isArray(currentItems) || currentItems.length === 0) {
+        return null
+      }
+
+      for (const item of currentItems) {
+        if (!item || typeof item !== 'object' || Array.isArray(item)) {
+          return null
+        }
+        mergedItems.push(item as Record<string, unknown>)
+      }
+
+      if (typeof recovered.dryRun === 'boolean') {
+        dryRun = recovered.dryRun
+      }
+    }
+
+    if (!action || mergedItems.length === 0) {
+      return null
+    }
+
+    return {
+      action,
+      items: mergedItems,
+      ...(dryRun === undefined ? {} : { dryRun }),
     }
   }
 

@@ -32,38 +32,7 @@ import {
 
 import { fetchAnnotationTitles } from './fetch-annotation-titles'
 import { PromptGenerator } from './promptGenerator'
-
-const mergeToolCallArguments = ({
-  existingArgs,
-  newArgs,
-}: {
-  existingArgs?: string
-  newArgs?: string
-}): string | undefined => {
-  if (!existingArgs && !newArgs) {
-    return undefined
-  }
-  if (!existingArgs) {
-    return newArgs
-  }
-  if (!newArgs) {
-    return existingArgs
-  }
-  if (existingArgs === newArgs) {
-    return existingArgs
-  }
-
-  // Some providers stream cumulative JSON chunks, while others stream deltas.
-  // Prefer cumulative payload when one chunk is the prefix of the other.
-  if (newArgs.startsWith(existingArgs)) {
-    return newArgs
-  }
-  if (existingArgs.startsWith(newArgs)) {
-    return existingArgs
-  }
-
-  return `${existingArgs}${newArgs}`
-}
+import { mergeStreamingToolArguments } from './tool-arguments'
 
 export type ResponseGeneratorParams = {
   providerClient: BaseLLMProvider<LLMProvider>
@@ -181,8 +150,17 @@ export class ResponseGenerator {
     let toolArgValidationRetryUsed = false
 
     for (let i = 0; i < this.maxAutoIterations; i++) {
-      const { toolCallRequests, assistantHasOutput } =
+      if (this.abortSignal?.aborted) {
+        return
+      }
+
+      const { toolCallRequests, assistantHasOutput, modelTerminated } =
         await this.streamSingleResponse()
+
+      if (modelTerminated) {
+        return
+      }
+
       if (toolCallRequests.length === 0) {
         const shouldRetryGeminiEmptyReply =
           this.model.providerType === 'gemini' &&
@@ -204,7 +182,7 @@ export class ResponseGenerator {
           continue
         }
 
-        return
+        continue
       }
 
       const toolMessage: ChatToolMessage = {
@@ -329,6 +307,7 @@ export class ResponseGenerator {
   private async streamSingleResponse(): Promise<{
     toolCallRequests: ToolCallRequest[]
     assistantHasOutput: boolean
+    modelTerminated: boolean
   }> {
     const availableTools = this.enableTools
       ? await this.mcpManager.listAvailableTools({
@@ -392,6 +371,7 @@ export class ResponseGenerator {
     const runNonStreaming = async (): Promise<{
       toolCallRequests: ToolCallRequest[]
       assistantHasOutput: boolean
+      modelTerminated: boolean
     }> => {
       const response = await this.providerClient.generateResponse(
         effectiveModel,
@@ -485,6 +465,9 @@ export class ResponseGenerator {
           reasoning: response.choices[0]?.message?.reasoning,
           annotations,
         }),
+        modelTerminated: this.isModelTerminationFinishReason(
+          response.choices[0]?.finish_reason,
+        ),
       }
     }
 
@@ -569,6 +552,7 @@ export class ResponseGenerator {
     }
     const responseMessageId = lastMessage.id
     let responseToolCalls: Record<number, ToolCallDelta> = {}
+    let finishReason: string | null = null
     let finalizedState: 'completed' | 'aborted' | null = null
     const finalizeGenerationState = (state: 'completed' | 'aborted'): void => {
       if (finalizedState) return
@@ -620,6 +604,11 @@ export class ResponseGenerator {
         }
         if (timeoutHandle) clearTimeout(timeoutHandle)
         if (!firstResult.done) {
+          const firstChunkFinishReason =
+            firstResult.value.choices[0]?.finish_reason
+          if (firstChunkFinishReason) {
+            finishReason = firstChunkFinishReason
+          }
           const { updatedToolCalls } = this.processChunk(
             firstResult.value,
             responseMessageId,
@@ -630,6 +619,10 @@ export class ResponseGenerator {
         for await (const chunk of {
           [Symbol.asyncIterator]: () => iterator,
         }) {
+          const chunkFinishReason = chunk.choices[0]?.finish_reason
+          if (chunkFinishReason) {
+            finishReason = chunkFinishReason
+          }
           const { updatedToolCalls } = this.processChunk(
             chunk,
             responseMessageId,
@@ -639,6 +632,10 @@ export class ResponseGenerator {
         }
       } else {
         for await (const chunk of responseIterable) {
+          const chunkFinishReason = chunk.choices[0]?.finish_reason
+          if (chunkFinishReason) {
+            finishReason = chunkFinishReason
+          }
           const { updatedToolCalls } = this.processChunk(
             chunk,
             responseMessageId,
@@ -707,7 +704,27 @@ export class ResponseGenerator {
         reasoning: finalizedAssistantMessage?.reasoning,
         annotations: finalizedAssistantMessage?.annotations,
       }),
+      modelTerminated: this.isModelTerminationFinishReason(finishReason),
     }
+  }
+
+  private isModelTerminationFinishReason(
+    finishReason: string | null | undefined,
+  ): boolean {
+    if (!finishReason) {
+      return false
+    }
+
+    const normalized = finishReason.toLowerCase()
+    if (
+      normalized === 'tool_calls' ||
+      normalized === 'tool_call' ||
+      normalized === 'function_call'
+    ) {
+      return false
+    }
+
+    return true
   }
 
   private processChunk(
@@ -832,7 +849,7 @@ export class ResponseGenerator {
 
         mergedToolCall.function = {
           name: merged[index].function?.name ?? toolCall.function?.name,
-          arguments: mergeToolCallArguments({ existingArgs, newArgs }),
+          arguments: mergeStreamingToolArguments({ existingArgs, newArgs }),
         }
       }
 
