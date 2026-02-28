@@ -1,155 +1,159 @@
 <h1 align="center">YOLO</h1>
+<p align="center"><b>You Orchestrate, LLM Operates.</b></p>
+
+<p align="center">
+  Assistente AI native per Obsidian — chat, scrittura, knowledge base e orchestrazione, tutto in un unico posto.
+</p>
+
+<p align="center"><a href="https://github.com/Lapis0x0/obsidian-yolo/stargazers">
+    <img src="https://img.shields.io/github/stars/Lapis0x0/obsidian-yolo?style=flat-square&color=6c5ce7" alt="GitHub Stars">
+  </a>
+  <a href="https://github.com/Lapis0x0/obsidian-yolo/releases/latest">
+    <img src="https://img.shields.io/github/v/release/Lapis0x0/obsidian-yolo?style=flat-square&color=00b894" alt="Latest Release">
+  </a>
+  <a href="https://github.com/Lapis0x0/obsidian-yolo/releases">
+    <img src="https://img.shields.io/github/downloads/Lapis0x0/obsidian-yolo/total?style=flat-square&color=0984e3" alt="Downloads">
+  </a>
+  <a href="https://github.com/Lapis0x0/obsidian-yolo/blob/main/LICENSE">
+    <img src="https://img.shields.io/github/license/Lapis0x0/obsidian-yolo?style=flat-square&color=636e72" alt="License">
+  </a>
+</p>
 
 <p align="center">
   <a href="./README.md">English</a> | <a href="./README_zh-CN.md">简体中文</a> | <b>Italiano</b>
 </p>
 
-<p align="center">
-  <img src="https://img.shields.io/badge/🎉_Ora_Disponibile_su_Obsidian_Community_Plugins-6c5ce7?style=for-the-badge" alt="Now Available on Obsidian" height="35">
-</p>
+---
 
-<p align="center">
-  <a href="https://kilo.ai" target="_blank">
-    <img src="https://img.shields.io/badge/Sponsorizzato_da-Kilo_Code-FF6B6B?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMiAyMkgyMkwxMiAyWiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+" alt="Sponsored by Kilo Code" height="35">
-  </a>
-</p>
+## Highlights
 
-> [!NOTE]
-> **Forse l'assistente AI per Obsidian più flessibile, facile da usare e intelligente?**
+### 🤖 Modalità Agent
 
-**YOLO (You Orchestrate, LLM Operates)** è un assistente intelligente per Obsidian, progettato per l'era degli Agent.
+La modalità Agent di YOLO permette ai LLM di andare oltre le semplici "macchine Q&A" — possono realmente operare sul tuo Vault.
 
-Con YOLO puoi:
+| Tool Calling + MCP | Skills Personalizzati |
+|:--:|:--:|
+| ![Agent Tools](./assets/agenttools.gif) | ![Agent Skills](./assets/agentskills.gif) |
+| Configura liberamente le catene di strumenti per permettere agli Agent di leggere, scrivere, modificare e organizzare i tuoi file direttamente | Incapsula esperienze e SOP in skill riutilizzabili, invoca con una singola frase — lascia che l'Agent funzioni come te |
 
-- 💬 Chattare con gli LLM direttamente nella barra laterale
-- 📚 Utilizzare l'intero vault come base di conoscenza per l'AI
-- ✍️ Richiamare Smart Space per continuare le tue idee ovunque
-- ⚡ Usare Quick Ask per assistenza AI inline istantanea con editing intelligente
-- ⌨️ Usare il completamento Tab per un'esperienza di scrittura fluida con AI
-- 🧩 Abilitare funzionalità sperimentali come Learning Mode e sub-agent per esplorare workflow personalizzati
-- 🎨 Godere di numerosi miglioramenti UX e perfezionamenti dell'interfaccia
+### 🧠 Q&A Knowledge Base
 
-YOLO continuerà ad evolversi verso l'orchestrazione di agent, la gestione di task a lungo termine e la collaborazione multi-modello, con l'obiettivo di diventare il tuo **serio assistente di apprendimento e partner di conoscenza** nell'era dei grandi modelli linguistici.
+![RAG Vault](./assets/ragvault.gif)
 
-## Anteprima delle Funzionalità
-Ecco un'anteprima delle capacità principali di YOLO. Esplora il plugin per maggiori dettagli:
+Trasforma l'intero Vault nella knowledge base dell'AI. Basato su RAG (Retrieval-Augmented Generation), YOLO capisce il contesto dei tuoi appunti e fornisce risposte realmente rilevanti per il tuo sistema di conoscenza — non output generici.
 
-## **💬 Conversazioni nella Barra Laterale**
+### ✍️ Smart Space & Quick Ask
 
-https://github.com/user-attachments/assets/90bbd4f5-b73a-41b4-bf7d-85a5f44659ec
+![Smart Space](./assets/Smartspace.gif)
 
-Conversazioni fluide con gli LLM, con iniezione di contesto, prompt preimpostati, provider personalizzati e parsing/generazione intelligente di Markdown.
+![Quick Ask](./assets/Quickask.gif)
 
-## **🧠 Q&A sulla Base di Conoscenza**
+Due modalità leggere ma potenti per l'assistenza alla scrittura:
 
-https://github.com/user-attachments/assets/cffbada7-4314-4709-bef4-9867b43d6484
+- **Smart Space**: Richiamalo ovunque, continua liberamente il tuo flusso creativo, goditi una generazione di contenuti fluida
+- **Quick Ask**: Attiva tramite carattere (predefinito `@`) per un assistente inline, supporta Q&A, modifica e continuazione — modifica documenti senza interruzioni
 
-## **✍️ Smart Space**
+---
 
-https://github.com/user-attachments/assets/fa2d32dc-51fb-4f19-a3c3-44c2ea7a5fd9
+## Funzionalità
 
-Richiama Smart Space ovunque per una generazione di contenuti naturale, fluida ed efficiente.
+Oltre alle capacità principali sopra descritte, YOLO fornisce anche:
 
-## **⚡ Quick Ask**
-> Le modalità di editing di questa funzionalità richiedono determinate capacità di tool-calling dal modello. Si consiglia di utilizzare i principali modelli di ragionamento.
+| Funzionalità | Descrizione |
+|--------------|-------------|
+| 💬 Chat Sidebar | Conversazione seamless con LLM, iniezione di contesto, prompt preimpostati, parsing smart di Markdown |
+| 🪡 Cursor Chat | Aggiunta contesto con un click, conversazione a portata di mano |
+| ⌨️ Completamento Tab | Completamento AI in tempo reale per una scrittura più fluida e naturale |
+| 🎛️ Supporto Multi-Modello | OpenAI, Claude, Gemini, DeepSeek e altri modelli mainstream, liberamente commutabili |
+| 🌍 i18n | Supporto nativo multi-lingua |
+| 🧩 Funzionalità Sperimentali | Learning Mode, sub-Agents, esplora workflow personalizzati |
 
-https://github.com/user-attachments/assets/5a23e55e-482d-4e03-b564-7eac6814584e
+---
 
-Quick Ask è un assistente inline leggero che puoi richiamare ovunque con un carattere trigger (predefinito: `@`). Offre tre potenti modalità:
+## Quick Start
 
-- **Modalità Domanda** 💬: Partecipa a conversazioni multi-turno e ottieni risposte istantanee
-- **Modalità Modifica** ✏️: Genera modifiche strutturate con anteprima prima dell'applicazione
-- **Modifica (Accesso Completo)** ⚡: Applica le modifiche generate dall'AI direttamente senza conferma
+1. Apri Impostazioni Obsidian → Plugin Community → Browse → Cerca **"YOLO"**
+2. Installa e abilita
+3. Configura la tua API key nelle impostazioni del plugin:
+   - [OpenAI](https://platform.openai.com/api-keys) / [Anthropic](https://console.anthropic.com/settings/keys) / [Gemini](https://aistudio.google.com/apikey) / [Groq](https://console.groq.com/keys)
+4. Apri la sidebar per iniziare a chattare — oppure prova Quick Ask digitando `@` nell'editor
 
-Quick Ask supporta tre tipi di operazioni di modifica:
+---
 
-- **CONTINUE**: Aggiungi contenuto alla fine del documento
-- **REPLACE**: Sostituisci il testo esistente con versioni migliorate
-- **INSERT AFTER**: Inserisci nuovo contenuto dopo un testo specifico
+## Installazione
 
-L'AI sceglie intelligentemente il formato appropriato in base alle tue istruzioni, rendendo l'editing dei documenti fluido ed efficiente.
+### Store Plugin Community (Consigliato)
 
-## **🪡 Cursor Chat**
-
-https://github.com/user-attachments/assets/21b775d7-b427-4da2-b20c-f2ede85c2b69
-
-Aggiungilo con un clic—sempre a portata di mano.
-
-## **⌨️ Completamento Tab**
-
-https://github.com/user-attachments/assets/d19b17c8-92ac-408d-8e98-4403d5341540
-
-Ottieni suggerimenti di completamento AI in tempo reale, rendendo la tua scrittura fluida e naturale.
-
-## **🎛️ Supporto Multi-Modello + i18n**
-
-Supporta più provider (OpenAI, Claude, Gemini, DeepSeek, ecc.) con cambio lingua i18n nativo.
-
-## Per Iniziare
-
-> [!WARNING]
-> YOLO non può coesistere con [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer). Si prega di disabilitare o disinstallare Smart Composer prima di usare YOLO.
-
-### Installazione dallo Store dei Plugin della Community (Consigliato)
-
-1. Apri Impostazioni di Obsidian → Plugin della community
-2. Clicca "Sfoglia" e cerca "YOLO"
-3. Clicca "Installa" e poi "Abilita"
-4. Configura la tua chiave API nelle impostazioni del plugin
-   - OpenAI : [Chiavi API ChatGPT](https://platform.openai.com/api-keys)
-   - Anthropic : [Chiavi API Claude](https://console.anthropic.com/settings/keys)
-   - Gemini : [Chiavi API Gemini](https://aistudio.google.com/apikey)
-   - Groq : [Chiavi API Groq](https://console.groq.com/keys)
+Vedi Quick Start sopra.
 
 ### Installazione Manuale
 
-In alternativa, puoi installare YOLO manualmente:
+1. Vai su [Releases](https://github.com/Lapis0x0/obsidian-yolo/releases) e scarica l'ultima versione di `main.js`, `manifest.json`, `styles.css`
+2. Crea la cartella: `<vault>/.obsidian/plugins/obsidian-yolo/`
+3. Copia i file in quella cartella, poi abilita il plugin nelle Impostazioni di Obsidian
 
-1. Vai alla pagina [Releases](https://github.com/Lapis0x0/obsidian-yolo/releases)
-2. Scarica `main.js`, `manifest.json` e `styles.css` dall'ultima release
-3. Crea una cartella chiamata `obsidian-yolo` nella directory dei plugin del tuo vault: `<vault>/.obsidian/plugins/obsidian-yolo/`
-4. Copia i file scaricati in questa cartella
-5. Apri Impostazioni di Obsidian → Plugin della community
-6. Abilita "YOLO" nella lista dei plugin
-7. Configura la tua chiave API nelle impostazioni del plugin
+> [!WARNING]
+> YOLO non può coesistere con [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer). Disabilita o disinstalla Smart Composer prima di usare YOLO.
 
-Per informazioni più dettagliate, consulta la [documentazione](./DOC/DOC_en/01-basic-introduction.md)
+---
+
+## Roadmap
+
+- [ ] Ricerca Vault AI migliore e più forte
+- [ ] Agent in Background (automazione task lunghi)
+- [ ] Task programmati Cron
+- [ ] Orchestrazione Multi-Agent
+- [ ] Learning Mode
+- [ ] Lavagna AI migliore
+
+---
 
 ## Contribuire
 
-Accogliamo con piacere tutti i tipi di contributi a YOLO, inclusi segnalazioni di bug, correzioni di bug, miglioramenti della documentazione e miglioramenti delle funzionalità.
+Sono benvenuti tutti i tipi di contributo — segnalazioni bug, miglioramenti documentazione, miglioramenti funzionalità.
 
-**Per idee di funzionalità importanti, si prega di creare prima un issue per discutere la fattibilità e l'approccio di implementazione.**
+**Per funzionalità maggiori, apri prima una issue per discutere fattibilità e implementazione.**
 
-Se sei interessato a contribuire, consulta il nostro file [CONTRIBUTING.md](CONTRIBUTING.md) per informazioni dettagliate su:
+---
 
-- Configurazione dell'ambiente di sviluppo
-- Il nostro workflow di sviluppo
-- Lavorare con lo schema del database
-- Il processo per inviare pull request
-- Problemi noti e soluzioni per gli sviluppatori
+## Riconoscimenti
 
+Grazie a [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer) per il lavoro originale — senza di loro, YOLO non esisterebbe.
 
-## Ringraziamenti
+Ringraziamenti speciali a [Kilo Code](https://kilo.ai) per il loro sponsorship. Kilo è una piattaforma open-source di assistenti AI con 500+ modelli AI, che aiuta gli sviluppatori a costruire e iterare più velocemente.
 
-Grazie al team originale di [Smart Composer](https://github.com/glowingjade/obsidian-smart-composer), senza di loro non esisterebbe YOLO.
+<p align="center">
+  <a href="https://kilo.ai" target="_blank">
+    <img src="https://img.shields.io/badge/Sponsored_by-Kilo_Code-FF6B6B?style=for-the-badge" alt="Sponsored by Kilo Code" height="30">
+  </a>
+</p>
 
-Un ringraziamento speciale a [Kilo Code](https://kilo.ai) per il loro supporto come sponsor. Kilo è una piattaforma open-source di ingegneria agente che aiuta gli sviluppatori a costruire, distribuire e iterare più velocemente con oltre 500 modelli AI su VS Code, JetBrains, CLI e altro.
+---
+
+## Supporto
+
+Se trovi YOLO utile, considera di supportare il progetto:
+
+<p align="center">
+  <a href="https://afdian.com/a/lapis0x0" target="_blank">
+    <img src="https://img.shields.io/badge/爱发电-Support Developer-fd6c9e?style=for-the-badge" alt="爱发电">
+  </a>
+  &nbsp;
+  <a href="https://github.com/Lapis0x0/obsidian-yolo/blob/main/donation-qr.jpg" target="_blank">
+    <img src="https://img.shields.io/badge/WeChat/Alipay-Donation QR-00D924?style=for-the-badge" alt="WeChat/Alipay Donation QR">
+  </a>
+</p>
+
+I log di sviluppo sono regolarmente aggiornati sul [blog](https://www.lapis.cafe).
+
+---
 
 ## Licenza
 
-Questo progetto è concesso in licenza sotto la [Licenza MIT](LICENSE).
+[MIT License](LICENSE)
 
-## Supporta il Progetto
+---
 
-Se trovi YOLO utile, considera di supportare il suo sviluppo:
+## Star History
 
-<p align="center"> <a href="https://afdian.com/a/lapis0x0" target="_blank"> <img src="https://img.shields.io/badge/爱发电-Supporta lo sviluppatore-fd6c9e?style=for-the-badge&logo=afdian" alt="爱发电"> </a> &nbsp; <a href="https://github.com/Lapis0x0/obsidian-yolo/blob/main/donation-qr.jpg" target="_blank"> <img src="https://img.shields.io/badge/WeChat/Alipay-Codice donazione-00D924?style=for-the-badge" alt="Codice donazione WeChat/Alipay"> </a> </p>
-
-Aggiorno regolarmente i log di sviluppo sul mio [blog](https://www.lapis.cafe).
-
-Il tuo supporto aiuta a mantenere e migliorare questo plugin. Ogni contributo è apprezzato e fa la differenza. Grazie per il tuo supporto!
-
-## Cronologia delle Stelle
-
-[![Star History Chart](https://api.star-history.com/svg?repos=Lapis0x0/obsidian-yolo&type=Date)](https://star-history.com/#Lapis0x0/obsidian-yolo&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=Lapis0x0/obsidian-yolo&type=Date)](https://star-history.com/#Lapis0x0/obsidian-yolo&Type=Date)
