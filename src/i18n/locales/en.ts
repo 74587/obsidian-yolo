@@ -2406,6 +2406,7 @@ export const en: TranslationKeys = {
     repairAndReload: 'Repair and reload',
     downloadUpdate: 'Download update',
     downloading: 'Downloading {{progress}}%',
+    backgroundDownloading: 'Downloading in background…',
     installAndReload: 'Install and reload',
     applying: 'Installing…',
     downloadFailed: 'Download failed',

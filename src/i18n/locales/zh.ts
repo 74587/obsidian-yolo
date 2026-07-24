@@ -2251,6 +2251,7 @@ export const zh: TranslationKeys = {
     repairAndReload: '修复并重启',
     downloadUpdate: '下载更新',
     downloading: '下载中 {{progress}}%',
+    backgroundDownloading: '正在后台下载…',
     installAndReload: '安装并重启',
     applying: '正在安装…',
     downloadFailed: '下载失败',

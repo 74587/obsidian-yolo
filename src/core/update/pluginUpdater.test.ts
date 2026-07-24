@@ -234,6 +234,54 @@ describe('signed update downloads', () => {
       jest.useRealTimers()
     }
   })
+
+  it('allows 90 seconds for main.js before falling back to GitHub', async () => {
+    jest.useFakeTimers()
+    try {
+      const adapter = new MockAdapter()
+      const bytes = new TextEncoder().encode('main')
+      let notifyPagesStarted!: () => void
+      const pagesStarted = new Promise<void>((resolve) => {
+        notifyPagesStarted = resolve
+      })
+      mockedRequestUrl.mockImplementation((request) => {
+        const url = typeof request === 'string' ? request : request.url
+        if (url.startsWith('https://updates.')) {
+          notifyPagesStarted()
+          return new Promise(() => undefined) as never
+        }
+        return Promise.resolve({
+          status: 200,
+          headers: {},
+          text: 'main',
+          arrayBuffer: bytes.slice().buffer,
+          json: null,
+        }) as never
+      })
+      const asset = {
+        url: 'https://github.com/main.js',
+        mirrorUrl: 'https://updates.yoloapp.dev/main.js',
+        size: bytes.byteLength,
+      }
+
+      const downloading = downloadRepairFilesToStaging({
+        adapter: adapter as unknown as DataAdapter,
+        pluginDir: MOCK_PLUGIN_DIR,
+        version: '1.7.0',
+        assets: { mainJs: asset, manifestJson: asset, stylesCss: asset },
+        files: [RELEASE_FILE_NAMES.mainJs],
+      })
+      await pagesStarted
+      await jest.advanceTimersByTimeAsync(30_000)
+      expect(mockedRequestUrl).toHaveBeenCalledTimes(1)
+
+      await jest.advanceTimersByTimeAsync(60_000)
+      await expect(downloading).resolves.toBeUndefined()
+      expect(mockedRequestUrl).toHaveBeenCalledTimes(2)
+    } finally {
+      jest.useRealTimers()
+    }
+  })
 })
 
 describe('getStagingStatus', () => {

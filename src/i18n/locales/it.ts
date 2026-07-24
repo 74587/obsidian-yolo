@@ -2217,6 +2217,7 @@ export const it: DeepPartial<TranslationKeys> = {
     repairAndReload: 'Ripara e ricarica',
     downloadUpdate: 'Scarica aggiornamento',
     downloading: 'Download {{progress}}%',
+    backgroundDownloading: 'Download in background…',
     installAndReload: 'Installa e ricarica',
     applying: 'Installazione…',
     downloadFailed: 'Download non riuscito',

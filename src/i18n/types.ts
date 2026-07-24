@@ -2072,6 +2072,7 @@ export type TranslationKeys = {
     repairAndReload: string
     downloadUpdate: string
     downloading: string
+    backgroundDownloading: string
     installAndReload: string
     applying: string
     downloadFailed: string

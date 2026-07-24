@@ -23,6 +23,7 @@ import {
 const STAGING_ROOT = '.yolo-update-staging'
 const REPAIR_META_FILE = 'repair-meta.json'
 const UPDATE_SOURCE_TIMEOUT_MS = 30_000
+const UPDATE_MAIN_JS_SOURCE_TIMEOUT_MS = 90_000
 
 const RELEASE_FILES = {
   mainJs: RELEASE_FILE_NAMES.mainJs,
@@ -277,6 +278,7 @@ export async function clearStagingRoot(
 
 async function downloadAsset(
   asset: ReleaseAssets[keyof ReleaseAssets],
+  timeoutMs = UPDATE_SOURCE_TIMEOUT_MS,
 ): Promise<ArrayBuffer> {
   let lastError: unknown
   for (const url of [asset.mirrorUrl, asset.url].filter(
@@ -285,7 +287,7 @@ async function downloadAsset(
     try {
       const response = await withTimeout(
         requestUrl({ url, method: 'GET', throw: false }),
-        UPDATE_SOURCE_TIMEOUT_MS,
+        timeoutMs,
       )
       if (response.status < 200 || response.status >= 300) {
         throw new Error(`Download failed (${response.status})`)
@@ -360,7 +362,10 @@ export async function downloadReleaseToStaging(params: {
 
   try {
     onProgress?.(0)
-    const mainBuffer = await downloadAsset(assets.mainJs)
+    const mainBuffer = await downloadAsset(
+      assets.mainJs,
+      UPDATE_MAIN_JS_SOURCE_TIMEOUT_MS,
+    )
     await adapter.writeBinary(
       normalizePath(`${stagingDir}/${RELEASE_FILES.mainJs}`),
       mainBuffer,
@@ -430,7 +435,10 @@ export async function downloadRepairFilesToStaging(params: {
       const fileName = uniqueFiles[index]
       const asset = assetForFile(assets, fileName)
       if (fileName === RELEASE_FILE_NAMES.mainJs) {
-        const mainBuffer = await downloadAsset(asset)
+        const mainBuffer = await downloadAsset(
+          asset,
+          UPDATE_MAIN_JS_SOURCE_TIMEOUT_MS,
+        )
         await adapter.writeBinary(
           normalizePath(`${stagingDir}/${fileName}`),
           mainBuffer,
